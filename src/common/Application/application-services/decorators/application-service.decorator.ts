@@ -6,7 +6,7 @@ import { IApplicationService } from "../application-service.interface"
 export abstract class ApplicationServiceDecorator<D, R> implements IApplicationService<D, R>
 {
 
-    private applicationService: IApplicationService<D, R>
+    protected applicationService: IApplicationService<D, R>
 
     constructor ( applicationService: IApplicationService<D, R> )
     {

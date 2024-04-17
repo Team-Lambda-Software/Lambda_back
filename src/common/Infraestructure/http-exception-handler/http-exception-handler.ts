@@ -5,7 +5,7 @@ import {
     ForbiddenException,
   } from '@nestjs/common';
   
-  export class HttpResponseHandler {
+  export class HttpExceptionHandler {
   
     static HandleException(status: number, msg: string, error?: any) {
       switch (status) {
