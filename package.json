@@ -6,6 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "db": "cd databases/lambda_postgres && docker-compose up -d && cd .. && cd ..",
+    "db:down": "cd databases/lambda_postgres && docker-compose down && cd .. && cd ..",
+    "db:reset": "cd databases/lambda_postgres && docker-compose down -v && docker-compose up -d && cd .. && cd ..",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
