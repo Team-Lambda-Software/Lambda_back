@@ -13,6 +13,11 @@ export abstract class ApplicationServiceDecorator<D, R> implements IApplicationS
         this.applicationService = applicationService
     }
 
+    get name (): string
+    {
+        return this.applicationService.name
+    }
+
     execute ( data: D ): Promise<Result<R>>
     {
         return this.applicationService.execute( data )

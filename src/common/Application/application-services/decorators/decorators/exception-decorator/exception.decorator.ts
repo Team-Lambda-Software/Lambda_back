@@ -14,7 +14,6 @@ export class ExceptionDecorator<D,R> extends ApplicationServiceDecorator <D,R>{
     async execute ( data: D ): Promise<Result<R>>
     {
         const result = await this.applicationService.execute(data)
-
         if (result.isSuccess())
             return result
         HttpExceptionHandler.HandleException(result.StatusCode, result.Message, result.Error)
