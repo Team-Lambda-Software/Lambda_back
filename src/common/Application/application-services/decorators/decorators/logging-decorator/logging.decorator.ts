@@ -3,10 +3,11 @@ import { IApplicationService } from "../../../application-service.interface"
 import { ApplicationServiceDecorator } from "../../application-service.decorator"
 import { ILogger } from "src/common/Application/logger/logger.interface"
 import { LoggerDto } from "src/common/Application/logger/dto/logs.dto"
+import { ApplicationServiceEntryDto } from "../../../dto/application-service-entry.dto"
 
 
 
-export class LoggingDecorator<D, R> extends ApplicationServiceDecorator<D, R>
+export class LoggingDecorator<D extends ApplicationServiceEntryDto, R> extends ApplicationServiceDecorator<D, R>
 {
 
     private readonly logger: ILogger;
@@ -21,7 +22,8 @@ export class LoggingDecorator<D, R> extends ApplicationServiceDecorator<D, R>
     {
         const result = await super.execute( data )
         const toLog: LoggerDto = {
-            data: data,
+            userId: data.userId,
+            data: JSON.stringify(data),
             name: this.name
         }
         if (result.isSuccess())

@@ -3,8 +3,8 @@
 
 export interface LoggerDto {
 
-    // should have the userId(?
+    userId: string
     name: string
-    data: any
+    data: string
 
 }

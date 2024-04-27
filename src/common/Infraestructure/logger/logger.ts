@@ -14,12 +14,12 @@ export class NativeLogger implements ILogger
     }
     SuccessLog ( logData: LoggerDto ): void
     {
-        this.logger.log( `Execution of: ${logData.name} successful, with data ${JSON.stringify(logData.data)}` )
+        this.logger.log( `Execution of: ${logData.name} successful, made by user ${logData.userId} with data ${logData.data}` )
     }
 
     FailLog ( logData: LoggerDto ): void
     {
-        this.logger.error( `Execution of: ${logData.name} failed, with data ${JSON.stringify(logData.data)}` )
+        this.logger.error( `Execution of: ${logData.name} failed, made by user ${logData.userId} with data ${logData.data}` )
     }
 
 }

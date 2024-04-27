@@ -12,10 +12,10 @@ export class TestController {
 
     private readonly logger: Logger = new Logger( "TestController" )
     @Get('testLogs')
-    async testLogs ( @Body() data: {name:string, price:number} )
+    async testLogs ( @Body() data: {name:string, price:number, userId: string} )
     {
         //the object in the body and in the generic should be a dto
-        const testService: IApplicationService<{name:string, price:number}, string> = new ExceptionDecorator(new LoggingDecorator(new TestService(), new NativeLogger(this.logger)))
+        const testService: IApplicationService<{name:string, price:number, userId: string}, string> = new ExceptionDecorator(new LoggingDecorator(new TestService(), new NativeLogger(this.logger)))
         const result = await testService.execute(data)
         return result.Value
     }
