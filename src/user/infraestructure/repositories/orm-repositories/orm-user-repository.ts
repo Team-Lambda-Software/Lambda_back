@@ -17,6 +17,16 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         this.ormUserMapper = ormUserMapper
     }
 
+    async findUserById ( id: string ): Promise<Result<User>>
+    {
+        const user = await this.findOneBy( {id} )
+        if ( user )
+        {
+            return Result.success<User>( await this.ormUserMapper.fromPersistenceToDomain( user ), 200 )
+        }
+        return Result.fail<User>( new Error( 'User not found' ), 404, 'User not found')
+    }
+
     async saveUserAggregate ( user: User ): Promise<Result<User>>
     {
         try
