@@ -16,21 +16,13 @@ import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 export class UserController {
 
     private readonly userRepository: OrmUserRepository
-    //this will be made in the services, but for tests purposes we will use it here
-    private readonly uuidGenerator: IdGenerator<string>
+
 
     private readonly logger: Logger = new Logger( "UserController" )
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
         
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
-        this.uuidGenerator = new UuidGenerator()
 
-    }
-
-    @Post()
-    async saveUser() {
-        const user = User.create(await this.uuidGenerator.generateId(), 'name', 'lastname', 'lastname', 'email', 'password')
-        return await this.userRepository.saveUserAggregate(user)
     }
 
     @Get(':id')
