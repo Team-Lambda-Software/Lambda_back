@@ -2,9 +2,9 @@
 
 export abstract class Entity <T> {
 
-    private id: T
+    id: T
 
-    protected constructor (id: T) {
+    constructor (id: T) {
         this.id = id
     }
 
