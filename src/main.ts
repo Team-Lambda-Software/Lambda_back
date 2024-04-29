@@ -8,6 +8,7 @@ async function bootstrap() {
   } else {
     console.log(' > .env found it')
   }
-  await app.listen(process.env.PORT || 7001);
+  await app.listen(process.env.PORT || 3000);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

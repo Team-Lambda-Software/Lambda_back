@@ -6,6 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "db": "cd databases/lambda_postgres && docker-compose up -d && cd .. && cd ..",
+    "db:down": "cd databases/lambda_postgres && docker-compose down && cd .. && cd ..",
+    "db:reset": "cd databases/lambda_postgres && docker-compose down -v && docker-compose up -d && cd .. && cd ..",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -24,8 +27,13 @@
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.2",
+    "@types/uuid": "^9.0.8",
+    "pg": "^8.11.5",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
