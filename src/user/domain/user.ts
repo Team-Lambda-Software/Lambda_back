@@ -5,22 +5,36 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface"
 export class User extends Entity<string>
 {
 
-    private name: string
+    private firstName: string
+    private firstLastName: string
+    private secondLastName: string
     private email: string
     private password: string
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, name: string, email: string, password: string )
+    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string )
     {
         super( id )
-        this.name = name
+        this.firstName = firstName
+        this.firstLastName = firstLastname
+        this.secondLastName = secondLastName
         this.email = email
         this.password = password
     }
 
-    get Name (): string
+    get FirstName (): string
     {
-        return this.name
+        return this.firstName
+    }
+
+    get FirstLastName (): string
+    {
+        return this.firstLastName
+    }
+
+    get SecondLastName (): string
+    {
+        return this.secondLastName
     }
 
     get Email (): string
@@ -33,14 +47,24 @@ export class User extends Entity<string>
         return this.password
     }
 
-    static create ( id: string, name: string, email: string, password: string ): User
+    static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string ): User
     {
-        return new User( id, name, email, password )
+        return new User( id, firstName, firstLastname, secondLastName, email, password )
     }
 
-    public updateName ( name: string ): void
+    public updateFirstName ( firstName: string ): void
     {
-        this.name = name
+        this.firstName = firstName
+    }
+
+    public updateFirstLastName ( firstLastName: string ): void
+    {
+        this.firstLastName = firstLastName
+    }
+
+    public updateSecondLastName ( secondLastName: string ): void
+    {
+        this.secondLastName = secondLastName
     }
 
     public updateEmail ( email: string ): void
