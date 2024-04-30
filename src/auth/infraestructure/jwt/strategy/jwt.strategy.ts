@@ -7,9 +7,10 @@ import { Strategy } from "passport-local";
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor() {
         super({
+            global: true,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: 'rakata2828'
+            secretOrKey: process.env.JWT_SECRET_KEY || 'rakata'
         })
     }
 }

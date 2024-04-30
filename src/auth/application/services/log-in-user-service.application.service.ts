@@ -23,14 +23,15 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
     
     async execute(logInDto: LogInEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail( logInDto.email )
-        if ( !findResult.isSuccess ) {
+        if ( !findResult.isSuccess() ) {
             return Result.fail(
                 new Error('Correo electrónico no registrado'),
                 500,
                 'Correo electrónico no registrado'
             )
         }
-        const userResult = findResult.Value
+        const userResult = await findResult.Value
+        
         const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.Password)
         if (!checkPassword) {
             return Result.fail(

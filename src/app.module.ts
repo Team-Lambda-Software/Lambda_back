@@ -5,6 +5,7 @@ import { ormDatabaseProvider } from './common/Infraestructure/providers/db-provi
 import { UserController } from './user/infraestructure/controller/user.controller'
 import { AuthController } from './auth/infraestructure/controller/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
 
 // TO-DO: process.env.JWT_SECRET_KEY
 
@@ -12,8 +13,8 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     ConfigModule.forRoot(),
     JwtModule.register({
-      secret: 'rakata2828',
-      signOptions: {expiresIn: '24h'}
+      secret: process.env.JWT_SECRET_KEY || 'rakata',
+      signOptions: { }
     }),
   ],
   controllers: [
@@ -21,9 +22,9 @@ import { JwtModule } from '@nestjs/jwt';
     UserController,
     AuthController
   ],
-  providers: [ 
-    
-    ormDatabaseProvider
+  providers: [     
+    ormDatabaseProvider,
+    JwtStrategy
   ],
 })
 export class AppModule {}

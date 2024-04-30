@@ -3,9 +3,8 @@ import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.inte
 
 export class JwtGenerator implements IJwtGenerator<string> {
     private readonly jwtService: JwtService
-    
-    constructor() { 
-        this.jwtService = new JwtService()
+    constructor(jwt: JwtService) { 
+        this.jwtService = jwt
     }
     
     generateJwt(param: string): string {

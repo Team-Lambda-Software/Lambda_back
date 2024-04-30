@@ -21,6 +21,7 @@ import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
 import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
+import { JwtService } from "@nestjs/jwt";
 
 @Controller('auth')
 export class AuthController {
@@ -30,10 +31,13 @@ export class AuthController {
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
   
-    constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+    constructor(
+        @Inject('DataSource') private readonly dataSource: DataSource,
+        private jwtAuthService: JwtService
+    ) {
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
         this.uuidGenerator = new UuidGenerator()
-        this.tokenGenerator = new JwtGenerator()
+        this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
     }
 

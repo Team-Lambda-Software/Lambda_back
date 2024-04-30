@@ -7,6 +7,6 @@ export class EncryptorBcrypt implements IEncryptor {
         return bcrypt.hash(planePassword, 10)
     }
     async comparePlaneAndHash(planePassword: string, hashPassword: string): Promise<boolean> {
-        throw bcrypt.compare(planePassword, hashPassword)
+        return bcrypt.compare(planePassword, hashPassword)
     }
 }
