@@ -8,9 +8,6 @@ WORKDIR /home/node
 
 COPY . .
 
-COPY ./.env.production ./.env
-
-
 
 RUN npm ci \
     && npm run build \
