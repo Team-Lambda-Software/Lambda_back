@@ -6,8 +6,7 @@ ENV NODE_ENV build
 
 WORKDIR /home/node
 
-
-COPY . /home/node
+COPY . .
 
 
 RUN npm ci \
@@ -24,9 +23,11 @@ FROM node:21.7-alpine3.19
 ENV NODE_ENV production
 
 
+
 USER node
 WORKDIR /home/node
 
+EXPOSE 3000
 
 COPY --from=builder /home/node/package*.json /home/node/
 COPY --from=builder /home/node/node_modules/ /home/node/node_modules/
