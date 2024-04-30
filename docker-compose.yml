@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  devcontainer:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached      
+    ports:
+      - "${PORT}:3000"
+    restart: on-failure
+    environment:
+      PORT: 3000
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+
+    depends_on:
+      - db
+    container_name: lambda_devcontainer
+    networks:
+      - lambda-network
+
+  db:
+    image: postgres:14.3
+    restart: always
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    container_name: lambda_database
+    networks:
+      - lambda-network
+    volumes:
+      - ../../postgres:/var/lib/postgresql/data
+
+networks:
+  lambda-network:
+    driver: bridge
