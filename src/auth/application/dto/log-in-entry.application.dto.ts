@@ -2,5 +2,6 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 
 export class LogInEntryApplicationDto implements ApplicationServiceEntryDto {
     userId: string
-
+    email: string
+    password: string  
 }

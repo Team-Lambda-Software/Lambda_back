@@ -2,5 +2,9 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 
 export class SignUpEntryApplicationDto implements ApplicationServiceEntryDto {
     userId: string
-
+    email: string
+    password: string  
+    firstName: string
+    firstLastName: string
+    secondLastName: string  
 }
