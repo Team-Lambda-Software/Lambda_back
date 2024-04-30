@@ -25,18 +25,18 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
         const findResult = await this.userRepository.findUserByEmail( logInDto.email )
         if ( !findResult.isSuccess ) {
             return Result.fail(
-                new Error('Correo electrónico ya registrado'),
+                new Error('Correo electrónico no registrado'),
                 500,
-                'Correo electrónico ya registrado'
+                'Correo electrónico no registrado'
             )
         }
         const userResult = findResult.Value
         const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.Password)
         if (!checkPassword) {
             return Result.fail(
-                new Error('Contraseña inválida'),
+                new Error('Contraseña incorrecta'),
                 500,
-                'Contraseña inválida'
+                'Contraseña incorrecta'
             )
         }      
         const token = this.tokenGenerator.generateJwt( logInDto.email )   

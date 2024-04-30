@@ -28,7 +28,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     
     async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail( signUpDto.email )
-        if ( !findResult.isSuccess ) {
+        if ( findResult.isSuccess ) {
             return Result.fail(
                 new Error('Correo electrónico ya registrado'),
                 500,
