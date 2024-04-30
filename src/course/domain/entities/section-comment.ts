@@ -3,7 +3,7 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface"
 
 
 
-export class CourseComment extends Entity<string>
+export class SectionComment extends Entity<string>
 {
 
     private userId: string
@@ -32,9 +32,9 @@ export class CourseComment extends Entity<string>
 
     }
 
-    static create ( id: string, userId: string, text: string ): CourseComment
+    static create ( id: string, userId: string, text: string ): SectionComment
     {
-        return new CourseComment( id, userId, text, new Date() )
+        return new SectionComment( id, userId, text, new Date() )
     }
 
 }

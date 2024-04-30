@@ -1,5 +1,6 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Section } from "./entities/section"
+import { Image } from "./entities/compose-fields/image"
 
 
 
@@ -15,8 +16,9 @@ export class Course extends Entity<string>
     private level: number
     private categoryId: string
     private sections: Section[]
+    private image: Image
 
-    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string )
+    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: Image )
     {
         super( id )
         this.trainerId = trainerId
@@ -27,6 +29,7 @@ export class Course extends Entity<string>
         this.level = level
         this.sections = sections
         this.categoryId = categoryId
+        this.image = image
         this.ensureValidState()
     }
 
@@ -54,11 +57,15 @@ export class Course extends Entity<string>
         if ( !this.categoryId )
             throw new Error( "Course must have a category" )
 
+        // si hacemos la imagen opcional o no ya lo veremos
+        if ( !this.image )
+            throw new Error( "Course must have an image" )
+
     }
 
-    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string ): Course
+    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: Image ): Course
     {
-        return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections, categoryId )
+        return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image )
     }
 
 }

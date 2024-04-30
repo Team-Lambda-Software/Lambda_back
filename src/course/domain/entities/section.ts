@@ -2,7 +2,7 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Video } from "./compose-fields/video"
 import { Image } from "./compose-fields/image"
 import { Paragraph } from './compose-fields/paragraph'
-import { CourseComment } from "./course-comment"
+import { SectionComment } from "./section-comment"
 
 
 
@@ -13,17 +13,17 @@ export class Section extends Entity<string>
     private description: string
     private videos?: Video[]
     private images?: Image[]
-    private paragraphs?: Paragraph[]
-    private comments: CourseComment[] = []
+    private paragraph: Paragraph
+    private comments: SectionComment[] = []
 
-    protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraphs?: Paragraph[] )
+    protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph )
     {
         super( id )
         this.name = name
         this.description = description
         this.videos = videos
         this.images = images
-        this.paragraphs = paragraphs
+        this.paragraph = paragraph
         this.ensureValidState()
     }
 
@@ -47,12 +47,12 @@ export class Section extends Entity<string>
         return this.images
     }
 
-    get Paragraphs (): Paragraph[]
+    get Paragraph (): Paragraph
     {
-        return this.paragraphs
+        return this.paragraph
     }
 
-    get Comments (): CourseComment[]
+    get Comments (): SectionComment[]
     {
         return this.comments
     }
@@ -64,14 +64,14 @@ export class Section extends Entity<string>
 
     }
 
-    addComment ( comment: CourseComment ): void
+    addComment ( comment: SectionComment ): void
     {
         this.comments.push( comment )
     }
 
-    static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraphs?: Paragraph[] ): Section
+    static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph ): Section
     {
-        return new Section( id, name, description, videos, images, paragraphs )
+        return new Section( id, name, description, videos, images, paragraph )
     }
 
 
