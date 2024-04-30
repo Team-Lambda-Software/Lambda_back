@@ -2,7 +2,7 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Video } from "./compose-fields/video"
 import { Image } from "./compose-fields/image"
 import { Paragraph } from './compose-fields/paragraph'
-import { Comment } from "./comment"
+import { CourseComment } from "./course-comment"
 
 
 
@@ -14,7 +14,7 @@ export class Section extends Entity<string>
     private videos?: Video[]
     private images?: Image[]
     private paragraphs?: Paragraph[]
-    private comments: Comment[] = []
+    private comments: CourseComment[] = []
 
     protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraphs?: Paragraph[] )
     {
@@ -52,7 +52,7 @@ export class Section extends Entity<string>
         return this.paragraphs
     }
 
-    get Comments (): Comment[]
+    get Comments (): CourseComment[]
     {
         return this.comments
     }
@@ -64,7 +64,7 @@ export class Section extends Entity<string>
 
     }
 
-    addComment ( comment: Comment ): void
+    addComment ( comment: CourseComment ): void
     {
         this.comments.push( comment )
     }
