@@ -13,9 +13,10 @@ export class Course extends Entity<string>
     private weeksDuration: number
     private minutesPerSection: number //esto es lo que significa el tiempo que aparece en el figma?
     private level: number
+    private categoryId: string
     private sections: Section[]
 
-    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[] )
+    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string )
     {
         super( id )
         this.trainerId = trainerId
@@ -25,6 +26,7 @@ export class Course extends Entity<string>
         this.minutesPerSection = minutesPerSection
         this.level = level
         this.sections = sections
+        this.categoryId = categoryId
         this.ensureValidState()
     }
 
@@ -49,11 +51,14 @@ export class Course extends Entity<string>
         if ( !this.sections || this.sections.length < 1 )
             throw new Error( "Course must have at least one section" )
 
+        if ( !this.categoryId )
+            throw new Error( "Course must have a category" )
+
     }
 
-    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[] ): Course
+    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string ): Course
     {
-        return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections )
+        return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections, categoryId )
     }
 
 }
