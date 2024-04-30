@@ -6,6 +6,7 @@ jobs:
   build-container:
     name: Build Docker Image
     runs-on: ubuntu-latest
+    enviroment: production
     steps:
       - name: Checkout code 
         uses: actions/checkout@v3
