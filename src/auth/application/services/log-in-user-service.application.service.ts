@@ -5,7 +5,7 @@ import { IUserRepository } from "src/user/domain/repositories/user-repository.in
 import { IJwtGenerator } from "../interface/jwt-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
 
-export class LogInApplicationService implements IApplicationService<LogInEntryApplicationDto, any> { 
+export class LogInUserApplicationService implements IApplicationService<LogInEntryApplicationDto, any> { 
     
     private readonly userRepository: IUserRepository
     private readonly tokenGenerator: IJwtGenerator<string>;

@@ -4,13 +4,11 @@ import { SignUpEntryInfrastructureDto } from "../dto/sign-up-entry.infrastructur
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { LogInApplicationService } from "src/auth/application/services/log-in-service.application.service";
 import { Logger } from "@nestjs/common";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
-import { SignUpApplicationService } from "src/auth/application/services/sign-up-service.application.service";
 import { Body } from "@nestjs/common";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
@@ -21,6 +19,8 @@ import { SignUpEntryApplicationDto } from "src/auth/application/dto/sign-up-entr
 import { LogInEntryApplicationDto } from "src/auth/application/dto/log-in-entry.application.dto";
 import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
+import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
+import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 
 @Controller('auth')
 export class AuthController {
@@ -45,7 +45,7 @@ export class AuthController {
         }
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new LogInApplicationService(
+                new LogInUserApplicationService(
                     this.userRepository,
                     this.tokenGenerator,
                     this.encryptor
@@ -64,7 +64,7 @@ export class AuthController {
         }
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new SignUpApplicationService(
+                new SignUpUserApplicationService(
                     this.userRepository,
                     this.uuidGenerator,
                     this.tokenGenerator,

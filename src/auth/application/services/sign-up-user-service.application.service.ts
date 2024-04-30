@@ -7,7 +7,7 @@ import { IdGenerator } from "src/common/Application/Id-generator/id-generator.in
 import { IJwtGenerator } from "../interface/jwt-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
 
-export class SignUpApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
+export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
     
     private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
