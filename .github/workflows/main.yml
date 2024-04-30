@@ -20,4 +20,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: samuelalonso939/lambda_back:lastest, samuelalonso939/lambda_back:${{ github.run_number }}
+          tags: samuelalonso939/lambda_back:latest, samuelalonso939/lambda_back:${{ github.run_number }}
