@@ -2,6 +2,7 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Video } from "./compose-fields/video"
 import { Image } from "./compose-fields/image"
 import { Paragraph } from './compose-fields/paragraph'
+import { Comment } from "./comment"
 
 
 
@@ -13,6 +14,7 @@ export class Section extends Entity<string>
     private videos?: Video[]
     private images?: Image[]
     private paragraphs?: Paragraph[]
+    private comments: Comment[] = []
 
     protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraphs?: Paragraph[] )
     {
@@ -50,11 +52,21 @@ export class Section extends Entity<string>
         return this.paragraphs
     }
 
+    get Comments (): Comment[]
+    {
+        return this.comments
+    }
+
     protected ensureValidState (): void
     {
         if ( !this.name )
             throw new Error( "Section must have a name" )
 
+    }
+
+    addComment ( comment: Comment ): void
+    {
+        this.comments.push( comment )
     }
 
     static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraphs?: Paragraph[] ): Section
