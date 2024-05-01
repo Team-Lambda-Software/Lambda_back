@@ -1,8 +1,7 @@
 
 
 
-
-export class Image
+export class SectionVideo
 {
 
     private id: string
@@ -26,9 +25,9 @@ export class Image
 
     //TODO: para DDD vamos a tener que validar la creacion de estos objetos y crear un metodo equal
 
-    static create ( url: string, id: string ): Image
+    static create ( url: string, id: string ): SectionVideo
     {
-        return new Image( url, id )
+        return new SectionVideo( url, id )
     }
 
 }

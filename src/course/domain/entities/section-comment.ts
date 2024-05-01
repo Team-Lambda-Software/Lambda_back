@@ -9,13 +9,35 @@ export class SectionComment extends Entity<string>
     private userId: string
     private text: string
     private date: Date
+    private sectionId: string
 
-    protected constructor ( id: string, userId: string, text: string, date: Date )
+    get UserId ()
+    {
+        return this.userId
+    }
+
+    get Text ()
+    {
+        return this.text
+    }
+
+    get Date ()
+    {
+        return this.date
+    }
+
+    get SectionId ()
+    {
+        return this.sectionId
+    }
+
+    protected constructor ( id: string, userId: string, text: string, date: Date, sectionId: string )
     {
         super( id )
         this.userId = userId
         this.text = text
         this.date = date
+        this.sectionId = sectionId
         this.ensureValidState()
     }
 
@@ -32,9 +54,9 @@ export class SectionComment extends Entity<string>
 
     }
 
-    static create ( id: string, userId: string, text: string, date: Date ): SectionComment
+    static create ( id: string, userId: string, text: string, date: Date, sectionId: string ): SectionComment
     {
-        return new SectionComment( id, userId, text, date )
+        return new SectionComment( id, userId, text, date, sectionId)
     }
 
 }

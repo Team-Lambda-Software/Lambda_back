@@ -1,6 +1,6 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Section } from "./entities/section"
-import { Image } from "./entities/compose-fields/image"
+import { SectionImage } from "./entities/compose-fields/section-image"
 
 
 
@@ -16,9 +16,53 @@ export class Course extends Entity<string>
     private level: number
     private categoryId: string
     private sections: Section[]
-    private image: Image
+    private image: SectionImage
 
-    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: Image )
+    get TrainerId (): string
+    {
+        return this.trainerId
+    }
+
+    get Name (): string
+    {
+        return this.name
+    }
+
+    get Description (): string
+    {
+        return this.description
+    }
+
+    get WeeksDuration (): number
+    {
+        return this.weeksDuration
+    }
+
+    get MinutesPerSection (): number
+    {
+        return this.minutesPerSection
+    }
+
+    get Level (): number
+    {
+        return this.level
+    }
+
+    get CategoryId (): string
+    {
+        return this.categoryId
+    }
+
+    get Sections (): Section[]
+    {
+        return this.sections
+    }
+
+    get Image (): SectionImage
+    {
+        return this.image
+    }
+    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage )
     {
         super( id )
         this.trainerId = trainerId
@@ -51,9 +95,6 @@ export class Course extends Entity<string>
         if ( !this.minutesPerSection || this.minutesPerSection < 1 )
             throw new Error( "Course must have a valid duration" )
 
-        if ( !this.sections || this.sections.length < 1 )
-            throw new Error( "Course must have at least one section" )
-
         if ( !this.categoryId )
             throw new Error( "Course must have a category" )
 
@@ -63,7 +104,12 @@ export class Course extends Entity<string>
 
     }
 
-    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: Image ): Course
+    changeSections ( sections: Section[] ): void
+    {
+        this.sections = sections
+    }
+
+    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage ): Course
     {
         return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image )
     }

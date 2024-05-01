@@ -19,12 +19,14 @@ export class OrmSectionComment
     @ManyToOne(()=> OrmUser , { eager: true }) @JoinColumn( { name: 'user_id' } ) user: OrmUser
 
     //TODO buscar la seccion dado el id para asignarselo a la entity
-    static create ( id: string, text: string ): OrmSectionComment
+    static create ( id: string, text: string, userId: string, sectionId:string, date: Date): OrmSectionComment
     {
         const comment = new OrmSectionComment()
         comment.id = id
         comment.text = text
-        comment.date = new Date()
+        comment.section_id = sectionId
+        comment.user_id = userId
+        comment.date = date
         return comment
     }
 

@@ -1,8 +1,6 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { Video } from "./compose-fields/video"
-import { Image } from "./compose-fields/image"
-import { Paragraph } from './compose-fields/paragraph'
-import { SectionComment } from "./section-comment"
+import { SectionVideo } from "./compose-fields/section-video"
+import { SectionImage } from "./compose-fields/section-image"
 
 
 
@@ -11,12 +9,11 @@ export class Section extends Entity<string>
 
     private name: string
     private description: string
-    private videos?: Video[]
-    private images?: Image[]
-    private paragraph: Paragraph
-    private comments: SectionComment[] = []
+    private videos?: SectionVideo[]
+    private images?: SectionImage[]
+    private paragraph?: string
 
-    protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph, comments?: SectionComment[] )
+    protected constructor ( id: string, name: string, description: string, videos?: SectionVideo[], images?: SectionImage[], paragraph?: string)
     {
         super( id )
         this.name = name
@@ -24,7 +21,6 @@ export class Section extends Entity<string>
         this.videos = videos
         this.images = images
         this.paragraph = paragraph
-        this.comments = comments
         this.ensureValidState()
     }
 
@@ -38,24 +34,19 @@ export class Section extends Entity<string>
         return this.description
     }
 
-    get Videos (): Video[]
+    get Videos (): SectionVideo[]
     {
         return this.videos
     }
 
-    get Images (): Image[]
+    get Images (): SectionImage[]
     {
         return this.images
     }
 
-    get Paragraph (): Paragraph
+    get Paragraph (): string
     {
         return this.paragraph
-    }
-
-    get Comments (): SectionComment[]
-    {
-        return this.comments
     }
 
     protected ensureValidState (): void
@@ -65,14 +56,9 @@ export class Section extends Entity<string>
 
     }
 
-    addComment ( comment: SectionComment ): void
+    static create ( id: string, name: string, description: string, videos?: SectionVideo[], images?: SectionImage[], paragraph?: string ): Section
     {
-        this.comments.push( comment )
-    }
-
-    static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph, comments?: SectionComment[] ): Section
-    {
-        return new Section( id, name, description, videos, images, paragraph, comments )
+        return new Section( id, name, description, videos, images, paragraph )
     }
 
 

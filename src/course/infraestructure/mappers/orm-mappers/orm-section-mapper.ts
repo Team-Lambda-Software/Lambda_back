@@ -1,10 +1,8 @@
 import { IMapper } from "src/common/Application/mapper/mapper.interface"
 import { Section } from "src/course/domain/entities/section"
 import { OrmSection } from "../../entities/orm-entities/orm-section"
-import { SectionComment } from "src/course/domain/entities/section-comment"
-import { Video } from "src/course/domain/entities/compose-fields/video"
-import { Image } from "src/course/domain/entities/compose-fields/image"
-import { Paragraph } from "src/course/domain/entities/compose-fields/paragraph"
+import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video"
+import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
 
 
 
@@ -16,40 +14,29 @@ export class OrmSectionMapper implements IMapper<Section, OrmSection>{
     }
     async fromPersistenceToDomain ( persistence: OrmSection ): Promise<Section>
     {
-        let images: Image[] = []
+        let images: SectionImage[] = []
         if ( persistence.images )
         {
             persistence.images.forEach( image =>
             {
                 if ( image.section_id === persistence.id)
-                    images.push( Image.create( image.id, image.url ) )
+                    images.push( SectionImage.create( image.id, image.url ) )
             } )
         }
         
 
-        let videos: Video[] = []
+        let videos: SectionVideo[] = []
         
         if ( persistence.videos )
         {
             persistence.videos.forEach( video =>
             {
                 if ( video.section_id === persistence.id)
-                    videos.push( Video.create( video.id, video.url ) )
-            } )
-        }
-    
-
-        let comments: SectionComment[] = []
-        if ( persistence.comments )
-        {
-            persistence.comments.forEach( comment =>
-            {
-                if ( comment.section_id === persistence.id)
-                    comments.push( SectionComment.create( comment.id, comment.user_id, comment.text, comment.date ) )
+                    videos.push( SectionVideo.create( video.id, video.url ) )
             } )
         }
         
-        const section: Section = Section.create( persistence.id, persistence.name, persistence.description, videos, images, Paragraph.create(persistence.text) ,comments )
+        const section: Section = Section.create( persistence.id, persistence.name, persistence.description, videos, images, persistence.text )
         return section
     }
 

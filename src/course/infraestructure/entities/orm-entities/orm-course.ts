@@ -22,6 +22,8 @@ export class OrmCourse
     image: OrmSectionImage
 
     //TODO relacion con trainer y con categoria
+    @Column( { type: "uuid", nullable: true } ) trainer_id: string
+    @Column( { type: "uuid", nullable: true } ) category_id: string
 
     static create ( id: string, name: string, description: string, level: number, weeks_duration: number, minutes_per_section: number ): OrmCourse
     {
