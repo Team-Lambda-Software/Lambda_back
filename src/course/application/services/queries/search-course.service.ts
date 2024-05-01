@@ -3,11 +3,12 @@ import { Course } from "src/course/domain/course"
 import { GetCourseServiceEntryDto } from "../../dto/param/get-course-service-entry.dto"
 import { Result } from "src/common/Application/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
+import { SearchCourseServiceEntryDto } from "../../dto/param/search-course-service-entry.dto"
 
 
 
 
-export class GetCourseApplicationService implements IApplicationService<GetCourseServiceEntryDto,Course>{
+export class SearchCourseApplicationService implements IApplicationService<SearchCourseServiceEntryDto,Course[]>{
     
     private readonly courseRepository: ICourseRepository
 
@@ -17,9 +18,9 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
     }
     
     // TODO: Search the progress if exists one for that user
-    async execute ( data: GetCourseServiceEntryDto ): Promise<Result<Course>>
+    async execute ( data: SearchCourseServiceEntryDto ): Promise<Result<Course[]>>
     {
-        return await this.courseRepository.findCourseById( data.courseId )
+        return await this.courseRepository.searchCoursesByName( data.name )
     }
 
     get name (): string

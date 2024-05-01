@@ -7,6 +7,7 @@ import { OrmCourseRepository } from "../repositories/orm-repositories/orm-couser
 import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmSectionMapper } from "../mappers/orm-mappers/orm-section-mapper"
+import { SearchCourseApplicationService } from "src/course/application/services/queries/search-course.service"
 
 
 
@@ -19,22 +20,47 @@ export class CourseController
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
 
-        this.courseRepository = new OrmCourseRepository(new OrmCourseMapper(new OrmSectionMapper()), dataSource)
+        this.courseRepository =
+            new OrmCourseRepository(
+                new OrmCourseMapper(
+                    new OrmSectionMapper()
+                ),
+                dataSource
+            )
 
     }
 
     @Get( ':id' )
     async getCourse ( @Param( 'id' ) id: string )
     {
-        const service = new ExceptionDecorator(new LoggingDecorator(new GetCourseApplicationService(this.courseRepository), new NativeLogger(this.logger))) 
-        return (await service.execute({courseId: id, userId: '1'})).Value
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetCourseApplicationService(
+                        this.courseRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( { courseId: id, userId: '1' } )
+        return result.Value
     }
 
-    @Get( 'search/:name')
+    @Get( 'search/:name' )
     async searchCourse ( @Param( 'name' ) name: string )
     {
-        //TODO: Implementar el servicio de busqueda
-        return this.courseRepository.searchCoursesByName(name)
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchCourseApplicationService(
+                        this.courseRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( { name, userId: '2' } )
+
+        return result.Value
     }
 
 }
