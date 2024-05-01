@@ -32,9 +32,9 @@ export class SectionComment extends Entity<string>
 
     }
 
-    static create ( id: string, userId: string, text: string ): SectionComment
+    static create ( id: string, userId: string, text: string, date: Date ): SectionComment
     {
-        return new SectionComment( id, userId, text, new Date() )
+        return new SectionComment( id, userId, text, date )
     }
 
 }

@@ -16,7 +16,7 @@ export class Section extends Entity<string>
     private paragraph: Paragraph
     private comments: SectionComment[] = []
 
-    protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph )
+    protected constructor ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph, comments?: SectionComment[] )
     {
         super( id )
         this.name = name
@@ -24,6 +24,7 @@ export class Section extends Entity<string>
         this.videos = videos
         this.images = images
         this.paragraph = paragraph
+        this.comments = comments
         this.ensureValidState()
     }
 
@@ -69,9 +70,9 @@ export class Section extends Entity<string>
         this.comments.push( comment )
     }
 
-    static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph ): Section
+    static create ( id: string, name: string, description: string, videos?: Video[], images?: Image[], paragraph?: Paragraph, comments?: SectionComment[] ): Section
     {
-        return new Section( id, name, description, videos, images, paragraph )
+        return new Section( id, name, description, videos, images, paragraph, comments )
     }
 
 

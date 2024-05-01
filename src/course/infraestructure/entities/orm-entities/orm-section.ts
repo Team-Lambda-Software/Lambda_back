@@ -1,5 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm"
 import { OrmCourse } from "./orm-course"
+import { OrmSectionImage } from "./orm-section-images"
+import { OrmSectionVideo } from "./orm-section-videos"
+import { OrmSectionComment } from "./orm-section-comment"
 
 
 
@@ -15,8 +18,19 @@ export class OrmSection
     @Column( { type: "uuid" } ) course_id: string
     @ManyToOne( () => OrmCourse, { eager: true, nullable: true } ) @JoinColumn( { name: 'course_id' } ) course: OrmCourse
 
+    @OneToMany(()=> OrmSectionImage, image => image.section)
+    images: OrmSectionImage[]
+
+    @OneToMany(()=> OrmSectionVideo, video => video.section)
+    videos: OrmSectionVideo[]
+
+    @OneToMany(()=> OrmSectionComment, comment => comment.section)
+    comments: OrmSectionComment[]
+
+    
+
     //TODO buscar el curso dado el id para asignarselo a la entity
-    static create ( id: string, name: string, description: string, text?: string ): OrmSection
+    static create ( id: string, name: string, description: string, text?: string): OrmSection
     {
         const section = new OrmSection()
         section.id = id

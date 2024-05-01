@@ -1,5 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"
 import { OrmSection } from "./orm-section"
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity"
 
 
 
@@ -13,6 +14,9 @@ export class OrmSectionComment
 
     @Column( { type: "uuid" } ) section_id: string
     @ManyToOne( () => OrmSection, { eager: true } ) @JoinColumn( { name: 'section_id' } ) section: OrmSection
+    
+    @Column( { type: "uuid" } ) user_id: string
+    @ManyToOne(()=> OrmUser , { eager: true }) @JoinColumn( { name: 'user_id' } ) user: OrmUser
 
     //TODO buscar la seccion dado el id para asignarselo a la entity
     static create ( id: string, text: string ): OrmSectionComment
