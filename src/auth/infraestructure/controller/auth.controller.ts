@@ -22,10 +22,18 @@ import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
 import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 import { JwtService } from "@nestjs/jwt";
-import { Get, UseGuards } from "@nestjs/common/decorators";
 import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
-import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
+import { ICodeGenerator } from "src/auth/application/interface/code-generator.interface";
+import { CodeGenerator } from "../code-generator/code-generator";
+import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/get-code-update-password-user-entry.infrastructure.dto";
+import { UpdatePasswordUserInfrastructureDto } from "../dto/update-password-user.entry.infraestructure.dto";
+import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
+import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/update-password-entry.application.dto";
+import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
+import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
+
+//@UseGuards( JwtAuthGuard )
 
 @Controller('auth')
 export class AuthController {
@@ -35,6 +43,7 @@ export class AuthController {
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
     private readonly emailSender: EmailSender;
+    private readonly codeGenerator: ICodeGenerator<number[]>;
 
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
@@ -45,6 +54,7 @@ export class AuthController {
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
         this.emailSender = new UpdatePasswordSender()
+        this.codeGenerator = new CodeGenerator()
     }
 
     @Post('loginuser')
@@ -85,13 +95,42 @@ export class AuthController {
         )
         return (await signUpApplicationService.execute(data)).Value
     }
-
-    @Get('updatepassword')
-    @UseGuards( JwtAuthGuard )
-    async updatePasswordUser() {
-        return {
-            ok: true
+    
+    @Post('getcodeupdatepassword')
+    async getCodeForUpdatePasswordUser( getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
+        const data: GetCodeUpdatePasswordEntryApplicationDto = {
+            userId: 'none',
+            ...getCodeUpdateDto,
         }
+        const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new GetCodeUpdatePasswordUserApplicationService(
+                    this.userRepository,
+                    this.emailSender,
+                    this.codeGenerator,
+                ), 
+                new NativeLogger(this.logger)
+            )
+        )
+        return (await getCodeUpdatePasswordApplicationService.execute(data)).Value
+    }
+
+    @Post('updatepassword')
+    async updatePasswordUser( updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {
+        const data: UpdatePasswordEntryApplicationDto = {
+            userId: 'none',
+            ...updatePasswordDto,
+        }
+        const updatePasswordApplicationService = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new UpdatePasswordUserApplicationService(
+                    this.userRepository,
+                    this.encryptor
+                ), 
+                new NativeLogger(this.logger)
+            )
+        )
+        return (await updatePasswordApplicationService.execute(data)).Value
     }
 
 }
