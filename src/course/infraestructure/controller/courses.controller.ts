@@ -30,4 +30,11 @@ export class CourseController
         return (await service.execute({courseId: id, userId: '1'})).Value
     }
 
+    @Get( 'search/:name')
+    async searchCourse ( @Param( 'name' ) name: string )
+    {
+        //TODO: Implementar el servicio de busqueda
+        return this.courseRepository.searchCoursesByName(name)
+    }
+
 }

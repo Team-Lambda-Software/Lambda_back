@@ -77,9 +77,30 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
         }
     }
-    searchCoursesByName ( name: string ): Promise<Result<Course[]>>
+    async searchCoursesByName ( name: string ): Promise<Result<Course[]>>
     {
-        throw new Error( "Method not implemented." )
+        try
+        {
+            const courses = await this.createQueryBuilder( 'course' ).where( 'course.name LIKE :name', { name: `%${name}%` } ).getMany()
+            
+            if ( courses.length > 0 )
+            {
+                
+                for ( const course of courses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+            
+                }
+                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+        }
     }
     findCourseSections ( id: string ): Promise<Result<Section[]>>
     {
