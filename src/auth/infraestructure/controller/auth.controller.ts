@@ -22,7 +22,6 @@ import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
 import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 import { JwtService } from "@nestjs/jwt";
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
 import { ICodeGenerator } from "src/auth/application/interface/code-generator.interface";
 import { CodeGenerator } from "../code-generator/code-generator";
@@ -32,6 +31,7 @@ import { UpdatePasswordUserApplicationService } from "src/auth/application/servi
 import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/update-password-entry.application.dto";
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
 import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
+import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 
 //@UseGuards( JwtAuthGuard )
 
@@ -42,7 +42,6 @@ export class AuthController {
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
-    private readonly emailSender: EmailSender;
     private readonly codeGenerator: ICodeGenerator<number[]>;
 
     constructor(
@@ -53,7 +52,6 @@ export class AuthController {
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
-        this.emailSender = new UpdatePasswordSender()
         this.codeGenerator = new CodeGenerator()
     }
 
@@ -88,7 +86,8 @@ export class AuthController {
                     this.userRepository,
                     this.uuidGenerator,
                     this.tokenGenerator,
-                    this.encryptor
+                    this.encryptor,
+                    new WelcomeSender()
                 ), 
                 new NativeLogger(this.logger)
             )
@@ -97,7 +96,7 @@ export class AuthController {
     }
     
     @Post('getcodeupdatepassword')
-    async getCodeForUpdatePasswordUser( getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
+    async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
         const data: GetCodeUpdatePasswordEntryApplicationDto = {
             userId: 'none',
             ...getCodeUpdateDto,
@@ -106,7 +105,7 @@ export class AuthController {
             new LoggingDecorator(
                 new GetCodeUpdatePasswordUserApplicationService(
                     this.userRepository,
-                    this.emailSender,
+                    new UpdatePasswordSender(),
                     this.codeGenerator,
                 ), 
                 new NativeLogger(this.logger)
@@ -116,7 +115,7 @@ export class AuthController {
     }
 
     @Post('updatepassword')
-    async updatePasswordUser( updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {
+    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {
         const data: UpdatePasswordEntryApplicationDto = {
             userId: 'none',
             ...updatePasswordDto,

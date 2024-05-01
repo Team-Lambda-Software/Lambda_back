@@ -11,6 +11,12 @@ export abstract class EmailSender {
     senderEmail = 'hfchiang.21@est.ucab.edu.ve'
     senderName = 'gymtastic'
     
+    abstract setVariable( variable: string ): void
+
+    public setHtmlPart( html: string ){
+        this.htmlPart = html
+    }
+
     public sendEmail( 
         emailReceiver: string, nameReceiver: string
     ): void {

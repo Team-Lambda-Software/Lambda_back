@@ -24,9 +24,9 @@ export class UpdatePasswordUserApplicationService implements IApplicationService
         )
         if ( !result.isSuccess() ) {
             return Result.fail(
-                new Error('Ocurrio un error al cambiar contraseña'),
+                new Error('Ocurrio un error al cambiar la contraseña'),
                 500,
-                'Ocurrio un error al cambiar contraseña'
+                'Ocurrio un error al cambiar la contraseña'
             )
         }
         return Result.success('Contraseña cambiada con exito', 200)

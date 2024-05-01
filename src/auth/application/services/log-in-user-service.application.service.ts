@@ -31,7 +31,6 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
             )
         }
         const userResult = await findResult.Value
-        
         const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.Password)
         if (!checkPassword) {
             return Result.fail(

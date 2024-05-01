@@ -1,16 +1,16 @@
 import { EmailSender } from "src/common/Application/email-sender/email-sender.application"
 
-export class UpdatePasswordSender extends EmailSender {
+export class WelcomeSender extends EmailSender {
     constructor() {
         super()
-        this.subjectText = 'Change password gym-app'
+        this.subjectText = 'Welcome!'
         this.textPart = 'Greetings!'
-        this.htmlPart = 'ur code is: <h2>null</h2>'
+        this.htmlPart = 'be welcome dear <h2>null</h2>'
     }
 
     public setVariable( variable: string ){
         this.setHtmlPart( 
-            `ur code is: <h2>${variable}</h2>`    
+            `be welcome dear <h2>${variable}</h2>`    
         )
     }
 

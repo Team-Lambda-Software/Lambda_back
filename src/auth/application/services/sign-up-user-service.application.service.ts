@@ -6,6 +6,7 @@ import { User } from "src/user/domain/user";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IJwtGenerator } from "../interface/jwt-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
+import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
 
 export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
     
@@ -13,17 +14,20 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
+    private readonly emailSender: EmailSender; 
 
     constructor(
         userRepository: IUserRepository,
         uuidGenerator: IdGenerator<string>,
         tokenGenerator: IJwtGenerator<string>,
-        encryptor: IEncryptor
+        encryptor: IEncryptor,
+        emailSender: EmailSender
     ){
         this.userRepository = userRepository
         this.uuidGenerator = uuidGenerator
         this.tokenGenerator = tokenGenerator
         this.encryptor = encryptor
+        this.emailSender = emailSender
     }
     
     async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
@@ -55,6 +59,8 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
             )
         }
         const token = this.tokenGenerator.generateJwt( signUpDto.email )  
+        this.emailSender.setVariable( signUpDto.firstName )
+        this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
         // TO-DO: RETURN DATAUSER, TOKEN
         return Result.success('Usuario registrado con éxito', 200)
     }
