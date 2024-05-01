@@ -13,7 +13,7 @@ export class Blog extends Entity<string>{
     private trainerId: string
     private categoryId: string
 
-    constructor ( id: string, title: string, body: string, image: BlogImage, publicationDate: Date, trainerId: string, categoryId: string )
+    protected constructor ( id: string, title: string, body: string, image: BlogImage, publicationDate: Date, trainerId: string, categoryId: string )
     {
         super( id )
         this.title = title
