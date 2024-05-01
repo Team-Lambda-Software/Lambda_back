@@ -22,10 +22,10 @@ import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
 import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 import { JwtService } from "@nestjs/jwt";
-import { Get } from "@nestjs/common/decorators";
+import { Get, UseGuards } from "@nestjs/common/decorators";
 import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
-import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.decorator";
+import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 
 @Controller('auth')
 export class AuthController {
@@ -86,10 +86,9 @@ export class AuthController {
         return (await signUpApplicationService.execute(data)).Value
     }
 
-    @JwtAuthGuard()
     @Get('updatepassword')
+    @UseGuards( JwtAuthGuard )
     async updatePasswordUser() {
-
         return {
             ok: true
         }
