@@ -45,7 +45,7 @@ export class CourseController
     }
 
     @Get( ':id' )
-    async getCourse ( @Param( 'id' ) id: string )
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string )
     {
         const service =
             new ExceptionDecorator(
@@ -97,7 +97,7 @@ export class CourseController
     }
 
     @Get( 'section/:sectionId' )
-    async getSection ( @Param( 'sectionId' ) sectionId: string )
+    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string )
     {
         const data: GetCourseSectionServiceEntryDto = { sectionId, userId: '2'}
         const service =
@@ -116,7 +116,7 @@ export class CourseController
     }
 
     @Post( 'section/:sectionId/comment' )
-    async addCommentToSection ( @Param( 'sectionId' ) sectionId: string, @Body() comment: AddCommentToSectionEntryDto)
+    async addCommentToSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @Body() comment: AddCommentToSectionEntryDto)
     {
         const service =
             new ExceptionDecorator(
