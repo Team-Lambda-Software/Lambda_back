@@ -7,13 +7,11 @@ import { AuthController } from './auth/infraestructure/controller/auth.controlle
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
 
-// TO-DO: process.env.JWT_SECRET_KEY
-
 @Module({
   imports: [
     ConfigModule.forRoot(),
     JwtModule.register({
-      secret: process.env.JWT_SECRET_KEY || 'rakata',
+      secret: process.env.JWT_SECRET_KEY,
       signOptions: { }
     }),
   ],

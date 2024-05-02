@@ -23,8 +23,7 @@ import { LogInUserApplicationService } from "src/auth/application/services/log-i
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 import { JwtService } from "@nestjs/jwt";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
-import { ICodeGenerator } from "src/auth/application/interface/code-generator.interface";
-import { CodeGenerator } from "../code-generator/code-generator";
+import { SecretCodeGenerator } from "../secret-code-generator/secret-code-generator";
 import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/get-code-update-password-user-entry.infrastructure.dto";
 import { UpdatePasswordUserInfrastructureDto } from "../dto/update-password-user.entry.infraestructure.dto";
 import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
@@ -41,7 +40,6 @@ export class AuthController {
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
-    private readonly codeGenerator: ICodeGenerator<number[]>;
 
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
@@ -51,7 +49,6 @@ export class AuthController {
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
-        this.codeGenerator = new CodeGenerator()
     }
 
     @Post('checktoken')
@@ -113,7 +110,7 @@ export class AuthController {
                 new GetCodeUpdatePasswordUserApplicationService(
                     this.userRepository,
                     new UpdatePasswordSender(),
-                    this.codeGenerator,
+                    new SecretCodeGenerator(),
                 ), 
                 new NativeLogger(this.logger)
             )
