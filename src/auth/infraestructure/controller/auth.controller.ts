@@ -1,4 +1,4 @@
-import { Controller, Post } from "@nestjs/common"
+import { Controller, Post, UseGuards } from "@nestjs/common"
 import { LogInEntryInfrastructureDto } from "../dto/log-in-entry.infrastructure.dto";
 import { SignUpEntryInfrastructureDto } from "../dto/sign-up-entry.infrastructure.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
@@ -32,8 +32,7 @@ import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/upda
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
 import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
-
-//@UseGuards( JwtAuthGuard )
+import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +54,14 @@ export class AuthController {
         this.codeGenerator = new CodeGenerator()
     }
 
+    @Post('checktoken')
+    @UseGuards(JwtAuthGuard)
+    async checkToken() {
+        return {
+            checkAuthorization: true
+        }
+    }
+    
     @Post('loginuser')
     async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
         const data: LogInEntryApplicationDto = {
