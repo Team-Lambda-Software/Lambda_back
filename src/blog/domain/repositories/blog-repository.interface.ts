@@ -13,5 +13,6 @@ export interface IBlogRepository
     findBlogsByCategory( categoryId: string ): Promise<Result<Blog[]>>
     findBlogComments (blogId: string): Promise<Result<BlogComment[]>>
     addCommentToBlog( comment: BlogComment ): Promise<Result<BlogComment>>
+    findAllTrainerBlogs( trainerId: string ): Promise<Result<Blog[]>>
 
 }

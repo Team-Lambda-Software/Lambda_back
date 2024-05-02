@@ -120,4 +120,26 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
+    async findAllTrainerBlogs ( trainerId: string ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.findBy( { trainer_id: trainerId } )
+            if ( blogs.length > 0 )
+            {
+
+                for ( const blog of blogs )
+                {
+                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
+                    blog.image = blogImage
+                }
+                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
 }
