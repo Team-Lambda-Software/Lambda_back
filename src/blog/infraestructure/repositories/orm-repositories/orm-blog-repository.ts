@@ -3,7 +3,7 @@ import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Result } from "src/common/Application/result-handler/Result"
 import { OrmBlogCommentMapper } from "../../mappers/orm-mappers/orm-blog-comment-mapper"
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource } from 'typeorm'
 import { OrmBlog } from "../../entities/orm-entities/orm-blog"
 import { OrmBlogComment } from "../../entities/orm-entities/orm-blog-comment"
 import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
@@ -19,7 +19,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
 
     private readonly ormBlogCommentRepository: Repository<OrmBlogComment>
     private readonly ormImageRepository: Repository<OrmBlogImage>
-    constructor ( ormBlogMapper: OrmBlogMapper, ormBlogCommentMapper: OrmBlogCommentMapper, dataSource: DataSource)
+    constructor ( ormBlogMapper: OrmBlogMapper, ormBlogCommentMapper: OrmBlogCommentMapper, dataSource: DataSource )
     {
         super( OrmBlog, dataSource.createEntityManager() )
         this.ormBlogMapper = ormBlogMapper
@@ -33,11 +33,11 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         try
         {
             const blog = await this.findOneBy( { id } )
-            const blogImage = await this.ormImageRepository.findOneBy( { blog_id: id } )
-            blog.image = blogImage
-            
             if ( blog )
             {
+                const blogImage = await this.ormImageRepository.findOneBy( { blog_id: id } )
+                blog.image = blogImage
+
                 return Result.success<Blog>( await this.ormBlogMapper.fromPersistenceToDomain( blog ), 200 )
             }
             return Result.fail<Blog>( new Error( 'Blog not found' ), 404, 'Blog not found' )
@@ -51,11 +51,11 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).where( 'blog.title LIKE :title', { title: `%${title}%` } ).getMany()
-            
+            const blogs = await this.createQueryBuilder( 'blog' ).where( 'blog.title LIKE :title', { title: `%${ title }%` } ).getMany()
+
             if ( blogs.length > 0 )
             {
-                
+
                 for ( const blog of blogs )
                 {
                     const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
@@ -75,10 +75,10 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         try
         {
             const blogs = await this.findBy( { category_id: categoryId } )
-            
+
             if ( blogs.length > 0 )
             {
-                
+
                 for ( const blog of blogs )
                 {
                     const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
@@ -95,24 +95,28 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
 
     async findBlogComments ( blogId: string ): Promise<Result<BlogComment[]>>
     {
-        try {
+        try
+        {
             const comments = await this.ormBlogCommentRepository.findBy( { blog_id: blogId } )
             return Result.success<BlogComment[]>( await Promise.all( comments.map( async comment => await this.ormBlogCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
-        } catch (error) {
+        } catch ( error )
+        {
 
             return Result.fail<BlogComment[]>( new Error( error.detail ), error.code, error.detail )
-            
+
         }
     }
-    
+
     async addCommentToBlog ( comment: BlogComment ): Promise<Result<BlogComment>>
     {
-        try {
-            const newComment: OrmBlogComment = await this.ormBlogCommentMapper.fromDomainToPersistence(comment)
-            await this.ormBlogCommentRepository.save(newComment)
-            return Result.success<BlogComment>(await this.ormBlogCommentMapper.fromPersistenceToDomain(newComment),200)
-        } catch (error) {
-            return Result.fail<BlogComment>(new Error(error.detail),error.code,error.detail)
+        try
+        {
+            const newComment: OrmBlogComment = await this.ormBlogCommentMapper.fromDomainToPersistence( comment )
+            await this.ormBlogCommentRepository.save( newComment )
+            return Result.success<BlogComment>( await this.ormBlogCommentMapper.fromPersistenceToDomain( newComment ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<BlogComment>( new Error( error.detail ), error.code, error.detail )
         }
     }
 

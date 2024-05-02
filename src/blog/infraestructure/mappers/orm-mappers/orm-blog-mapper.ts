@@ -12,7 +12,7 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
     }
     async fromPersistenceToDomain ( persistence: OrmBlog ): Promise<Blog>
     {
-        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, BlogImage.create(persistence.image.id,persistence.image.url), persistence.publication_date, persistence.trainer_id, persistence.category_id )
+        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, BlogImage.create(persistence.image.url, persistence.image.id), persistence.publication_date, persistence.trainer_id, persistence.category_id )
         return blog
     }
 

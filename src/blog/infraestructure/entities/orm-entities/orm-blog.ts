@@ -15,8 +15,7 @@ export class OrmBlog
     @Column( { type: "uuid" } ) trainer_id: string
     @Column( { type: "uuid" } ) category_id: string
 
-    @Column( { type: "uuid", nullable: true } ) image_id: string
-    @OneToOne( () => OrmBlogImage, { eager: true } ) @JoinColumn( { name: 'image_id' } ) image: OrmBlogImage
+    @OneToOne( () => OrmBlogImage, image => image.blog ) image: OrmBlogImage
 
     @OneToMany(()=> OrmBlogComment, comment => comment.blog) comments: OrmBlogComment[]
 
