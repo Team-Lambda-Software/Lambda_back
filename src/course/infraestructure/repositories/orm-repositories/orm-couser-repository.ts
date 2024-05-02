@@ -5,7 +5,6 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 import { DataSource, Repository } from 'typeorm'
 import { OrmCourse } from "../../entities/orm-entities/orm-course"
 import { OrmCourseMapper } from "../../mappers/orm-mappers/orm-course-mapper"
-import { InjectRepository } from "@nestjs/typeorm"
 import { OrmSection } from "../../entities/orm-entities/orm-section"
 import { OrmSectionImage } from "../../entities/orm-entities/orm-section-images"
 import { OrmSectionVideo } from "../../entities/orm-entities/orm-section-videos"
@@ -13,7 +12,6 @@ import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comme
 import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper';
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper';
-import { BadRequestException } from "@nestjs/common"
 
 
 
@@ -41,6 +39,32 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormImageRepository = dataSource.getRepository( OrmSectionImage )
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
+    }
+
+    async findAllTrainerCourses ( trainerId: string ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.find( { where: { trainer_id: trainerId } } )
+            
+            if ( courses.length > 0 )
+            {
+                
+                for ( const course of courses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+            
+                }
+                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+        }
     }
 
     async findSectionById ( sectionId: string ): Promise<Result<Section>>
@@ -73,6 +97,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Section>( new Error( error.detail ), error.code, error.detail )
         }
     }
+
     async findSectionComments ( sectionId: string ): Promise<Result<SectionComment[]>>
     {
         try {
@@ -84,8 +109,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             
         }
     }
-
-
 
     async findCourseById ( id: string ): Promise<Result<Course>>
     {
@@ -105,7 +128,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
         }
     }
-
 
     async findCoursesByName ( name: string ): Promise<Result<Course[]>>
     {
@@ -132,7 +154,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
         }
     }
-
 
     async findCourseSections ( id: string ): Promise<Result<Section[]>>
     {
@@ -164,7 +185,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-
     async addCommentToSection ( comment: SectionComment ): Promise<Result<SectionComment>>
     {
         try {
@@ -175,7 +195,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<SectionComment>(new Error(error.detail),error.code,error.detail)
         }
     }
-
 
     async findCoursesByCategory ( categoryId: string ): Promise<Result<Course[]>>
     {
