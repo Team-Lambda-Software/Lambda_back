@@ -61,8 +61,14 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
         const token = this.tokenGenerator.generateJwt( signUpDto.email )  
         this.emailSender.setVariable( signUpDto.firstName )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
-        // TO-DO: RETURN DATAUSER, TOKEN
-        return Result.success('Usuario registrado con éxito', 200)
+        const answer = {
+            token: token,
+            email: signUpDto.email,
+            firstLastName: signUpDto.firstLastName,
+            firstName: signUpDto.firstName,
+            secondLastName: signUpDto.secondLastName
+        }
+        return Result.success(answer, 200)
     }
    
     get name(): string { return this.constructor.name }

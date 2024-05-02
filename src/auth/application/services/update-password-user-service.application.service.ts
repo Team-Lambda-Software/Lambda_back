@@ -29,7 +29,11 @@ export class UpdatePasswordUserApplicationService implements IApplicationService
                 'Ocurrio un error al cambiar la contraseña'
             )
         }
-        return Result.success('Contraseña cambiada con exito', 200)
+        const answer = {
+            email: updateDto.email,
+            newPassword: updateDto.password
+        }
+        return Result.success(answer, 200)
     }
    
     get name(): string { return this.constructor.name }

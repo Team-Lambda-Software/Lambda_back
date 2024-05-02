@@ -40,8 +40,14 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
             )
         }      
         const token = this.tokenGenerator.generateJwt( logInDto.email )   
-        // TO-DO: RETURN DATAUSER, TOKEN
-        return Result.success('Usuario logueado con éxito', 200)
+        const answer = {
+            token: token,
+            email: userResult.Email,
+            firstLastName: userResult.FirstLastName,
+            firstName: userResult.FirstName,
+            secondLastName: userResult.SecondLastName
+        }
+        return Result.success(answer, 200)
     }
     
     get name(): string { return this.constructor.name }
