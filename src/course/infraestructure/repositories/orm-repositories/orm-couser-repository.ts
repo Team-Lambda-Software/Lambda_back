@@ -138,7 +138,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).where( 'course.name LIKE :name', { name: `%${ name }%` } ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).getMany()
 
             if ( courses.length > 0 )
             {
