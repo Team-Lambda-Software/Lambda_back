@@ -3,7 +3,7 @@ import { IMapper } from "src/common/Application/mapper/mapper.interface"
 import { OrmBlog } from "../../entities/orm-entities/orm-blog"
 import { BlogImage } from "src/blog/domain/entities/blog-image"
 
-export class OrmCourseMapper implements IMapper<Blog, OrmBlog>
+export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
 {
 
     fromDomainToPersistence ( domain: Blog ): Promise<OrmBlog>
