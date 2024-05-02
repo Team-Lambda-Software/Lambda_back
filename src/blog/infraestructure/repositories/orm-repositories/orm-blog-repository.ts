@@ -1,0 +1,145 @@
+import { Blog } from "src/blog/domain/blog"
+import { BlogComment } from "src/blog/domain/entities/blog-comment"
+import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
+import { Result } from "src/common/Application/result-handler/Result"
+import { OrmBlogCommentMapper } from "../../mappers/orm-mappers/orm-blog-comment-mapper"
+import { Repository, DataSource } from 'typeorm'
+import { OrmBlog } from "../../entities/orm-entities/orm-blog"
+import { OrmBlogComment } from "../../entities/orm-entities/orm-blog-comment"
+import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
+import { OrmBlogMapper } from "../../mappers/orm-mappers/orm-blog-mapper"
+
+
+
+export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepository
+{
+
+    private readonly ormBlogMapper: OrmBlogMapper
+    private readonly ormBlogCommentMapper: OrmBlogCommentMapper
+
+    private readonly ormBlogCommentRepository: Repository<OrmBlogComment>
+    private readonly ormImageRepository: Repository<OrmBlogImage>
+    constructor ( ormBlogMapper: OrmBlogMapper, ormBlogCommentMapper: OrmBlogCommentMapper, dataSource: DataSource )
+    {
+        super( OrmBlog, dataSource.createEntityManager() )
+        this.ormBlogMapper = ormBlogMapper
+        this.ormBlogCommentMapper = ormBlogCommentMapper
+        this.ormBlogCommentRepository = dataSource.getRepository( OrmBlogComment )
+        this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
+    }
+
+    async findBlogById ( id: string ): Promise<Result<Blog>>
+    {
+        try
+        {
+            const blog = await this.findOneBy( { id } )
+            if ( blog )
+            {
+                const blogImage = await this.ormImageRepository.findOneBy( { blog_id: id } )
+                blog.image = blogImage
+
+                return Result.success<Blog>( await this.ormBlogMapper.fromPersistenceToDomain( blog ), 200 )
+            }
+            return Result.fail<Blog>( new Error( 'Blog not found' ), 404, 'Blog not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findBlogsByTitle ( title: string ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.createQueryBuilder( 'blog' ).where( 'blog.title LIKE :title', { title: `%${ title }%` } ).getMany()
+
+            if ( blogs.length > 0 )
+            {
+
+                for ( const blog of blogs )
+                {
+                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
+                    blog.image = blogImage
+                }
+                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findBlogsByCategory ( categoryId: string ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.findBy( { category_id: categoryId } )
+
+            if ( blogs.length > 0 )
+            {
+
+                for ( const blog of blogs )
+                {
+                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
+                    blog.image = blogImage
+                }
+                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findBlogComments ( blogId: string ): Promise<Result<BlogComment[]>>
+    {
+        try
+        {
+            const comments = await this.ormBlogCommentRepository.findBy( { blog_id: blogId } )
+            return Result.success<BlogComment[]>( await Promise.all( comments.map( async comment => await this.ormBlogCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
+        } catch ( error )
+        {
+
+            return Result.fail<BlogComment[]>( new Error( error.detail ), error.code, error.detail )
+
+        }
+    }
+
+    async addCommentToBlog ( comment: BlogComment ): Promise<Result<BlogComment>>
+    {
+        try
+        {
+            const newComment: OrmBlogComment = await this.ormBlogCommentMapper.fromDomainToPersistence( comment )
+            await this.ormBlogCommentRepository.save( newComment )
+            return Result.success<BlogComment>( await this.ormBlogCommentMapper.fromPersistenceToDomain( newComment ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<BlogComment>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findAllTrainerBlogs ( trainerId: string ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.findBy( { trainer_id: trainerId } )
+            if ( blogs.length > 0 )
+            {
+
+                for ( const blog of blogs )
+                {
+                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
+                    blog.image = blogImage
+                }
+                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+}
