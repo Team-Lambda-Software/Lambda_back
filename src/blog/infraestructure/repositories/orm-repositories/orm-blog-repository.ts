@@ -51,7 +51,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).where( 'blog.title LIKE :title', { title: `%${ title }%` } ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).getMany()
 
             if ( blogs.length > 0 )
             {
@@ -63,7 +63,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
-            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
@@ -86,7 +86,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
-            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
@@ -135,7 +135,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
-            return Result.fail<Blog[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
