@@ -8,13 +8,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module( {
   imports: [
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: { }
+      signOptions: { expiresIn: '4h' }
     }),
   ],
   controllers: [
