@@ -9,15 +9,19 @@ import { OrmBlogRepository } from "../repositories/orm-repositories/orm-blog-rep
 import { OrmBlogMapper } from "../mappers/orm-mappers/orm-blog-mapper"
 import { OrmBlogCommentMapper } from "../mappers/orm-mappers/orm-blog-comment-mapper"
 import { GetBlogApplicationService } from "src/blog/application/services/queries/get-blog-application.service"
-import { SearchBlogEntryDto } from "../dto/search-blog-entry.dto"
+import { SearchBlogEntryDto } from "../dto/entry/search-blog-entry.dto"
 import { SearchBlogByTitleEntryDto } from "src/blog/application/dto/params/search-blog-by-title-entry.dto"
 import { SearchBlogByTitleApplicationService } from "src/blog/application/services/queries/search-blog-by-title-application.service"
 import { SearchBlogByCategoryEntryDto } from "src/blog/application/dto/params/search-blog-by-category-entry.dto"
 import { SearchBlogByCategoryApplicationService } from "src/blog/application/services/queries/search-blog-by-category-application.service"
-import { AddCommentToBlogEntryDto } from "../dto/add-comment-to-blog-entry.dto"
+import { AddCommentToBlogEntryDto } from "../dto/entry/add-comment-to-blog-entry.dto"
 import { AddCommentToBlogApplicationService } from "src/blog/application/services/commands/add-comment-to-blog-application.service"
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
+import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
+import { AddCommentToBlogSwaggerResponseDto } from "../dto/response/add-comment-to-blog-swagger-response.dto"
 
-
+@ApiTags( 'Blog' )
 @Controller( 'blog' )
 export class BlogController
 {
@@ -38,6 +42,7 @@ export class BlogController
     }
 
     @Get( ':id' )
+    @ApiOkResponse({ description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto })
     async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string )
     {
         const service =
@@ -54,6 +59,7 @@ export class BlogController
     }
 
     @Post( 'search' )
+    @ApiOkResponse({ description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true})
     async searchBlog ( @Body() searchBlogEntryDto: SearchBlogEntryDto )
     {
         const searchBlogServiceEntry: SearchBlogByTitleEntryDto = { ...searchBlogEntryDto, userId: '2'}
@@ -72,6 +78,7 @@ export class BlogController
     }
 
     @Get( 'category/:categoryId' )
+    @ApiOkResponse({ description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true})
     async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string )
     {
         const searchBlogByCategoryServiceEntry: SearchBlogByCategoryEntryDto = { categoryId, userId: '2'}
@@ -90,6 +97,7 @@ export class BlogController
     }
 
     @Post( ':blogId/comment' )
+    @ApiOkResponse({ description: 'Agrega un comentario a un blog', type: AddCommentToBlogSwaggerResponseDto})
     async addCommentToSection ( @Param( 'blogId', ParseUUIDPipe ) blogId: string, @Body() comment: AddCommentToBlogEntryDto)
     {
         const service =
