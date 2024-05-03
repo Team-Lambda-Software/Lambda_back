@@ -56,19 +56,11 @@ export class AuthController {
 
     @Post('checktoken')
     @UseGuards(JwtAuthGuard)
-    async checkToken() {
-        return {
-            checkAuthorization: true
-        }
-    }
+    async checkToken() { return { tokenIsValid: true } }
     
     @Post('newtoken')
     @UseGuards(JwtAuthGuard)
-    async newToken() {
-        return {
-            token: this.tokenGenerator.generateJwt('newtoken')
-        }
-    }
+    async newToken() { return { newToken: this.tokenGenerator.generateJwt('newtoken') } }
 
     @Post('loginuser')
     async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
@@ -135,9 +127,9 @@ export class AuthController {
     }
 
     @Post('updatepassword')
-    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {        
-        if ( !this.verifyCode( updatePasswordDto.code ) ) //'code expired'
-            return { message: 'code invalid', code: updatePasswordDto.code }
+    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {     
+        const result = this.verifyCode(updatePasswordDto.code)  
+        if ( result == false ) return { message: 'code invalid', code: updatePasswordDto.code }
         const data: UpdatePasswordEntryApplicationDto = { 
             userId: 'none', 
             ...updatePasswordDto 
@@ -154,11 +146,12 @@ export class AuthController {
         return (await updatePasswordApplicationService.execute(data)).Value
     }
 
-    async verifyCode( code: string ) {
+    verifyCode( code: string ) {
         var nowTime = new Date().getTime()
         var search = this.secretCodes.filter( e => e.code == code )
         if ( search.length == 0 ) return false
         if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
+        this.secretCodes = this.secretCodes.filter( e => e.code != code )
         return true
     }
 
