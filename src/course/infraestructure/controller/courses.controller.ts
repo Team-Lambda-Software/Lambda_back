@@ -19,9 +19,14 @@ import { AddCommentToSectionEntryDto } from "../dto/entry/add-comment-to-section
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AddCommentToSectionApplicationService } from "src/course/application/services/commands/add-comment-to-section-application.service"
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
+import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
+import { GetSectionSwaggerResponseDto } from "../dto/responses/get-section-swagger-response.dto"
+import { AddCommentToSectionSwaggerResponseDto } from "../dto/responses/add-comment-to-section-swagger-response.dto"
 
 
-
+@ApiTags('Course')
 @Controller( 'course' )
 export class CourseController
 {
@@ -45,6 +50,7 @@ export class CourseController
     }
 
     @Get( ':id' )
+    @ApiOkResponse({ description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto })
     async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string )
     {
         const service =
@@ -61,6 +67,7 @@ export class CourseController
     }
 
     @Post( 'search' )
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan el nombre dado', type: SearchCoursesSwaggerResponseDto, isArray: true})
     async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto )
     {
         const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: '2'}
@@ -79,6 +86,7 @@ export class CourseController
     }
 
     @Get( 'category/:categoryId' )
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que pertenezcan a la misma categoria', type: SearchCoursesSwaggerResponseDto, isArray: true})
     async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string )
     {
         const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: '2'}
@@ -97,6 +105,7 @@ export class CourseController
     }
 
     @Get( 'section/:sectionId' )
+    @ApiOkResponse({ description: 'Devuelve la informacion de una seccion dado el id', type: GetSectionSwaggerResponseDto })
     async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string )
     {
         const data: GetCourseSectionServiceEntryDto = { sectionId, userId: '2'}
@@ -116,6 +125,7 @@ export class CourseController
     }
 
     @Post( 'section/:sectionId/comment' )
+    @ApiOkResponse({ description: 'Agrega un comentario a una seccion', type: AddCommentToSectionSwaggerResponseDto })
     async addCommentToSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @Body() comment: AddCommentToSectionEntryDto)
     {
         const service =
