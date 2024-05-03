@@ -15,5 +15,6 @@ export interface ICourseRepository {
     findCoursesByCategory( categoryId: string ): Promise<Result<Course[]>>
     findSectionById (sectionId: string): Promise<Result<Section>>
     findSectionComments (sectionId: string): Promise<Result<SectionComment[]>>
+    findAllTrainerCourses (trainerId: string): Promise<Result<Course[]>>
 
 }

@@ -5,15 +5,13 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 import { DataSource, Repository } from 'typeorm'
 import { OrmCourse } from "../../entities/orm-entities/orm-course"
 import { OrmCourseMapper } from "../../mappers/orm-mappers/orm-course-mapper"
-import { InjectRepository } from "@nestjs/typeorm"
 import { OrmSection } from "../../entities/orm-entities/orm-section"
 import { OrmSectionImage } from "../../entities/orm-entities/orm-section-images"
 import { OrmSectionVideo } from "../../entities/orm-entities/orm-section-videos"
 import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comment"
-import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper';
+import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
 import { SectionComment } from "src/course/domain/entities/section-comment"
-import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper';
-import { BadRequestException } from "@nestjs/common"
+import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
 
 
 
@@ -25,13 +23,13 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
 
     private readonly ormCourseMapper: OrmCourseMapper
     private readonly ormSectionMapper: OrmSectionMapper
-    private readonly ormSectionCommentMapper:OrmSectionCommentMapper
+    private readonly ormSectionCommentMapper: OrmSectionCommentMapper
 
     private readonly ormSectionRepository: Repository<OrmSection>
     private readonly ormImageRepository: Repository<OrmSectionImage>
     private readonly ormVideoRepository: Repository<OrmSectionVideo>
     private readonly ormCommentRepository: Repository<OrmSectionComment>
-    constructor ( ormCourseMapper: OrmCourseMapper, ormSectionMapper:OrmSectionMapper, ormSectionCommentMapper:OrmSectionCommentMapper,dataSource: DataSource )
+    constructor ( ormCourseMapper: OrmCourseMapper, ormSectionMapper: OrmSectionMapper, ormSectionCommentMapper: OrmSectionCommentMapper, dataSource: DataSource )
     {
         super( OrmCourse, dataSource.createEntityManager() )
         this.ormSectionMapper = ormSectionMapper
@@ -43,86 +41,22 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
     }
 
-    async findSectionById ( sectionId: string ): Promise<Result<Section>>
-    {
-        try{
-            const section = await this.ormSectionRepository.findOneBy( { id: sectionId } )
-            if ( !section ) 
-                return Result.fail<Section>( new Error( 'Section not found' ), 404, 'Section not found')
-
-            let sectionImages: OrmSectionImage[] = []
-            let sectionVideos: OrmSectionVideo[] = []
-            let sectionComments: OrmSectionComment[] = []
-            
-            const images = await this.ormImageRepository.findBy( { section_id: section.id } )
-            const videos = await this.ormVideoRepository.findBy( { section_id: section.id } )
-            const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
-            sectionImages = sectionImages.concat( images )
-            sectionVideos = sectionVideos.concat( videos )
-            sectionComments = sectionComments.concat( comments )
-        
-        
-        
-            section.images = sectionImages.filter( image => image.section_id === section.id )
-            section.videos = sectionVideos.filter( video => video.section_id === section.id )
-            section.comments = sectionComments.filter( comment => comment.section_id === section.id )
-            
-
-            return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( section ) , 200 )
-        } catch ( error ){
-            return Result.fail<Section>( new Error( error.detail ), error.code, error.detail )
-        }
-    }
-    async findSectionComments ( sectionId: string ): Promise<Result<SectionComment[]>>
-    {
-        try {
-            const comments = await this.ormCommentRepository.findBy( { section_id: sectionId } )
-            return Result.success<SectionComment[]>( await Promise.all( comments.map( async comment => await this.ormSectionCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
-        } catch (error) {
-
-            return Result.fail<SectionComment[]>( new Error( error.detail ), error.code, error.detail )
-            
-        }
-    }
-
-
-
-    async findCourseById ( id: string ): Promise<Result<Course>>
+    async findAllTrainerCourses ( trainerId: string ): Promise<Result<Course[]>>
     {
         try
         {
-            const course = await this.findOneBy( { id } )
-            const courseImage = await this.ormImageRepository.findOneBy( { course_id: id } )
-            course.image = courseImage
-            
-            if ( course )
-            {
-                return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( course ), 200 )
-            }
-            return Result.fail<Course>( new Error( 'Course not found' ), 404, 'Course not found' )
-        } catch ( error )
-        {
-            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
-        }
-    }
+            const courses = await this.find( { where: { trainer_id: trainerId } } )
 
-
-    async findCoursesByName ( name: string ): Promise<Result<Course[]>>
-    {
-        try
-        {
-            const courses = await this.createQueryBuilder( 'course' ).where( 'course.name LIKE :name', { name: `%${name}%` } ).getMany()
-            
             if ( courses.length > 0 )
             {
-                
+
                 for ( const course of courses )
                 {
                     const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                     course.sections = sections
                     const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
                     course.image = courseImage
-            
+
                 }
                 return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
@@ -133,10 +67,103 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
+    async findSectionById ( sectionId: string ): Promise<Result<Section>>
+    {
+        try
+        {
+            const section = await this.ormSectionRepository.findOneBy( { id: sectionId } )
+            if ( !section )
+                return Result.fail<Section>( new Error( 'Section not found' ), 404, 'Section not found' )
+
+            let sectionImages: OrmSectionImage[] = []
+            let sectionVideos: OrmSectionVideo[] = []
+            let sectionComments: OrmSectionComment[] = []
+
+            const images = await this.ormImageRepository.findBy( { section_id: section.id } )
+            const videos = await this.ormVideoRepository.findBy( { section_id: section.id } )
+            const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
+            sectionImages = sectionImages.concat( images )
+            sectionVideos = sectionVideos.concat( videos )
+            sectionComments = sectionComments.concat( comments )
+
+
+
+            section.images = sectionImages.filter( image => image.section_id === section.id )
+            section.videos = sectionVideos.filter( video => video.section_id === section.id )
+            section.comments = sectionComments.filter( comment => comment.section_id === section.id )
+
+
+            return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( section ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<Section>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findSectionComments ( sectionId: string ): Promise<Result<SectionComment[]>>
+    {
+        try
+        {
+            const comments = await this.ormCommentRepository.findBy( { section_id: sectionId } )
+            return Result.success<SectionComment[]>( await Promise.all( comments.map( async comment => await this.ormSectionCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
+        } catch ( error )
+        {
+
+            return Result.fail<SectionComment[]>( new Error( error.detail ), error.code, error.detail )
+
+        }
+    }
+
+    async findCourseById ( id: string ): Promise<Result<Course>>
+    {
+        try
+        {
+            const course = await this.findOneBy( { id } )
+            if ( course )
+            {
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: id } )
+                course.image = courseImage
+
+
+                return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( course ), 200 )
+            }
+            return Result.fail<Course>( new Error( 'Course not found' ), 404, 'Course not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+
+    async findCoursesByName ( name: string ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.createQueryBuilder( 'course' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).getMany()
+
+            if ( courses.length > 0 )
+            {
+
+                for ( const course of courses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+
+                }
+                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
 
     async findCourseSections ( id: string ): Promise<Result<Section[]>>
     {
-        try{
+        try
+        {
             const sections = await this.ormSectionRepository.findBy( { course_id: id } )
             let sectionImages: OrmSectionImage[] = []
             let sectionVideos: OrmSectionVideo[] = []
@@ -150,7 +177,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
                 sectionVideos = sectionVideos.concat( videos )
                 sectionComments = sectionComments.concat( comments )
             }
-            
+
             sections.forEach( section =>
             {
                 section.images = sectionImages.filter( image => image.section_id === section.id )
@@ -159,40 +186,41 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             } )
 
             return Result.success<Section[]>( await Promise.all( sections.map( async section => await this.ormSectionMapper.fromPersistenceToDomain( section ) ) ), 200 )
-        } catch ( error ){
+        } catch ( error )
+        {
             return Result.fail<Section[]>( new Error( error.detail ), error.code, error.detail )
         }
     }
 
-
     async addCommentToSection ( comment: SectionComment ): Promise<Result<SectionComment>>
     {
-        try {
-            const newComment: OrmSectionComment = await this.ormSectionCommentMapper.fromDomainToPersistence(comment)
-            await this.ormCommentRepository.save(newComment)
-            return Result.success<SectionComment>(await this.ormSectionCommentMapper.fromPersistenceToDomain(newComment),200)
-        } catch (error) {
-            return Result.fail<SectionComment>(new Error(error.detail),error.code,error.detail)
+        try
+        {
+            const newComment: OrmSectionComment = await this.ormSectionCommentMapper.fromDomainToPersistence( comment )
+            await this.ormCommentRepository.save( newComment )
+            return Result.success<SectionComment>( await this.ormSectionCommentMapper.fromPersistenceToDomain( newComment ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<SectionComment>( new Error( error.detail ), error.code, error.detail )
         }
     }
-
 
     async findCoursesByCategory ( categoryId: string ): Promise<Result<Course[]>>
     {
         try
         {
             const courses = await this.find( { where: { category_id: categoryId } } )
-            
+
             if ( courses.length > 0 )
             {
-                
+
                 for ( const course of courses )
                 {
                     const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                     course.sections = sections
                     const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
                     course.image = courseImage
-            
+
                 }
                 return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
