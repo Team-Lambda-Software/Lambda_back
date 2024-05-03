@@ -8,11 +8,11 @@ import { ICodeGenerator } from "../interface/code-generator.interface";
 export class GetCodeUpdatePasswordUserApplicationService implements IApplicationService<GetCodeUpdatePasswordEntryApplicationDto, any> {
     private readonly userRepository: IUserRepository   
     private readonly emailSender: EmailSender;
-    private readonly codeGenerator: ICodeGenerator<number[]>; 
+    private readonly codeGenerator: ICodeGenerator<string>; 
     constructor(
         userRepository: IUserRepository,
         emailSender: EmailSender,
-        codeGenerator: ICodeGenerator<number[]>,
+        codeGenerator: ICodeGenerator<string>,
     ){
         this.userRepository = userRepository
         this.emailSender = emailSender
@@ -29,14 +29,15 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
             )
         }
         const code = this.codeGenerator.generateCode(4)
-        this.emailSender.setVariable( code.toString() )
+        this.emailSender.setVariable( code )
         this.emailSender.sendEmail( updateDto.email, updateDto.email )
         const answer = {
             email: updateDto.email,
-            secretCode: code
+            code: code,
+            date: new Date().getTime()
         }
         return Result.success(answer, 200)
     }
-   
+  
     get name(): string { return this.constructor.name }
 }

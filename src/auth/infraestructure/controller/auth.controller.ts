@@ -32,6 +32,7 @@ import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/applicatio
 import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @Controller('auth')
 export class AuthController {
@@ -40,6 +41,7 @@ export class AuthController {
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
+    private secretCodes = []
 
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
@@ -60,6 +62,14 @@ export class AuthController {
         }
     }
     
+    @Post('newtoken')
+    @UseGuards(JwtAuthGuard)
+    async newToken() {
+        return {
+            token: this.tokenGenerator.generateJwt('newtoken')
+        }
+    }
+
     @Post('loginuser')
     async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
         const data: LogInEntryApplicationDto = {
@@ -116,14 +126,21 @@ export class AuthController {
                 new NativeLogger(this.logger)
             )
         )
-        return (await getCodeUpdatePasswordApplicationService.execute(data)).Value
+        const result = await getCodeUpdatePasswordApplicationService.execute(data)
+        if ( result.isSuccess ) {
+            this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
+            this.secretCodes.push( result.Value )
+        }
+        return result.Value
     }
 
     @Post('updatepassword')
-    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {
-        const data: UpdatePasswordEntryApplicationDto = {
-            userId: 'none',
-            ...updatePasswordDto,
+    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {        
+        if ( !this.verifyCode( updatePasswordDto.code ) ) //'code expired'
+            return { message: 'code invalid', code: updatePasswordDto.code }
+        const data: UpdatePasswordEntryApplicationDto = { 
+            userId: 'none', 
+            ...updatePasswordDto 
         }
         const updatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -135,6 +152,23 @@ export class AuthController {
             )
         )
         return (await updatePasswordApplicationService.execute(data)).Value
+    }
+
+    async verifyCode( code: string ) {
+        var nowTime = new Date().getTime()
+        var search = this.secretCodes.filter( e => e.code == code )
+        if ( search.length == 0 ) return false
+        if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
+        return true
+    }
+
+    @Cron(CronExpression.EVERY_10_MINUTES)
+    async cleanSecretCodes() {
+        var nowTime = new Date().getTime()
+        this.secretCodes = this.secretCodes.filter( e => {
+            var diff = (nowTime - e.date)/1000
+            if ( diff <= 600 ) return e
+        })
     }
 
 }

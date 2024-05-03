@@ -1,4 +1,4 @@
-import { IsString, MinLength } from "class-validator"
+import { IsArray, IsString, MinLength } from "class-validator"
 
 export class UpdatePasswordUserInfrastructureDto {
   
@@ -9,4 +9,8 @@ export class UpdatePasswordUserInfrastructureDto {
   @IsString()
   @MinLength(4)
   password: string
+
+  @IsString()
+  @MinLength(4)
+  code: string
 }
