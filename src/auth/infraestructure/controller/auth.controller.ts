@@ -35,16 +35,17 @@ import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 
 @Controller('auth')
 export class AuthController {
-    private readonly logger: Logger = new Logger('AuthController')
+    private readonly logger: Logger
     private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
-    private readonly tokenGenerator: IJwtGenerator<string>;
-    private readonly encryptor: IEncryptor; 
+    private readonly tokenGenerator: IJwtGenerator<string>
+    private readonly encryptor: IEncryptor
 
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
         private jwtAuthService: JwtService
     ) {
+        this.logger = new Logger('AuthController')
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
