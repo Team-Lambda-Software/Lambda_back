@@ -33,7 +33,7 @@ import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/d
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { GetCodeUpdatePasswordSwaggerResponseDto } from "../dto/response/get-code-update-password-swagger-response.dto";
 import { LogInUserSwaggerResponseDto } from "../dto/response/log-in-user-swagger-response.dto";
 import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagger-response.dto";
@@ -68,6 +68,7 @@ export class AuthController {
         description: 'Verificar validez del token mediante el header Authorization', 
         type: CheckTokenSwaggerResponseDto
     })
+    @ApiBearerAuth()
     async checkToken() { return { tokenIsValid: true } }
     
     @Post('newtoken')
@@ -76,6 +77,7 @@ export class AuthController {
         description: 'Generar nuevo token para prevenir el vencimiento del actual', 
         type: NewTokenSwaggerResponseDto 
     })
+    @ApiBearerAuth()
     async newToken() { return { newToken: this.tokenGenerator.generateJwt('newtoken') } }
 
     @Post('loginuser')
