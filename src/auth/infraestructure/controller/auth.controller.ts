@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards } from "@nestjs/common"
+import { Controller, Get, Post, UseGuards } from "@nestjs/common"
 import { LogInEntryInfrastructureDto } from "../dto/entry/log-in-entry.infrastructure.dto";
 import { SignUpEntryInfrastructureDto } from "../dto/entry/sign-up-entry.infrastructure.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
@@ -62,7 +62,7 @@ export class AuthController {
         this.encryptor = new EncryptorBcrypt()
     }
     
-    @Post('checktoken')
+    @Get('checktoken')
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ 
         description: 'Verificar validez del token mediante el header Authorization', 
@@ -71,7 +71,7 @@ export class AuthController {
     @ApiBearerAuth()
     async checkToken() { return { tokenIsValid: true } }
     
-    @Post('newtoken')
+    @Get('newtoken')
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ 
         description: 'Generar nuevo token para prevenir el vencimiento del actual', 
