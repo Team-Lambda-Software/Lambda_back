@@ -20,6 +20,8 @@ import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
 import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
 import { AddCommentToBlogSwaggerResponseDto } from "../dto/response/add-comment-to-blog-swagger-response.dto"
+import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -27,6 +29,7 @@ export class BlogController
 {
 
     private readonly blogRepository: OrmBlogRepository
+    private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
@@ -38,11 +41,12 @@ export class BlogController
                 new OrmBlogCommentMapper(),
                 dataSource
             )
+        this.auditingRepository = new OrmAuditingRepository( dataSource )
 
     }
 
     @Get( ':id' )
-    @ApiOkResponse({ description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto })
+    @ApiOkResponse( { description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto } )
     async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string )
     {
         const service =
@@ -59,10 +63,10 @@ export class BlogController
     }
 
     @Post( 'search' )
-    @ApiOkResponse({ description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true})
+    @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
     async searchBlog ( @Body() searchBlogEntryDto: SearchBlogEntryDto )
     {
-        const searchBlogServiceEntry: SearchBlogByTitleEntryDto = { ...searchBlogEntryDto, userId: '2'}
+        const searchBlogServiceEntry: SearchBlogByTitleEntryDto = { ...searchBlogEntryDto, userId: '2' }
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -78,10 +82,10 @@ export class BlogController
     }
 
     @Get( 'category/:categoryId' )
-    @ApiOkResponse({ description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true})
-    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string )
+    @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
+    async searchCourseByCategory ( @Param( 'categoryId', ParseUUIDPipe ) categoryId: string )
     {
-        const searchBlogByCategoryServiceEntry: SearchBlogByCategoryEntryDto = { categoryId, userId: '2'}
+        const searchBlogByCategoryServiceEntry: SearchBlogByCategoryEntryDto = { categoryId, userId: '2' }
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -97,17 +101,21 @@ export class BlogController
     }
 
     @Post( ':blogId/comment' )
-    @ApiOkResponse({ description: 'Agrega un comentario a un blog', type: AddCommentToBlogSwaggerResponseDto})
-    async addCommentToSection ( @Param( 'blogId', ParseUUIDPipe ) blogId: string, @Body() comment: AddCommentToBlogEntryDto)
+    @ApiOkResponse( { description: 'Agrega un comentario a un blog', type: AddCommentToBlogSwaggerResponseDto } )
+    async addCommentToSection ( @Param( 'blogId', ParseUUIDPipe ) blogId: string, @Body() comment: AddCommentToBlogEntryDto )
     {
         const service =
             new ExceptionDecorator(
-                new LoggingDecorator(
-                    new AddCommentToBlogApplicationService(
-                        this.blogRepository,
-                        this.idGenerator
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new AddCommentToBlogApplicationService(
+                            this.blogRepository,
+                            this.idGenerator
+                        ),
+                        new NativeLogger( this.logger )
                     ),
-                    new NativeLogger( this.logger )
+                    this.auditingRepository,
+                    this.idGenerator 
                 )
             )
 

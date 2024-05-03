@@ -24,6 +24,8 @@ import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { GetSectionSwaggerResponseDto } from "../dto/responses/get-section-swagger-response.dto"
 import { AddCommentToSectionSwaggerResponseDto } from "../dto/responses/add-comment-to-section-swagger-response.dto"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
+import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 
 
 @ApiTags('Course')
@@ -32,6 +34,7 @@ export class CourseController
 {
 
     private readonly courseRepository: OrmCourseRepository
+    private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
@@ -46,6 +49,7 @@ export class CourseController
                 new OrmSectionCommentMapper(),
                 dataSource
             )
+        this.auditingRepository = new OrmAuditingRepository(dataSource)
 
     }
 
@@ -130,16 +134,20 @@ export class CourseController
     {
         const service =
             new ExceptionDecorator(
-                new LoggingDecorator(
-                    new AddCommentToSectionApplicationService(
-                        this.courseRepository,
-                        this.idGenerator
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new AddCommentToSectionApplicationService(
+                            this.courseRepository,
+                            this.idGenerator
+                        ),
+                        new NativeLogger( this.logger )
                     ),
-                    new NativeLogger( this.logger )
+                    this.auditingRepository,
+                    this.idGenerator
                 )
             )
 
-        const data = { ...comment, sectionId, userId: 'df0595a1-ba58-47c7-ace6-b3d734b27a66' }
+        const data = { ...comment, sectionId, userId: 'e0f943f5-1327-45e1-a4f9-100c925486f0' }
         const result = await service.execute( data )
         return result.Value
     }
