@@ -1,6 +1,6 @@
-import { Controller, Post, UseGuards } from "@nestjs/common"
-import { LogInEntryInfrastructureDto } from "../dto/log-in-entry.infrastructure.dto";
-import { SignUpEntryInfrastructureDto } from "../dto/sign-up-entry.infrastructure.dto";
+import { Controller, Get, Post, UseGuards } from "@nestjs/common"
+import { LogInEntryInfrastructureDto } from "../dto/entry/log-in-entry.infrastructure.dto";
+import { SignUpEntryInfrastructureDto } from "../dto/entry/sign-up-entry.infrastructure.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -24,8 +24,8 @@ import { SignUpUserApplicationService } from "src/auth/application/services/sign
 import { JwtService } from "@nestjs/jwt";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
 import { SecretCodeGenerator } from "../secret-code-generator/secret-code-generator";
-import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/get-code-update-password-user-entry.infrastructure.dto";
-import { UpdatePasswordUserInfrastructureDto } from "../dto/update-password-user.entry.infraestructure.dto";
+import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/entry/get-code-update-password-user-entry.infrastructure.dto";
+import { UpdatePasswordUserInfrastructureDto } from "../dto/entry/update-password-user.entry.infraestructure.dto";
 import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
 import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/update-password-entry.application.dto";
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
@@ -33,7 +33,15 @@ import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/d
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { GetCodeUpdatePasswordSwaggerResponseDto } from "../dto/response/get-code-update-password-swagger-response.dto";
+import { LogInUserSwaggerResponseDto } from "../dto/response/log-in-user-swagger-response.dto";
+import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagger-response.dto";
+import { UpdatePasswordUserSwaggerResponseDto } from "../dto/response/update-password-user-swagger-response.dto";
+import { NewTokenSwaggerResponseDto } from "../dto/response/new-token-swagger-response.dto";
+import { CheckTokenSwaggerResponseDto } from "../dto/response/check-token-swagger-response.dto";
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
@@ -53,16 +61,30 @@ export class AuthController {
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
     }
-
-    @Post('checktoken')
+    
+    @Get('checktoken')
     @UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ 
+        description: 'Verificar validez del token mediante el header Authorization', 
+        type: CheckTokenSwaggerResponseDto
+    })
+    @ApiBearerAuth()
     async checkToken() { return { tokenIsValid: true } }
     
-    @Post('newtoken')
+    @Get('newtoken')
     @UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ 
+        description: 'Generar nuevo token para prevenir el vencimiento del actual', 
+        type: NewTokenSwaggerResponseDto 
+    })
+    @ApiBearerAuth()
     async newToken() { return { newToken: this.tokenGenerator.generateJwt('newtoken') } }
 
     @Post('loginuser')
+    @ApiOkResponse({ 
+        description: 'Iniciar sesion de usuario', 
+        type: LogInUserSwaggerResponseDto 
+    })
     async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
         const data: LogInEntryApplicationDto = {
             userId: 'none',
@@ -82,6 +104,10 @@ export class AuthController {
     }
     
     @Post('signupuser')
+    @ApiOkResponse({ 
+        description: 'Registrar un nuevo usuario en el sistema', 
+        type: SignUpUserSwaggerResponseDto 
+    })
     async signUpUser(@Body() signUpDto: SignUpEntryInfrastructureDto) {
         const data: SignUpEntryApplicationDto = {
             userId: 'none',
@@ -103,6 +129,10 @@ export class AuthController {
     }
     
     @Post('getcodeupdatepassword')
+    @ApiOkResponse({ 
+        description: 'Obtener codigo de validez temporal para confirmar que la petición pertenece al usuario correspondiente', 
+        type: GetCodeUpdatePasswordSwaggerResponseDto
+    })
     async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
         const data: GetCodeUpdatePasswordEntryApplicationDto = {
             userId: 'none',
@@ -127,8 +157,12 @@ export class AuthController {
     }
 
     @Post('updatepassword')
+    @ApiOkResponse({ 
+        description: 'Cambiar la contraseña del usuario', 
+        type: UpdatePasswordUserSwaggerResponseDto
+    })
     async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {     
-        const result = this.verifyCode(updatePasswordDto.code)  
+        const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
         if ( result == false ) return { message: 'code invalid', code: updatePasswordDto.code }
         const data: UpdatePasswordEntryApplicationDto = { 
             userId: 'none', 
@@ -146,17 +180,17 @@ export class AuthController {
         return (await updatePasswordApplicationService.execute(data)).Value
     }
 
-    verifyCode( code: string ) {
+    private verifyCode( code: string, email: string ) {
         var nowTime = new Date().getTime()
         var search = this.secretCodes.filter( e => e.code == code )
         if ( search.length == 0 ) return false
         if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
-        this.secretCodes = this.secretCodes.filter( e => e.code != code )
+        this.secretCodes = this.secretCodes.filter( e => (e.code != code && e.email != email) )
         return true
     }
 
     @Cron(CronExpression.EVERY_10_MINUTES)
-    async cleanSecretCodes() {
+    private async cleanSecretCodes() {
         var nowTime = new Date().getTime()
         this.secretCodes = this.secretCodes.filter( e => {
             var diff = (nowTime - e.date)/1000
