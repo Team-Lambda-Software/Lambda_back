@@ -6,21 +6,25 @@ import { UserController } from './user/infraestructure/controller/user.controlle
 import { AuthController } from './auth/infraestructure/controller/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
-
-// TO-DO: process.env.JWT_SECRET_KEY
+import { CourseController } from './course/infraestructure/controller/courses.controller'
+import { BlogController } from './blog/infraestructure/controller/blog.controller'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module( {
   imports: [
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     JwtModule.register({
-      secret: process.env.JWT_SECRET_KEY || 'rakata',
-      signOptions: { }
+      secret: process.env.JWT_SECRET_KEY,
+      signOptions: {}
     }),
   ],
   controllers: [
     TestController, 
     UserController,
-    AuthController
+    AuthController,
+    CourseController, 
+    BlogController
   ],
   providers: [     
     ormDatabaseProvider,

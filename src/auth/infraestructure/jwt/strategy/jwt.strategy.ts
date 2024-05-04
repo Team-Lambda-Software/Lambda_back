@@ -7,10 +7,13 @@ import { Strategy } from "passport-local";
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor() {
         super({
-            global: true,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_SECRET_KEY || 'rakata'
+            secretOrKey: process.env.JWT_SECRET_KEY
         })
+    }
+    
+    async validate(payload: any) {
+        return { payload: payload }
     }
 }
