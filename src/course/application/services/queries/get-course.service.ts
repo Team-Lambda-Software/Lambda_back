@@ -27,8 +27,8 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
 
         const course = resultCourse.Value
-
-        const resultSections = await this.courseRepository.findCourseSections( course.Id )
+        const {offset = 0, limit = 10} = data.sectionPagination
+        const resultSections = await this.courseRepository.findCourseSections( course.Id, {offset, limit})
         if ( !resultSections.isSuccess() )
         {
             return Result.fail<Course>( resultSections.Error, resultSections.StatusCode, resultSections.Message )

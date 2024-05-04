@@ -12,6 +12,7 @@ import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comme
 import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 
 
 
@@ -41,11 +42,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
     }
 
-    async findAllTrainerCourses ( trainerId: string ): Promise<Result<Course[]>>
+    async findAllTrainerCourses ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.find( { where: { trainer_id: trainerId } } )
+            const courses = await this.find( { where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit } )
 
             if ( courses.length > 0 )
             {
@@ -100,11 +101,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-    async findSectionComments ( sectionId: string ): Promise<Result<SectionComment[]>>
+    async findSectionComments ( sectionId: string, pagination: PaginationDto ): Promise<Result<SectionComment[]>>
     {
         try
         {
-            const comments = await this.ormCommentRepository.findBy( { section_id: sectionId } )
+            const comments = await this.ormCommentRepository.find( { where: { section_id: sectionId }, skip: pagination.offset, take: pagination.limit } )
             return Result.success<SectionComment[]>( await Promise.all( comments.map( async comment => await this.ormSectionCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
         } catch ( error )
         {
@@ -134,11 +135,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-    async findCoursesByName ( name: string ): Promise<Result<Course[]>>
+    async findCoursesByName ( name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
 
             if ( courses.length > 0 )
             {
@@ -160,11 +161,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-    async findCourseSections ( id: string ): Promise<Result<Section[]>>
+    async findCourseSections ( id: string, pagination: PaginationDto ): Promise<Result<Section[]>>
     {
         try
         {
-            const sections = await this.ormSectionRepository.findBy( { course_id: id } )
+            const sections = await this.ormSectionRepository.find( { where: { course_id: id }, skip: pagination.offset, take: pagination.limit } )
             let sectionImages: OrmSectionImage[] = []
             let sectionVideos: OrmSectionVideo[] = []
             let sectionComments: OrmSectionComment[] = []
@@ -205,11 +206,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-    async findCoursesByCategory ( categoryId: string ): Promise<Result<Course[]>>
+    async findCoursesByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.find( { where: { category_id: categoryId } } )
+            const courses = await this.find( { where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit } )
 
             if ( courses.length > 0 )
             {
