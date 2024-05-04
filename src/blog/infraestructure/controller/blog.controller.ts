@@ -65,7 +65,7 @@ export class BlogController
                     new NativeLogger( this.logger )
                 )
             )
-        const result = await service.execute( { blogId: id, userId: user.Id } )
+        const result = await service.execute( { blogId: id, userId: user.Id, commentPagination} )
         return result.Value
     }
 
@@ -76,7 +76,7 @@ export class BlogController
     @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
     async searchBlog ( @Body() searchBlogEntryDto: SearchBlogEntryDto, @Query() pagination: PaginationDto, @GetUser() user: User )
     {
-        const searchBlogServiceEntry: SearchBlogByTitleEntryDto = { ...searchBlogEntryDto, userId: user.Id }
+        const searchBlogServiceEntry: SearchBlogByTitleEntryDto = { ...searchBlogEntryDto, userId: user.Id, pagination }
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -98,7 +98,7 @@ export class BlogController
     @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
     async searchCourseByCategory ( @Param( 'categoryId', ParseUUIDPipe ) categoryId: string, @Query() pagination: PaginationDto, @GetUser() user: User)
     {
-        const searchBlogByCategoryServiceEntry: SearchBlogByCategoryEntryDto = { categoryId, userId: user.Id }
+        const searchBlogByCategoryServiceEntry: SearchBlogByCategoryEntryDto = { categoryId, userId: user.Id, pagination}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
