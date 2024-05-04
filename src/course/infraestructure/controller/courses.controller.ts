@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { GetCourseApplicationService } from "src/course/application/services/queries/get-course.service"
@@ -29,6 +29,7 @@ import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repos
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 
 
 @ApiTags('Course')
@@ -60,7 +61,7 @@ export class CourseController
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto })
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User)
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User, @Query('sectionPagination') sectionPagination: PaginationDto )
     {
         const service =
             new ExceptionDecorator(
@@ -71,7 +72,7 @@ export class CourseController
                     new NativeLogger( this.logger )
                 )
             )
-        const result = await service.execute( { courseId: id, userId: user.Id } )
+        const result = await service.execute( { courseId: id, userId: user.Id, sectionPagination: sectionPagination } )
         return result.Value
     }
 
@@ -79,9 +80,9 @@ export class CourseController
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan el nombre dado', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User)
+    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User, @Query('pagination') pagination: PaginationDto )
     {
-        const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id}
+        const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -100,9 +101,9 @@ export class CourseController
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que pertenezcan a la misma categoria', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User)
+    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User, @Query('pagination') pagination: PaginationDto )
     {
-        const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: user.Id}
+        const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: user.Id, pagination: pagination}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -121,9 +122,9 @@ export class CourseController
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de una seccion dado el id', type: GetSectionSwaggerResponseDto })
-    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User)
+    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User, @Query('commentPagination') commentPagination: PaginationDto )
     {
-        const data: GetCourseSectionServiceEntryDto = { sectionId, userId: user.Id}
+        const data: GetCourseSectionServiceEntryDto = { sectionId, userId: user.Id, commentPagination: commentPagination}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(

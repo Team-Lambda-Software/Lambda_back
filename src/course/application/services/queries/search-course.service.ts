@@ -7,19 +7,21 @@ import { SearchCourseServiceEntryDto } from "../../dto/param/search-course-servi
 
 
 
-export class SearchCourseApplicationService implements IApplicationService<SearchCourseServiceEntryDto,Course[]>{
-    
+export class SearchCourseApplicationService implements IApplicationService<SearchCourseServiceEntryDto, Course[]>
+{
+
     private readonly courseRepository: ICourseRepository
 
     constructor ( courseRepository: ICourseRepository )
     {
         this.courseRepository = courseRepository
     }
-    
+
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchCourseServiceEntryDto ): Promise<Result<Course[]>>
     {
-        return await this.courseRepository.findCoursesByName( data.name )
+        const { offset = 0, limit = 10 } = data.pagination
+        return await this.courseRepository.findCoursesByName( data.name, { offset, limit } )
     }
 
     get name (): string
