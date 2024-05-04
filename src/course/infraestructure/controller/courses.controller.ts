@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { GetCourseApplicationService } from "src/course/application/services/queries/get-course.service"
@@ -19,13 +19,16 @@ import { AddCommentToSectionEntryDto } from "../dto/entry/add-comment-to-section
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AddCommentToSectionApplicationService } from "src/course/application/services/commands/add-comment-to-section-application.service"
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { GetSectionSwaggerResponseDto } from "../dto/responses/get-section-swagger-response.dto"
 import { AddCommentToSectionSwaggerResponseDto } from "../dto/responses/add-comment-to-section-swagger-response.dto"
 import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
+import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
+import { User } from "src/user/domain/user"
 
 
 @ApiTags('Course')
@@ -54,8 +57,10 @@ export class CourseController
     }
 
     @Get( ':id' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto })
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string )
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User)
     {
         const service =
             new ExceptionDecorator(
@@ -66,15 +71,17 @@ export class CourseController
                     new NativeLogger( this.logger )
                 )
             )
-        const result = await service.execute( { courseId: id, userId: '1' } )
+        const result = await service.execute( { courseId: id, userId: user.Id } )
         return result.Value
     }
 
     @Post( 'search' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan el nombre dado', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto )
+    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User)
     {
-        const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: '2'}
+        const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -90,10 +97,12 @@ export class CourseController
     }
 
     @Get( 'category/:categoryId' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que pertenezcan a la misma categoria', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string )
+    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User)
     {
-        const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: '2'}
+        const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: user.Id}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -109,10 +118,12 @@ export class CourseController
     }
 
     @Get( 'section/:sectionId' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de una seccion dado el id', type: GetSectionSwaggerResponseDto })
-    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string )
+    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User)
     {
-        const data: GetCourseSectionServiceEntryDto = { sectionId, userId: '2'}
+        const data: GetCourseSectionServiceEntryDto = { sectionId, userId: user.Id}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -129,8 +140,10 @@ export class CourseController
     }
 
     @Post( 'section/:sectionId/comment' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ description: 'Agrega un comentario a una seccion', type: AddCommentToSectionSwaggerResponseDto })
-    async addCommentToSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @Body() comment: AddCommentToSectionEntryDto)
+    async addCommentToSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @Body() comment: AddCommentToSectionEntryDto, @GetUser()user: User)
     {
         const service =
             new ExceptionDecorator(
@@ -147,7 +160,7 @@ export class CourseController
                 )
             )
 
-        const data = { ...comment, sectionId, userId: 'e0f943f5-1327-45e1-a4f9-100c925486f0' }
+        const data = { ...comment, sectionId, userId: user.Id }
         const result = await service.execute( data )
         return result.Value
     }
