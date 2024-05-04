@@ -59,7 +59,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 'Error al registrar usuario'
             )
         }
-        const token = this.tokenGenerator.generateJwt( signUpDto.email )  
+        const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
         this.emailSender.setVariable( signUpDto.firstName )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
         const answer = {
