@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 
 
@@ -10,9 +11,10 @@ export class User extends Entity<string>
     private secondLastName: string
     private email: string
     private password: string
+    private phone: string
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string )
+    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string )
     {
         super( id )
         this.firstName = firstName
@@ -20,6 +22,7 @@ export class User extends Entity<string>
         this.secondLastName = secondLastName
         this.email = email
         this.password = password
+        this.phone = phone
     }
 
     get FirstName (): string
@@ -47,9 +50,14 @@ export class User extends Entity<string>
         return this.password
     }
 
-    static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string ): User
+    get Phone (): string
     {
-        return new User( id, firstName, firstLastname, secondLastName, email, password )
+        return this.phone
+    }
+
+    static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string ): User
+    {
+        return new User( id, firstName, firstLastname, secondLastName, email, password, phone )
     }
 
     public updateFirstName ( firstName: string ): void
@@ -77,7 +85,10 @@ export class User extends Entity<string>
         this.password = password
     }
 
-
+    public updatePhone (phone: string): void
+    {
+        this.phone = phone
+    }
 
 
 }

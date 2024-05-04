@@ -39,13 +39,14 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
                 'Contraseña incorrecta'
             )
         }      
-        const token = this.tokenGenerator.generateJwt( logInDto.email )   
+        const token = this.tokenGenerator.generateJwt( userResult.Id )   
         const answer = {
             token: token,
             email: userResult.Email,
             firstLastName: userResult.FirstLastName,
             firstName: userResult.FirstName,
-            secondLastName: userResult.SecondLastName
+            secondLastName: userResult.SecondLastName,
+            phone: userResult.Phone
         }
         return Result.success(answer, 200)
     }

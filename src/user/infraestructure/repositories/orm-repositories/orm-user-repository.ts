@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Result } from "src/common/Application/result-handler/Result"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 import { User } from "src/user/domain/user"
@@ -15,6 +16,18 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
     {
         super( OrmUser, dataSource.createEntityManager() )
         this.ormUserMapper = ormUserMapper
+    }
+
+    async deleteById(id: string): Promise<Result<User>> {
+        
+        const user = await this.findOneBy({id});
+
+        if(user){
+            await this.delete(user);
+            return Result.success<User>(await this.ormUserMapper.fromPersistenceToDomain( user ), 200);
+        }
+
+        return Result.fail<User>(new Error('User not found'),404,'User not found')
     }
 
     async findUserById ( id: string ): Promise<Result<User>>
@@ -41,13 +54,25 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
             return Result.fail<User>( new Error( error.detail ), error.code, error.detail )
         }
     }
-    findUserByEmail ( email: string ): Promise<Result<User>>
+
+    async findUserByEmail ( email: string ): Promise<Result<User>>
     {
-        throw new Error( "Method not implemented." )
+        const user = await this.findOneBy({email})
+        if(user){
+            return Result.success<User>(await this.ormUserMapper.fromPersistenceToDomain(user),200);
+        }
+        return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
-    updateUserPassword ( email: string, newPassword: string ): Promise<Result<User>>
+
+    async updateUserPassword ( email: string, newPassword: string ): Promise<Result<User>>
     {
-        throw new Error( "Method not implemented." )
+        const user = await this.findOneBy({email});
+        if(user){
+            user.password = newPassword;
+            await this.save(user)
+            return Result.success<User>(await this.ormUserMapper.fromPersistenceToDomain(user),200);
+        }
+        return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
 
 }

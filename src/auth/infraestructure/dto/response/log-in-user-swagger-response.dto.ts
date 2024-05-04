@@ -11,4 +11,7 @@ export class LogInUserSwaggerResponseDto {
     firstName: string
     @ApiProperty({ example: 'eyJhbGciOiJIUzI1NiJ9.aHVhbG9uZy5jaGlhbmdAZ21bacwuY29t.PhujWyxfi7WRJyPPryrf2IlPtkpEyQ6BXnFgXXWw0N8' })
     token: string
+    @ApiProperty({ example: '04129812234' })
+    phone: string
+
 }
