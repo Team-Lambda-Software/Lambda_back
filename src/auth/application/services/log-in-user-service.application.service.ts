@@ -45,7 +45,8 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
             email: userResult.Email,
             firstLastName: userResult.FirstLastName,
             firstName: userResult.FirstName,
-            secondLastName: userResult.SecondLastName
+            secondLastName: userResult.SecondLastName,
+            phone: userResult.Phone
         }
         return Result.success(answer, 200)
     }

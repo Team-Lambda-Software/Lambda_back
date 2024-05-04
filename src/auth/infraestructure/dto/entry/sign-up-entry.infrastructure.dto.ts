@@ -26,4 +26,9 @@ export class SignUpEntryInfrastructureDto {
   @IsString()
   @MinLength(2)
   secondLastName: string
+
+  @ApiProperty({ example: '04131234123' })
+  @IsString()
+  @MinLength(4)
+  phone: string
 }
