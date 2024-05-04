@@ -7,23 +7,24 @@ import { SearchBlogByTitleEntryDto } from "../../dto/params/search-blog-by-title
 
 
 
-export class SearchBlogByTitleApplicationService implements IApplicationService<SearchBlogByTitleEntryDto,Blog[]> 
+export class SearchBlogByTitleApplicationService implements IApplicationService<SearchBlogByTitleEntryDto, Blog[]> 
 {
     private readonly blogRepository: IBlogRepository
-    
+
     constructor ( blogRepository: IBlogRepository )
     {
         this.blogRepository = blogRepository
     }
-  
+
     async execute ( data: SearchBlogByTitleEntryDto ): Promise<Result<Blog[]>>
     {
-        const resultBlogs = await this.blogRepository.findBlogsByTitle( data.title )
+        const { limit = 10, offset = 0 } = data.pagination
+        const resultBlogs = await this.blogRepository.findBlogsByTitle( data.title, { limit, offset } )
         if ( !resultBlogs.isSuccess() )
         {
             return Result.fail<Blog[]>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
         }
-        
+
         return resultBlogs
 
     }
