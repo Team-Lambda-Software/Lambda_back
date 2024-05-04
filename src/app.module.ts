@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { TestController } from './test/infraestructure/controller/test.controller'
 import { ormDatabaseProvider } from './common/Infraestructure/providers/db-providers/db-provider'
 import { UserController } from './user/infraestructure/controller/user.controller'
@@ -9,7 +9,7 @@ import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
 
 // TO-DO: process.env.JWT_SECRET_KEY
 
-@Module({
+@Module( {
   imports: [
     ConfigModule.forRoot(),
     JwtModule.register({

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Application/result-handler/Result"
@@ -18,6 +19,13 @@ export class GetUserProfileApplicationService implements IApplicationService<App
     async execute ( data: ApplicationServiceEntryDto ): Promise<Result<User>>
     {
         const user = await this.userRepository.findUserById(data.userId)
+
+        return user
+    }
+
+    async executeByEmail( email : string ) : Promise<Result<User>>
+    {
+        const user = await this.userRepository.findUserByEmail(email);
 
         return user
     }
