@@ -19,7 +19,7 @@ import { AddCommentToSectionEntryDto } from "../dto/entry/add-comment-to-section
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AddCommentToSectionApplicationService } from "src/course/application/services/commands/add-comment-to-section-application.service"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { GetSectionSwaggerResponseDto } from "../dto/responses/get-section-swagger-response.dto"
@@ -61,7 +61,8 @@ export class CourseController
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto })
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User, @Query('sectionPagination') sectionPagination: PaginationDto )
+    @ApiQuery({ name: 'sectionPagination', type: PaginationDto, required: false })
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User, @Query() sectionPagination: PaginationDto )
     {
         const service =
             new ExceptionDecorator(
@@ -78,9 +79,10 @@ export class CourseController
 
     @Post( 'search' )
     @UseGuards(JwtAuthGuard)
+    @ApiQuery({ name: 'pagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan el nombre dado', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User, @Query('pagination') pagination: PaginationDto )
+    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
     {
         const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
         const service =
@@ -99,9 +101,10 @@ export class CourseController
 
     @Get( 'category/:categoryId' )
     @UseGuards(JwtAuthGuard)
+    @ApiQuery({ name: 'pagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que pertenezcan a la misma categoria', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User, @Query('pagination') pagination: PaginationDto )
+    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User, @Query() pagination: PaginationDto )
     {
         const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: user.Id, pagination: pagination}
         const service =
@@ -120,9 +123,10 @@ export class CourseController
 
     @Get( 'section/:sectionId' )
     @UseGuards(JwtAuthGuard)
+    @ApiQuery({ name: 'commentPagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de una seccion dado el id', type: GetSectionSwaggerResponseDto })
-    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User, @Query('commentPagination') commentPagination: PaginationDto )
+    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User, @Query() commentPagination: PaginationDto )
     {
         const data: GetCourseSectionServiceEntryDto = { sectionId, userId: user.Id, commentPagination: commentPagination}
         const service =
