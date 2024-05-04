@@ -6,5 +6,6 @@ export class SignUpEntryApplicationDto implements ApplicationServiceEntryDto {
     password: string  
     firstName: string
     firstLastName: string
-    secondLastName: string  
+    secondLastName: string
+    phone: string
 }

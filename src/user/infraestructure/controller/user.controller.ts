@@ -1,14 +1,16 @@
-import { Controller, Get, Inject, Logger, Param, Post } from "@nestjs/common"
+/* eslint-disable prettier/prettier */
+import { Body, Controller, Get, Inject, Logger, Param, Patch } from "@nestjs/common"
 import { OrmUserRepository } from "../repositories/orm-repositories/orm-user-repository"
-import { DataSource, EntityManager, In } from "typeorm"
-import { User } from "src/user/domain/user"
+import { DataSource, /*EntityManager, In */} from "typeorm"
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
-import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { /*IdGenerator*/ } from "src/common/Application/Id-generator/id-generator.interface"
+import { /*UuidGenerator*/ } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { GetUserProfileApplicationService } from "src/user/application/services/get-user-profile.application.service"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { userUpdateEntryDtoService } from "src/user/dto/user-update-entry-Service";
+import { UpdateUserProfileAplicationService } from "src/user/application/services/update-user-profile.application.service";
 
 
 
@@ -16,9 +18,8 @@ import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 export class UserController {
 
     private readonly userRepository: OrmUserRepository
-
-
     private readonly logger: Logger = new Logger( "UserController" )
+    
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
         
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
@@ -32,4 +33,18 @@ export class UserController {
         return (await getUserProfileService.execute({userId: id})).Value
         
     }
+
+    
+    @Patch(':id')
+    async updateUser(@Param('id') id: string, @Body() userDTO: userUpdateEntryDtoService){
+
+        const userUpdateDto = {userId: id,...userDTO};
+        
+        const updateUserProfileService = new ExceptionDecorator(new LoggingDecorator(new UpdateUserProfileAplicationService(this.userRepository), new NativeLogger(this.logger)))
+        const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
+
+        return resultUpdate
+
+    }
+
 }

@@ -8,6 +8,6 @@ export class JwtGenerator implements IJwtGenerator<string> {
     }
     
     generateJwt(param: string): string {
-        return this.jwtService.sign(param)
+        return this.jwtService.sign( { id: param } )
     }
 }

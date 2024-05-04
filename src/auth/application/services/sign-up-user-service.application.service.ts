@@ -48,7 +48,8 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 signUpDto.firstLastName,
                 signUpDto.secondLastName,
                 signUpDto.email,
-                plainToHash
+                plainToHash,
+                signUpDto.phone,
             )
         )
         if ( !userResult.isSuccess() ) {
@@ -58,7 +59,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 'Error al registrar usuario'
             )
         }
-        const token = this.tokenGenerator.generateJwt( signUpDto.email )  
+        const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
         this.emailSender.setVariable( signUpDto.firstName )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
         const answer = {
@@ -66,7 +67,8 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
             email: signUpDto.email,
             firstLastName: signUpDto.firstLastName,
             firstName: signUpDto.firstName,
-            secondLastName: signUpDto.secondLastName
+            secondLastName: signUpDto.secondLastName,
+            phone: signUpDto.phone
         }
         return Result.success(answer, 200)
     }

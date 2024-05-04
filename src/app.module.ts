@@ -5,7 +5,6 @@ import { ormDatabaseProvider } from './common/Infraestructure/providers/db-provi
 import { UserController } from './user/infraestructure/controller/user.controller'
 import { AuthController } from './auth/infraestructure/controller/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './auth/infraestructure/jwt/strategy/jwt.strategy';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -16,7 +15,9 @@ import { ScheduleModule } from '@nestjs/schedule'
     ScheduleModule.forRoot(),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: {}
+      signOptions: {
+        expiresIn: '2h'
+      }
     }),
   ],
   controllers: [
@@ -27,8 +28,8 @@ import { ScheduleModule } from '@nestjs/schedule'
     BlogController
   ],
   providers: [     
-    ormDatabaseProvider,
-    JwtStrategy
+    ormDatabaseProvider
   ],
 })
+
 export class AppModule {}
