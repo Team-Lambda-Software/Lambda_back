@@ -16,7 +16,7 @@ import { SearchBlogByCategoryEntryDto } from "src/blog/application/dto/params/se
 import { SearchBlogByCategoryApplicationService } from "src/blog/application/services/queries/search-blog-by-category-application.service"
 import { AddCommentToBlogEntryDto } from "../dto/entry/add-comment-to-blog-entry.dto"
 import { AddCommentToBlogApplicationService } from "src/blog/application/services/commands/add-comment-to-blog-application.service"
-import { ApiBearerAuth, ApiOkResponse, ApiQuery, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
 import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
 import { AddCommentToBlogSwaggerResponseDto } from "../dto/response/add-comment-to-blog-swagger-response.dto"
@@ -51,7 +51,6 @@ export class BlogController
 
     @Get( ':id' )
     @UseGuards(JwtAuthGuard)
-    @ApiQuery({ name: 'commentPagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto } )
     async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string, @Query() commentPagination: PaginationDto, @GetUser() user: User)
@@ -71,7 +70,6 @@ export class BlogController
 
     @Post( 'search' )
     @UseGuards(JwtAuthGuard)
-    @ApiQuery({ name: 'pagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
     async searchBlog ( @Body() searchBlogEntryDto: SearchBlogEntryDto, @Query() pagination: PaginationDto, @GetUser() user: User )
@@ -93,7 +91,6 @@ export class BlogController
 
     @Get( 'category/:categoryId' )
     @UseGuards(JwtAuthGuard)
-    @ApiQuery({ name: 'pagination', type: PaginationDto, required: false })
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve los blogs que tengan el nombre dado', type: SearchBlogsSwaggerResponseDto, isArray: true } )
     async searchCourseByCategory ( @Param( 'categoryId', ParseUUIDPipe ) categoryId: string, @Query() pagination: PaginationDto, @GetUser() user: User)
