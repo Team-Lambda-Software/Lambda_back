@@ -9,7 +9,6 @@ export class Trainer extends Entity<string>
     private phone: string;
     private followersID: Array<string>; //Array of all the users that follow this particular trainer
     private location?:string|undefined; //to-do Refactor as Optional<String>, Optional<LocationClass>
-    private hasLocation:boolean;
     //to-do Add field for associated courses? Maybe some stats?
 
     private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, location?:string)
@@ -23,7 +22,6 @@ export class Trainer extends Entity<string>
         this.phone = phone;
         this.followersID = followersID;
 
-        this.hasLocation = (location === undefined);
         this.location = location;
     }
 
@@ -57,14 +55,9 @@ export class Trainer extends Entity<string>
         return this.followersID;
     }
 
-    get HasLocation(): boolean
-    {
-        return this.hasLocation;
-    }
-
     get Location(): string
     {
-        if (!this.HasLocation) { throw new ReferenceError("This trainer has no associated location"); }
+        if (this.location === undefined) { throw new ReferenceError("This trainer has no associated location"); }
         return <string>this.location;
     }
 
@@ -130,7 +123,6 @@ export class Trainer extends Entity<string>
 
     public updateLocation(location?:string):void
     {
-        this.hasLocation = (location === undefined);
         this.location = location;
     }
 }
