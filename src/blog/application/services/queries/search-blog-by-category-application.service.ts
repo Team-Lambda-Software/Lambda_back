@@ -7,23 +7,24 @@ import { SearchBlogByCategoryEntryDto } from "../../dto/params/search-blog-by-ca
 
 
 
-export class SearchBlogByCategoryApplicationService implements IApplicationService<SearchBlogByCategoryEntryDto,Blog[]> 
+export class SearchBlogByCategoryApplicationService implements IApplicationService<SearchBlogByCategoryEntryDto, Blog[]> 
 {
     private readonly blogRepository: IBlogRepository
-    
+
     constructor ( blogRepository: IBlogRepository )
     {
         this.blogRepository = blogRepository
     }
-  
+
     async execute ( data: SearchBlogByCategoryEntryDto ): Promise<Result<Blog[]>>
     {
-        const resultBlogs = await this.blogRepository.findBlogsByCategory( data.categoryId )
+        const { limit = 10, offset = 0 } = data.pagination
+        const resultBlogs = await this.blogRepository.findBlogsByCategory( data.categoryId, { limit, offset } )
         if ( !resultBlogs.isSuccess() )
         {
             return Result.fail<Blog[]>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
         }
-        
+
         return resultBlogs
 
     }
