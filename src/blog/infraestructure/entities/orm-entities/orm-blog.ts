@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { OrmBlogComment } from "./orm-blog-comment"
 import { OrmBlogImage } from "./orm-blog-image"
+import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 
 
 
@@ -12,8 +13,12 @@ export class OrmBlog
     @Column( 'varchar' ) title: string
     @Column( 'varchar' ) body: string
     @Column( 'timestamp' ) publication_date: Date
+
     @Column( { type: "uuid" } ) trainer_id: string
+    @ManyToOne( () => OrmTrainer, trainer => trainer.blogs ) trainer: OrmTrainer
+    
     @Column( { type: "uuid" } ) category_id: string
+    // @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
 
     @OneToOne( () => OrmBlogImage, image => image.blog ) image: OrmBlogImage
 

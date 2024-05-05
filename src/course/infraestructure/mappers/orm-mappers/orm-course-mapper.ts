@@ -33,7 +33,7 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         }
         //TODO relacion con trainer y con categoria
         const course: Course =
-            Course.create( persistence.id, '15asdas', persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, 'asdasd', SectionImage.create( persistence.image.id, persistence.image.url ) )
+            Course.create( persistence.id, persistence.trainer_id, persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, SectionImage.create( persistence.image.id, persistence.image.url ) )
         return course
     }
 
