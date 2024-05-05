@@ -8,10 +8,12 @@ export class Trainer extends Entity<string>
     private email: string;
     private phone: string;
     private followersID: Array<string>; //Array of all the users that follow this particular trainer
+    private coursesID: Array<string>; //Array of all courses that a given trainer teaches
+    private blogsID: Array<string>; //Array of all courses that a given trainer wrote
     private location?:string|undefined; //to-do Refactor as Optional<String>, Optional<LocationClass>
     //to-do Add field for associated courses? Maybe some stats?
 
-    private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, location?:string)
+    private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, coursesID:Array<string>, blogsID:Array<string>, location?:string)
     {
         super(id);
 
@@ -21,6 +23,8 @@ export class Trainer extends Entity<string>
         this.email = email;
         this.phone = phone;
         this.followersID = followersID;
+        this.coursesID = coursesID;
+        this.blogsID = blogsID;
 
         this.location = location;
     }
@@ -61,9 +65,9 @@ export class Trainer extends Entity<string>
         return <string>this.location;
     }
 
-    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, location?:string):Trainer
+    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, coursesID:Array<string>, blogsID:Array<string>, location?:string):Trainer
     {
-        return new Trainer(id, firstName, firstLastName, secondLastName, email, phone, followersID, location);
+        return new Trainer(id, firstName, firstLastName, secondLastName, email, phone, followersID, coursesID, blogsID, location);
     }
 
     public updateFirstName(firstName:string):void
