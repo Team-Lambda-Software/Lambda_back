@@ -1,5 +1,7 @@
-import { Column, Entity, ManyToMany, PrimaryColumn, JoinTable } from "typeorm"
+import { Column, Entity, ManyToMany, PrimaryColumn, JoinTable, ManyToOne, OneToMany } from "typeorm"
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity"
+import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course";
+import { OrmBlog } from "src/blog/infraestructure/entities/orm-entities/orm-blog";
 
 @Entity( {name: 'trainer'} )
 export class OrmTrainer
@@ -13,6 +15,7 @@ export class OrmTrainer
     @Column('varchar', {nullable:true} ) location:string; //to-do Remember to polish this
     //to-do Relations for statistics and courses made
 
+    //A trainer is followed by 'many' users
     @ManyToMany(() => OrmUser)
     @JoinTable({
         name:"follows",
@@ -29,7 +32,15 @@ export class OrmTrainer
     } )
     followers: OrmUser[];
 
-    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, location:string, followers:OrmUser[]):OrmTrainer
+    //A trainer may teach many courses, a course is teached by a single trainer
+    @OneToMany(() => OrmCourse, (course) => course.trainer_id)
+    courses:OrmCourse[];
+
+    //A trainer may write many blogs. A blog is written by a single trainer
+    @OneToMany(() => OrmBlog, (blog) => blog.trainer_id)
+    blogs:OrmBlog[];
+
+    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, location:string, followers:OrmUser[], courses:OrmCourse[], blogs:OrmBlog[]):OrmTrainer
     {
         const trainer = new OrmTrainer();
         trainer.id = id;
@@ -40,6 +51,8 @@ export class OrmTrainer
         trainer.phone = phone;
         trainer.location = location;
         trainer.followers = followers;
+        trainer.courses = courses;
+        trainer.blogs = blogs;
         return trainer;
     }
 }
