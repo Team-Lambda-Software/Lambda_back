@@ -15,7 +15,7 @@ export class OrmBlog
     @Column( 'timestamp' ) publication_date: Date
 
     @Column( { type: "uuid" } ) trainer_id: string
-    @ManyToOne( () => OrmTrainer, trainer => trainer.blogs ) trainer: OrmTrainer
+    @ManyToOne( () => OrmTrainer, trainer => trainer.blogs, {eager: true}) @JoinColumn( {name: 'trainer_id'} ) trainer: OrmTrainer
     
     @Column( { type: "uuid" } ) category_id: string
     // @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory

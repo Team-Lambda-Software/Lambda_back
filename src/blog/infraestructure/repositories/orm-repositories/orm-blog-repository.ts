@@ -52,7 +52,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take(pagination.limit).skip(pagination.offset).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect('blog.trainer', 'trainer').where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take(pagination.limit).skip(pagination.offset).getMany()
 
             if ( blogs.length > 0 )
             {
