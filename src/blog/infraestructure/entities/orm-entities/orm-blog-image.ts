@@ -11,7 +11,7 @@ export class OrmBlogImage
     @Column( 'varchar' ) url: string
 
     @Column( { type: "uuid", nullable: true } ) blog_id: string
-    @OneToOne( () => OrmBlog, { eager: true } ) @JoinColumn( { name: 'blog_id' } ) blog: OrmBlog
+    @ManyToOne( () => OrmBlog, { eager: true } ) @JoinColumn( { name: 'blog_id' } ) blog: OrmBlog
 
     static create ( id: string, url: string ): OrmBlogImage
     {
