@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { CategoriesModule } from './categories/categories.module';
 
 @Module( {
   imports: [
@@ -19,6 +20,7 @@ import { ScheduleModule } from '@nestjs/schedule'
         expiresIn: '2h'
       }
     }),
+    CategoriesModule,
   ],
   controllers: [
     TestController, 
