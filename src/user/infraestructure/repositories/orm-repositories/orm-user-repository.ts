@@ -75,7 +75,8 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
 
-    async findAllUser(): Promise<Result<User[]>> {
+    async findAllUser(): Promise<Result<User[]>> 
+    {
         
         const OrmUsers = await this.find()
 
