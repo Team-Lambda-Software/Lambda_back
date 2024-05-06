@@ -16,7 +16,7 @@ export class OrmTrainer
     //to-do Relations for statistics and courses made
 
     //A trainer is followed by 'many' users
-    @ManyToMany(() => OrmUser)
+    @ManyToMany(() => OrmUser, {eager:true})
     @JoinTable({
         name:"follows",
         joinColumn: {
@@ -28,16 +28,16 @@ export class OrmTrainer
             name: "follower_id",
             referencedColumnName: "id",
             foreignKeyConstraintName: "fk_user_follower_id"
-        }
+        },
     } )
     followers: OrmUser[];
 
     //A trainer may teach many courses, a course is teached by a single trainer
-    @OneToMany(() => OrmCourse, (course) => course.trainer_id)
+    @OneToMany(() => OrmCourse, (course) => course.trainer_id, {nullable: true})
     courses:OrmCourse[];
 
     //A trainer may write many blogs. A blog is written by a single trainer
-    @OneToMany(() => OrmBlog, (blog) => blog.trainer_id)
+    @OneToMany(() => OrmBlog, (blog) => blog.trainer_id, {nullable:true})
     blogs:OrmBlog[];
 
     static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, location:string, followers:OrmUser[], courses:OrmCourse[], blogs:OrmBlog[]):OrmTrainer

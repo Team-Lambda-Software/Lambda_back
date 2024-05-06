@@ -12,17 +12,26 @@ export class OrmTrainerMapper implements IMapper<Trainer, OrmTrainer>
         let followersID:Array<string> = new Array<string>();
         let coursesID:Array<string> = new Array<string>();
         let blogsID:Array<string> = new Array<string>();
-        for (let user of persistence.followers)
+        if (persistence.followers)
         {
-            followersID.push(user.id);
+            for (let user of persistence.followers)
+            {
+                followersID.push(user.id);
+            }
         }
-        for (let course of persistence.courses)
+        if (persistence.courses)
         {
-            coursesID.push(course.trainer_id);
+            for (let course of persistence.courses)
+            {
+                coursesID.push(course.trainer_id);
+            }
         }
-        for (let blog of persistence.blogs)
+        if (persistence.blogs)
         {
-            blogsID.push(blog.trainer_id);
+            for (let blog of persistence.blogs)
+            {
+                blogsID.push(blog.trainer_id);
+            }
         }
         const domainTrainer = Trainer.create(persistence.id, persistence.first_name, persistence.first_last_name, persistence.second_last_name, persistence.email, persistence.phone, followersID, coursesID, blogsID, persistence.location);
         return domainTrainer;

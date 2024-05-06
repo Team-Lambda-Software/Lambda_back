@@ -1,14 +1,17 @@
 import { Result } from 'src/common/Application/result-handler/Result'
 import { Trainer } from '../trainer'
+import { PaginationDto } from 'src/common/Infraestructure/dto/entry/pagination.dto';
 
 export interface ITrainerRepository {
     findTrainerByEmail(email:string): Promise<Result<Trainer>>;
     findTrainerById(id:string): Promise<Result<Trainer>>;
-    findTrainerByLocation(location:string): Promise<Result<Trainer>>; //to-do Revamp Location from string into something more useful
-    findTrainersByFollower(followerID:string): Promise<Result<Array<Trainer>>>;
-    findAllTrainerSubscribersById(id:string): Promise<Result<Array<string>>>;
+    findTrainersByLocation(location:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>; //to-do Revamp Location from string into something more useful
+    findTrainersByFollower(followerID:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>;
 
-    updateTrainerLocation(newLocation:string): Promise<Result<Trainer>>; //to-do Location revamp
-    followTrainer(userID:string): Promise<Result<Trainer>>;
-    unfollowTrainer(userID:string): Promise<Result<Trainer>>;
+    findAllTrainerFollowersId(id:string, pagination:PaginationDto): Promise<Result<Array<string>>>;
+    getFollowerCount(id:string):Promise<Result<number>>;
+
+    //to-do updateTrainerLocation(id:string, newLocation:string): Promise<Result<Trainer>>; //to-do Location revamp
+    followTrainer(trainerID:string, userID:string): Promise<Result<Trainer>>;
+    unfollowTrainer(trainerID:string, userID:string): Promise<Result<Trainer>>;
 }
