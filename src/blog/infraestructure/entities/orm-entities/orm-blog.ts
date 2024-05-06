@@ -20,11 +20,11 @@ export class OrmBlog
     @Column( { type: "uuid" } ) category_id: string
     // @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
 
-    @OneToOne( () => OrmBlogImage, image => image.blog ) image: OrmBlogImage
+    @OneToMany( () => OrmBlogImage, image => image.blog ) images: OrmBlogImage[]
 
     @OneToMany(()=> OrmBlogComment, comment => comment.blog) comments: OrmBlogComment[]
 
-    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, image: OrmBlogImage): OrmBlog
+    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, images: OrmBlogImage[]): OrmBlog
     {
         const blog = new OrmBlog()
         blog.id = id
@@ -33,7 +33,7 @@ export class OrmBlog
         blog.publication_date = publicationDate
         blog.trainer_id = trainerId
         blog.category_id = categoryId
-        blog.image = image
+        blog.images = images
         return blog
     }
 

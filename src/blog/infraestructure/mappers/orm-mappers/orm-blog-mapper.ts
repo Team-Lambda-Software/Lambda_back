@@ -20,11 +20,12 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
     }
     async fromPersistenceToDomain ( persistence: OrmBlog ): Promise<Blog>
     {
-        let image: BlogImage = BlogImage.create('empty', 'empty');
-        if (persistence.image)
-            image = BlogImage.create(persistence.image.url, persistence.image.id)
+        let images: BlogImage[] = []
+        if (persistence.images)
+            for ( const image of persistence.images)
+                images.push (BlogImage.create(image.url, image.id))
 
-        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, image, persistence.publication_date, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.category_id )
+        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, images, persistence.publication_date, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.category_id )
         return blog
     }
 
