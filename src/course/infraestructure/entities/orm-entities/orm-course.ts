@@ -24,7 +24,7 @@ export class OrmCourse
 
     //TODO relacion con trainer y con categoria
     @Column( { type: "uuid", nullable: true } ) trainer_id: string
-    @ManyToOne( () => OrmTrainer, trainer => trainer.courses ) @JoinColumn({ name: 'trainer_id'}) trainer: OrmTrainer
+    @ManyToOne( () => OrmTrainer, trainer => trainer.courses, {eager: true}) @JoinColumn({ name: 'trainer_id'}) trainer: OrmTrainer
 
     @Column( { type: "uuid", nullable: true } ) category_id: string
     // @ManyToOne( () => OrmCategory, category => category.courses ) @JoinColumn({ name: 'category_id'}) category: OrmCategory
