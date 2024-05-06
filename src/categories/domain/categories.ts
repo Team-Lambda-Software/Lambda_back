@@ -5,7 +5,7 @@ export class Categorie extends Entity<string>{
 
     private categorieName: string
     private description: string
-    private image: CategorieImage
+    //private image: CategorieImage
 
     
     get CategorieName (): string
@@ -18,12 +18,12 @@ export class Categorie extends Entity<string>{
         return this.description
     }
 
-    get Image (): CategorieImage
-    {
-        return this.image
-    }
+    //get Image (): CategorieImage
+    //{
+    //    return this.image
+    //}
 
-    protected constructor ( id: string, categorieName: string, description: string, image: CategorieImage)
+    protected constructor ( id: string, categorieName: string, description: string,)
     {
         super (id)
         this.categorieName = categorieName
@@ -37,14 +37,14 @@ export class Categorie extends Entity<string>{
 
         if ( !this.description )
             throw new Error( "Categorie must have a description" )
-        if ( !this.image)
-            throw new Error( 'Categorie mush have a image')
+        //if ( !this.image)
+        //    throw new Error( 'Categorie mush have a image')
     
     }
 
-    static create ( id: string, categorieName: string, description: string, image: CategorieImage): Categorie 
+    static create ( id: string, categorieName: string, description: string): Categorie 
     {
-        return new Categorie(id, categorieName, description, image)
+        return new Categorie(id, categorieName, description,)
     }
 
 }
