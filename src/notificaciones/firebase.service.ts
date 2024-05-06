@@ -10,6 +10,14 @@ export class FirebaseService {
       credential: admin.credential.cert(serviceAccount)
     });
   }
+  // En firebase.service.ts
+
+  async sendPushNotificationToAllUsers(message: string) {
+    const users = await this.userRepository.findAllWithNotificationTokens(); // Asegúrate de que este método exista y recupere todos los usuarios con sus tokens de notificación
+    users.forEach(user => {
+      this.sendPushNotification(user.notificationToken, 'Buenos días', message);
+    });
+  }
 
   async sendPushNotification(token: string, title: string, body: string) {
     const message = {
