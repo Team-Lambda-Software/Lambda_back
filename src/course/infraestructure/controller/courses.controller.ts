@@ -30,6 +30,7 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 
 
 @ApiTags('Course')
@@ -47,7 +48,8 @@ export class CourseController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper()
+                    new OrmSectionMapper(),
+                    new OrmTrainerMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
