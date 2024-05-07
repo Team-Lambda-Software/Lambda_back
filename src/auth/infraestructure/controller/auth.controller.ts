@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards } from "@nestjs/common"
+import { Controller, Get, Post, Request } from "@nestjs/common"
 import { LogInEntryInfrastructureDto } from "../dto/entry/log-in-entry.infrastructure.dto";
 import { SignUpEntryInfrastructureDto } from "../dto/entry/sign-up-entry.infrastructure.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
@@ -40,6 +40,8 @@ import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagg
 import { UpdatePasswordUserSwaggerResponseDto } from "../dto/response/update-password-user-swagger-response.dto";
 import { NewTokenSwaggerResponseDto } from "../dto/response/new-token-swagger-response.dto";
 import { CheckTokenSwaggerResponseDto } from "../dto/response/check-token-swagger-response.dto";
+import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
+import { GetUser } from "../jwt/decorator/get-user.param.decorator";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -69,7 +71,9 @@ export class AuthController {
         type: CheckTokenSwaggerResponseDto
     })
     @ApiBearerAuth()
-    async checkToken() { return { tokenIsValid: true } }
+    async checkToken() { 
+        return { tokenIsValid: true } 
+    }
     
     @Get('newtoken')
     @UseGuards(JwtAuthGuard)
@@ -78,7 +82,9 @@ export class AuthController {
         type: NewTokenSwaggerResponseDto 
     })
     @ApiBearerAuth()
-    async newToken() { return { newToken: this.tokenGenerator.generateJwt('newtoken') } }
+    async newToken( @GetUser() user ) {
+        return { newToken: this.tokenGenerator.generateJwt( user.id ) } 
+    }
 
     @Post('loginuser')
     @ApiOkResponse({ 
@@ -182,7 +188,7 @@ export class AuthController {
 
     private verifyCode( code: string, email: string ) {
         var nowTime = new Date().getTime()
-        var search = this.secretCodes.filter( e => e.code == code )
+        var search = this.secretCodes.filter( e => (e.code == code && e.email == email) )
         if ( search.length == 0 ) return false
         if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
         this.secretCodes = this.secretCodes.filter( e => (e.code != code && e.email != email) )

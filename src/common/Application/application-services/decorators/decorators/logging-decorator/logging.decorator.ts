@@ -7,12 +7,12 @@ import { ApplicationServiceEntryDto } from "../../../dto/application-service-ent
 
 
 
-export class LoggingDecorator<D extends ApplicationServiceEntryDto, R> extends ApplicationServiceDecorator<D, R>
+export class LoggingDecorator<D extends ApplicationServiceEntryDto, R> extends ApplicationServiceDecorator<D, R> implements IApplicationService<D, R>
 {
 
-    private readonly logger: ILogger;
+    private readonly logger: ILogger
 
-    constructor ( applicationService: IApplicationService<D, R>, logger: ILogger)
+    constructor ( applicationService: IApplicationService<D, R>, logger: ILogger )
     {
         super( applicationService )
         this.logger = logger
@@ -23,10 +23,10 @@ export class LoggingDecorator<D extends ApplicationServiceEntryDto, R> extends A
         const result = await super.execute( data )
         const toLog: LoggerDto = {
             userId: data.userId,
-            data: JSON.stringify(data),
+            data: JSON.stringify( data ),
             name: this.name
         }
-        if (result.isSuccess())
+        if ( result.isSuccess() )
             this.logger.SuccessLog( toLog )
         else
             this.logger.FailLog( toLog )

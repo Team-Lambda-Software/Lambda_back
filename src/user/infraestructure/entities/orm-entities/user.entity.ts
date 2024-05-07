@@ -13,7 +13,7 @@ export class OrmUser
     @Column( 'varchar' ) first_name: string
     @Column( 'varchar' ) first_last_name: string
     @Column( 'varchar' ) second_last_name: string
-    @Column( 'varchar', {unique: true} ) phone: string
+    @Column( 'varchar', {unique: true, nullable:true}) phone: string
 
     //TODO all relations and fields for the stadistics, courses made, etc.
 
