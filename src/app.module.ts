@@ -9,6 +9,7 @@ import { CourseController } from './course/infraestructure/controller/courses.co
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { SearchController } from './search/infraestructure/controller/search.controller'
 
 @Module( {
   imports: [
@@ -27,6 +28,7 @@ import { ScheduleModule } from '@nestjs/schedule'
     AuthController,
     CourseController, 
     BlogController,
+    SearchController,
     TrainerController
   ],
   providers: [     
