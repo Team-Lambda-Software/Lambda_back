@@ -81,7 +81,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         try
         {
             const followersID = await this.createQueryBuilder().select('follows.follower_id').from(OrmTrainer, 'trainer')
-                                    .innerJoinAndSelect('follows', 'follows', 'follows.trainer_id = trainer.id')
+                                    .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.trainer_id = :target', {target: id})
                                     .skip(pagination.offset)
                                     .take(pagination.limit)
@@ -103,7 +103,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         try
         {
             const followerCount = await this.createQueryBuilder().select('COUNT(follows.follower_id)').from(OrmTrainer, 'trainer')
-                                    .innerJoinAndSelect('follows', 'follows', 'follows.trainer_id = trainer.id')
+                                    .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.trainer_id = :target', {target: id})
                                     .getRawOne<number>();
             if (followerCount != null)
