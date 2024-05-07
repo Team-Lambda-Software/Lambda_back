@@ -1,7 +1,9 @@
 import * as admin from 'firebase-admin';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {OrmUserRepository} from '../user/infraestructure/repositories/orm-repositories/orm-user-repository'
 import { initializeApp } from "firebase/app";
+import { OrmUserMapper } from 'src/user/infraestructure/mappers/orm-mapper/orm-user-mapper';
+import { DataSource, /*EntityManager, In */} from "typeorm"
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -18,10 +20,12 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 @Injectable()
-export class FirebaseService {
-  constructor(private userRepository: OrmUserRepository) {
-    const serviceAccount = require("B:/UCAB/Desarrollo/lambda-af8b3-firebase-adminsdk-82la1-8523f1e9c8.json");
 
+export class FirebaseService {
+  private readonly userRepository: OrmUserRepository
+  constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+    const serviceAccount = require("B:/UCAB/Desarrollo/lambda-af8b3-firebase-adminsdk-82la1-8523f1e9c8.json");
+    this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
