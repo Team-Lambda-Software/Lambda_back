@@ -19,7 +19,9 @@ export class GetTrainerProfileSwaggerResponseDto
     trainer: Trainer;
 
     @ApiProperty( {
-        example: 21,
+        example: {
+            "count": "21"
+        },
     } )
     followerCount:number;
 
