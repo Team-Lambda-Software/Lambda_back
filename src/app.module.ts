@@ -7,7 +7,9 @@ import { AuthController } from './auth/infraestructure/controller/auth.controlle
 import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
+import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { SearchController } from './search/infraestructure/controller/search.controller'
 
 @Module( {
   imports: [
@@ -25,7 +27,9 @@ import { ScheduleModule } from '@nestjs/schedule'
     UserController,
     AuthController,
     CourseController, 
-    BlogController
+    BlogController,
+    SearchController,
+    TrainerController
   ],
   providers: [     
     ormDatabaseProvider
