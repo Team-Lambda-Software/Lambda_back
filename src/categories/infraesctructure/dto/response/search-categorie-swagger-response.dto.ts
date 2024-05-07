@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Categorie } from "src/categories/domain/categories"
+//import { Categorie } from "src/categories/domain/categories"
 
 export class SearchCategorieSwaggerResponseDto
 {

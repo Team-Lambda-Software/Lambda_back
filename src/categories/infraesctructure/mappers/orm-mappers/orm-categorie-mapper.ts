@@ -10,7 +10,7 @@ export class OrmCategorieMapper implements IMapper<Categorie, OrmCategorie>
     }
     async fromPersistenceToDomain ( persistence: OrmCategorie ): Promise<Categorie>
     {
-        const categoire: Categorie = Categorie.create( persistence.id, persistence.categorieName, persistence.description)
-        return categoire
+        const categorie: Categorie = Categorie.create( persistence.id, persistence.categorieName, persistence.description)
+        return categorie
     }
 }

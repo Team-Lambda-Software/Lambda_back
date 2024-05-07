@@ -5,9 +5,9 @@ import { IsString, MinLength } from "class-validator"
 
 export class SearchCategorieEntryDto{
     
-    @ApiProperty({ type: String, example: 'Programación', description: "Nombre del blog"})
+    @ApiProperty({ type: String, example: 'Programación', description: "Nombre de la categoria"})
     @IsString()
     @MinLength( 1 )
-    title: string
+    name: string
     
 }

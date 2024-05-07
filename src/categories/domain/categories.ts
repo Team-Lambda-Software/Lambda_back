@@ -1,5 +1,5 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { CategorieImage } from "./entities/categorie-image"
+//import { CategorieImage } from "./entities/categorie-image"
 
 export class Categorie extends Entity<string>{
 

@@ -1,8 +1,12 @@
-import { Column, Entity, PrimaryColumn } from "typeorm"
+import { Blog } from "src/blog/domain/blog"
+import { OrmBlog } from "src/blog/infraestructure/entities/orm-entities/orm-blog"
+import { Course } from "src/course/domain/course"
+import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course"
+import { Column, Entity, PrimaryColumn, OneToMany1, OneToMany2 } from "typeorm"
 
 
 
-@Entity()
+@Entity({ name: 'categorie' } )
 export class OrmCategorie
 {
 
@@ -10,6 +14,11 @@ export class OrmCategorie
     @Column( 'varchar' ) categorieName: string
     @Column( 'varchar' ) description: string
 
+    @OneToMany1(()=> OrmCourse, course => course.categorie)
+    course: OrmCourse[]
+
+    @OneToMany2(()=> OrmBlog, blog => blog.categorie)
+    blog: OrmBlog[]
 
     static create ( id: string, categorieName: string, description: string)
     {
