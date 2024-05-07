@@ -40,7 +40,8 @@ export class TrainerController {
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper()
+                    new OrmSectionMapper(),
+                    new OrmTrainerMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
@@ -48,7 +49,7 @@ export class TrainerController {
             );
         this.blogRepository = 
             new OrmBlogRepository(
-                new OrmBlogMapper(),
+                new OrmBlogMapper(new OrmTrainerMapper()),
                 new OrmBlogCommentMapper(),
                 dataSource
             );
