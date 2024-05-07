@@ -18,7 +18,6 @@ export class OrmCategorieRepository extends Repository<OrmCategorie> implements 
     
     async findCategorieById ( id: string ): Promise<Result<Categorie>>
     {
-        try
         {
             const categorie = await this.findOneBy( { id } )
             if ( categorie )
@@ -26,11 +25,10 @@ export class OrmCategorieRepository extends Repository<OrmCategorie> implements 
                 return Result.success<Categorie>( await this.ormCategorieMapper.fromPersistenceToDomain( categorie ), 200 )
             }
             return Result.fail<Categorie>( new Error( 'Categorie not found' ), 404, 'Categorie not found' )
-        } catch ( error )
-        {
-            return Result.fail<Categorie>( new Error( error.detail ), error.code, error.detail )
         }
     }
+
+    
 
 }
 
