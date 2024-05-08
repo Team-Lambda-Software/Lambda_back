@@ -26,6 +26,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -41,7 +42,9 @@ export class BlogController
         this.idGenerator = new UuidGenerator()
         this.blogRepository =
             new OrmBlogRepository(
-                new OrmBlogMapper(),
+                new OrmBlogMapper(
+                    new OrmTrainerMapper()
+                ),
                 new OrmBlogCommentMapper(),
                 dataSource
             )

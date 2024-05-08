@@ -1,5 +1,6 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { BlogImage } from "./entities/blog-image"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 
@@ -8,19 +9,19 @@ export class Blog extends Entity<string>{
 
     private title: string
     private body: string
-    private image: BlogImage
+    private images: BlogImage[]
     private publicationDate: Date
-    private trainerId: string
+    private trainer: Trainer
     private categoryId: string
 
-    protected constructor ( id: string, title: string, body: string, image: BlogImage, publicationDate: Date, trainerId: string, categoryId: string )
+    protected constructor ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string )
     {
         super( id )
         this.title = title
         this.body = body
-        this.image = image
+        this.images = images
         this.publicationDate = publicationDate
-        this.trainerId = trainerId
+        this.trainer = trainer
         this.categoryId = categoryId
         this.validateState()
     }
@@ -35,7 +36,7 @@ export class Blog extends Entity<string>{
         {
             throw new Error( 'Body is required' )
         }
-        if ( !this.image )
+        if ( !this.images )
         {
             throw new Error( 'Image is required' )
         }
@@ -43,7 +44,7 @@ export class Blog extends Entity<string>{
         {
             throw new Error( 'Publication date is required' )
         }
-        if ( !this.trainerId )
+        if ( !this.trainer )
         {
             throw new Error( 'Trainer id is required' )
         }
@@ -63,9 +64,9 @@ export class Blog extends Entity<string>{
         return this.body
     }
 
-    get Image (): BlogImage
+    get Images (): BlogImage[]
     {
-        return this.image
+        return this.images
     }
 
     get PublicationDate (): Date
@@ -73,9 +74,9 @@ export class Blog extends Entity<string>{
         return this.publicationDate
     }
 
-    get TrainerId (): string
+    get Trainer (): Trainer
     {
-        return this.trainerId
+        return this.trainer
     }
 
     get CategoryId (): string
@@ -83,9 +84,9 @@ export class Blog extends Entity<string>{
         return this.categoryId
     }
 
-    static create ( id: string, title: string, body: string, image: BlogImage, publicationDate: Date, trainerId: string, categoryId: string ): Blog
+    static create ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string ): Blog
     {
-        return new Blog( id, title, body, image, publicationDate, trainerId, categoryId )
+        return new Blog( id, title, body, images, publicationDate, trainer, categoryId )
     }
 
 }
