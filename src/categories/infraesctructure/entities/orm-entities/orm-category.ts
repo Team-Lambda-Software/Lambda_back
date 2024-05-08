@@ -1,6 +1,4 @@
-import { Blog } from "src/blog/domain/blog"
 import { OrmBlog } from "src/blog/infraestructure/entities/orm-entities/orm-blog"
-import { Course } from "src/course/domain/course"
 import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course"
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { OrmCategoryIcon } from "./orm-category-icon"

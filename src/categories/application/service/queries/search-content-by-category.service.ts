@@ -1,12 +1,11 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Category } from "src/categories/domain/categories";
 import { Result } from "src/common/Application/result-handler/Result";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface";
-import { Course } from "src/course/domain/course";
-import { Blog } from "src/blog/domain/blog";
-import { SearchContentByCategoryServiceEntryDto } from "../Dto/param/search-content-by-category-service-entry.dto"
-import { SearchContentByCategoryServiceResponseDto } from "../Dto/responses/search-content-by-category-service-response.dto"
+import { SearchContentByCategoryServiceEntryDto } from "../../Dto/param/search-content-by-category-service-entry.dto"
+import { SearchContentByCategoryServiceResponseDto } from "../../Dto/responses/search-content-by-category-service-response.dto"
+import { Course } from "src/course/domain/course"
+import { Blog } from "src/blog/domain/blog"
 
 export class SearchContentByCategoryApplicationService implements IApplicationService<SearchContentByCategoryServiceEntryDto, SearchContentByCategoryServiceResponseDto> {
     
@@ -22,21 +21,27 @@ export class SearchContentByCategoryApplicationService implements IApplicationSe
         const { categoryId, pagination } = data;
         const { offset = 0, limit = 10 } = pagination;
         
+        let courses: Course[] = [];
+        let blogs: Blog[] = [];
         const resultCourses = await this.courseRepository.findCoursesByCategory(categoryId, { offset, limit });
         if (!resultCourses.isSuccess()) {
             if (resultCourses.StatusCode != 404) {
                 return Result.fail<SearchContentByCategoryServiceResponseDto>(resultCourses.Error, resultCourses.StatusCode, resultCourses.Message);
             }
+        } else {
+            courses = resultCourses.Value;
         }
         const resultBlogs = await this.blogRepository.findBlogsByCategory(categoryId, { offset, limit });
         if (!resultBlogs.isSuccess()) {
             if (resultBlogs.StatusCode != 404) {
                 return Result.fail<SearchContentByCategoryServiceResponseDto>(resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message);
             }
+        }else{
+            blogs = resultBlogs.Value;
         }
 
 
-        return Result.success({ courses: resultCourses.Value, blogs: resultBlogs.Value }, 200);
+        return Result.success({ courses, blogs }, 200);
     }
 
     get name(): string {

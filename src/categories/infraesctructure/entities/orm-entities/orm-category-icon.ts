@@ -1,5 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn } from "typeorm"
-import { OrmCategory } from "./orm-category"
+import { Column, Entity, PrimaryColumn } from "typeorm"
 
 
 

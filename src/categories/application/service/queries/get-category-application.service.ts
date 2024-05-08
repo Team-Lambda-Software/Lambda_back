@@ -2,7 +2,7 @@ import { IApplicationService } from "src/common/Application/application-services
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { Result } from "src/common/Application/result-handler/Result"
 import { Category } from "src/categories/domain/categories"
-import { GetCategoryServiceEntryDto } from "../Dto/param/get-category-service-entry.dto"
+import { GetCategoryServiceEntryDto } from "../../Dto/param/get-category-service-entry.dto"
 
 
 

@@ -1,16 +1,16 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { CategorieIcon } from "./entities/category-icon"
+import { CategoryIcon } from "./entities/category-icon"
 
 export class Category extends Entity<string>{
 
-    private categorieName: string
+    private name: string
     private description: string
-    private icon: CategorieIcon
+    private icon: CategoryIcon
 
     
-    get CategorieName (): string
+    get Name (): string
     {
-        return this.categorieName
+        return this.name
     }
 
     get Description (): string
@@ -18,22 +18,22 @@ export class Category extends Entity<string>{
         return this.description
     }
 
-    get Icon (): CategorieIcon
+    get Icon (): CategoryIcon
     {
        return this.icon
     }
 
-    protected constructor ( id: string, categorieName: string, description: string, icon: CategorieIcon)
+    protected constructor ( id: string, name: string, description: string, icon: CategoryIcon)
     {
         super (id)
-        this.categorieName = categorieName
+        this.name = name
         this.description = description
         this.icon = icon
         this.ValidState()
     }
 
     protected ValidState (): void{
-        if ( !this.categorieName )
+        if ( !this.name )
             throw new Error( "Categorie must have a name" )
 
         if ( !this.description )
@@ -43,9 +43,9 @@ export class Category extends Entity<string>{
     
     }
 
-    static create ( id: string, categorieName: string, description: string, icon: CategorieIcon): Category 
+    static create ( id: string, name: string, description: string, icon: CategoryIcon): Category 
     {
-        return new Category(id, categorieName, description, icon)
+        return new Category(id, name, description, icon)
     }
 
 }

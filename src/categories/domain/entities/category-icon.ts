@@ -1,4 +1,7 @@
-export class CategorieIcon {
+
+
+
+export class CategoryIcon {
     private id: string
     private url: string
 
@@ -18,9 +21,9 @@ export class CategorieIcon {
         return this.id
     }
 
-    static create ( url: string, id: string ): CategorieIcon
+    static create ( url: string, id: string ): CategoryIcon
     {
-        return new CategorieIcon( url, id )
+        return new CategoryIcon( url, id )
     }
 
 }
