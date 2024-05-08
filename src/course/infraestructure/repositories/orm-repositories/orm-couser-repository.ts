@@ -41,11 +41,23 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
     }
+    async saveCourseAggregate ( course: Course ): Promise<Result<Course>>
+    {
+        try {
+            const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
+            const savedCourse = await this.save( newCourse )
+            return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( savedCourse ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
+        
+        }
+    }
     async findCoursesByLevels ( levels: number[], pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.offset ).take( pagination.limit ).getMany()
             
             if ( courses.length > 0 )
             {
@@ -164,7 +176,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
 
             if ( courses.length > 0 )
             {

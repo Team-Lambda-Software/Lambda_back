@@ -19,5 +19,6 @@ export interface ICourseRepository
     findSectionComments ( sectionId: string, pagination: PaginationDto ): Promise<Result<SectionComment[]>>
     findAllTrainerCourses ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     findCoursesByLevels ( levels: number[], pagination: PaginationDto ): Promise<Result<Course[]>>
+    saveCourseAggregate ( course: Course ): Promise<Result<Course>>
 
 }
