@@ -8,7 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { ScheduleModule } from '@nestjs/schedule'
-import { CategoriesModule } from './categories/categories.module';
+import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 
 @Module( {
   imports: [
@@ -19,15 +19,15 @@ import { CategoriesModule } from './categories/categories.module';
       signOptions: {
         expiresIn: '2h'
       }
-    }),
-    CategoriesModule,
+    })
   ],
   controllers: [
     TestController, 
     UserController,
     AuthController,
     CourseController, 
-    BlogController
+    BlogController,
+    CategoryController
   ],
   providers: [     
     ormDatabaseProvider

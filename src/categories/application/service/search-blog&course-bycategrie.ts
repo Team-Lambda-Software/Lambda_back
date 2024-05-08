@@ -1,13 +1,14 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Categorie } from "src/categories/domain/categories";
+import { Category } from "src/categories/domain/categories";
 import { Result } from "src/common/Application/result-handler/Result";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface";
-import { SearchContentByCategoryEntryDto } from "../Dto/search-content-by-category-entry.dto";
 import { Course } from "src/course/domain/course";
 import { Blog } from "src/blog/domain/blog";
+import { SearchContentByCategoryServiceEntryDto } from "../Dto/param/search-content-by-category-service-entry.dto"
+import { SearchContentByCategoryServiceResponseDto } from "../Dto/responses/search-content-by-category-service-response.dto"
 
-export class SearchContentByCategoryApplicationService implements IApplicationService<SearchContentByCategoryEntryDto, { courses: Course[], blogs: Blog[] }> {
+export class SearchContentByCategoryApplicationService implements IApplicationService<SearchContentByCategoryServiceEntryDto, SearchContentByCategoryServiceResponseDto> {
     
     private readonly courseRepository: ICourseRepository;
     private readonly blogRepository: IBlogRepository;
@@ -17,16 +18,25 @@ export class SearchContentByCategoryApplicationService implements IApplicationSe
         this.blogRepository = blogRepository;
     }
     
-    async execute(data: SearchContentByCategoryEntryDto): Promise<Result<{ courses: Course[], blogs: Blog[] }>> {
+    async execute(data: SearchContentByCategoryServiceEntryDto): Promise<Result<SearchContentByCategoryServiceResponseDto>> {
         const { categoryId, pagination } = data;
         const { offset = 0, limit = 10 } = pagination;
         
-        const coursesPromise = this.courseRepository.findCoursesByCategory(data.categoryId, { offset, limit });
-        const blogsPromise = this.blogRepository.findBlogsByCategory(data.categoryId, { offset, limit });
+        const resultCourses = await this.courseRepository.findCoursesByCategory(categoryId, { offset, limit });
+        if (!resultCourses.isSuccess()) {
+            if (resultCourses.StatusCode != 404) {
+                return Result.fail<SearchContentByCategoryServiceResponseDto>(resultCourses.Error, resultCourses.StatusCode, resultCourses.Message);
+            }
+        }
+        const resultBlogs = await this.blogRepository.findBlogsByCategory(categoryId, { offset, limit });
+        if (!resultBlogs.isSuccess()) {
+            if (resultBlogs.StatusCode != 404) {
+                return Result.fail<SearchContentByCategoryServiceResponseDto>(resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message);
+            }
+        }
 
-        const [courses, blogs] = await Promise.all([coursesPromise, blogsPromise]);
 
-        return Result.success({ courses, blogs });
+        return Result.success({ courses: resultCourses.Value, blogs: resultBlogs.Value }, 200);
     }
 
     get name(): string {

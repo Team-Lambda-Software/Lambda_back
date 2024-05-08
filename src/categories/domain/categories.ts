@@ -1,11 +1,11 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
-//import { CategorieImage } from "./entities/categorie-image"
+import { CategorieIcon } from "./entities/category-icon"
 
-export class Categorie extends Entity<string>{
+export class Category extends Entity<string>{
 
     private categorieName: string
     private description: string
-    //private image: CategorieImage
+    private icon: CategorieIcon
 
     
     get CategorieName (): string
@@ -18,33 +18,34 @@ export class Categorie extends Entity<string>{
         return this.description
     }
 
-    //get Image (): CategorieImage
-    //{
-    //    return this.image
-    //}
+    get Icon (): CategorieIcon
+    {
+       return this.icon
+    }
 
-    protected constructor ( id: string, categorieName: string, description: string,)
+    protected constructor ( id: string, categorieName: string, description: string, icon: CategorieIcon)
     {
         super (id)
         this.categorieName = categorieName
         this.description = description
-        this.categorieValidState()
+        this.icon = icon
+        this.ValidState()
     }
 
-    protected categorieValidState (): void{
+    protected ValidState (): void{
         if ( !this.categorieName )
             throw new Error( "Categorie must have a name" )
 
         if ( !this.description )
             throw new Error( "Categorie must have a description" )
-        //if ( !this.image)
-        //    throw new Error( 'Categorie mush have a image')
+        if ( !this.icon)
+           throw new Error( 'Categorie must have an icon')
     
     }
 
-    static create ( id: string, categorieName: string, description: string): Categorie 
+    static create ( id: string, categorieName: string, description: string, icon: CategorieIcon): Category 
     {
-        return new Categorie(id, categorieName, description,)
+        return new Category(id, categorieName, description, icon)
     }
 
 }

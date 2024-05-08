@@ -1,6 +1,6 @@
 import { DataSource} from "typeorm"
-import { OrmCategorieMapper } from "../mappers/orm-mappers/orm-categorie-mapper"
-import { OrmCategorieRepository } from "../repositories/orm-repositories/orm-categorie-repository"
+import { OrmCategoryMapper } from "../mappers/orm-mappers/orm-category-mapper"
+import { OrmCategoryRepository } from "../repositories/orm-repositories/orm-category-repository"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
@@ -11,23 +11,23 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetCategorieSwaggerResponseDto } from "../dto/response/get-categorie-swagger-response.dto"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
-import { GetCategorieApplicationService } from "src/categories/application/Dto/get-categorie-application.service"
+import { GetCategoryApplicationService } from "src/categories/application/service/get-category-application.service"
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
+import { User } from "src/user/domain/user"
 
-@ApiTags( 'Categorie' )
-@Controller( 'categorie' )
-export class CategorieController
+@ApiTags( 'Category' )
+@Controller( 'category' )
+export class CategoryController
 {
 
-    private readonly categorieRepository: OrmCategorieRepository
+    private readonly categoryRepository: OrmCategoryRepository
     private readonly auditingRepository: OrmAuditingRepository
-    private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CategorieController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
-        this.idGenerator = new UuidGenerator()
-        this.categorieRepository =
-            new OrmCategorieRepository(
-                new OrmCategorieMapper(),
+        this.categoryRepository =
+            new OrmCategoryRepository(
+                new OrmCategoryMapper(),
                 dataSource
             )
         this.auditingRepository = new OrmAuditingRepository( dataSource )
@@ -35,10 +35,13 @@ export class CategorieController
     }
 
     @Get(':id')
-    async getUser(@Param('id') id: string) {
+    @ApiBearerAuth()
+    @UseGuards( JwtAuthGuard )
+    @ApiOkResponse( { type: GetCategorieSwaggerResponseDto } )
+    async getCategory(@Param('id') id: string, @GetUser() user: User) {
         
-        const getCategorieProfileService = new ExceptionDecorator(new LoggingDecorator(new GetCategorieApplicationService(this.categorieRepository), new NativeLogger(this.logger)))
-        return (await getCategorieProfileService.execute({categoryId : id})).Value
+        const getCategorieProfileService = new ExceptionDecorator(new LoggingDecorator(new GetCategoryApplicationService(this.categoryRepository), new NativeLogger(this.logger)))
+        return (await getCategorieProfileService.execute({categoryId : id, userId: user.Id})).Value
         
     }
 
