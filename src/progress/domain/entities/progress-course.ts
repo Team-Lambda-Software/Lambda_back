@@ -3,12 +3,14 @@ import { ProgressSection } from "./progress-section";
 
 export class ProgressCourse
 {
+    private userId:string;
     private courseId:string;
     private isCompleted:boolean;
     private sections: Map<string, ProgressSection> = new Map<string, ProgressSection>();
 
-    protected constructor (courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    protected constructor (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
     {
+        this.userId = userId;
         this.courseId = courseId;
         this.isCompleted = isCompleted;
         if (sections != undefined)
@@ -18,6 +20,11 @@ export class ProgressCourse
                 this.sections.set(section.SectionId, section);
             }
         }
+    }
+
+    get UserId():string
+    {
+        return this.userId;
     }
 
     get CourseId():string
@@ -59,9 +66,9 @@ export class ProgressCourse
         return sectionArray;
     }
 
-    static create (courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    static create (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
     {
-        return new ProgressCourse(courseId, isCompleted, sections);
+        return new ProgressCourse(userId, courseId, isCompleted, sections);
     }
 
     public updateCompletion(isCompleted:boolean)

@@ -7,16 +7,16 @@ export class OrmProgressCourse
 {
     @ManyToOne(() => OrmCourse)
     @JoinColumn( {name: 'course_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     course_id:OrmCourse;
 
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     user_id:OrmUser;
 
     @Column('boolean') completed:boolean;
-    @Column('number') completion_percent:number;
+    @Column('numeric') completion_percent:number;
 
     static create (course:OrmCourse, user:OrmUser, isCompleted:boolean, completionPercent:number): OrmProgressCourse
     {
