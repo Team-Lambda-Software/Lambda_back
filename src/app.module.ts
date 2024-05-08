@@ -7,8 +7,10 @@ import { AuthController } from './auth/infraestructure/controller/auth.controlle
 import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
+import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
 import { CategoryController } from './categories/infraesctructure/controller/category.controller'
+import { SearchController } from './search/infraestructure/controller/search.controller'
 
 @Module( {
   imports: [
@@ -20,6 +22,7 @@ import { CategoryController } from './categories/infraesctructure/controller/cat
         expiresIn: '2h'
       }
     })
+
   ],
   controllers: [
     TestController, 
@@ -27,7 +30,9 @@ import { CategoryController } from './categories/infraesctructure/controller/cat
     AuthController,
     CourseController, 
     BlogController,
-    CategoryController
+    CategoryController,
+    SearchController,
+    TrainerController
   ],
   providers: [     
     ormDatabaseProvider

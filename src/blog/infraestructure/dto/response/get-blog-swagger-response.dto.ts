@@ -13,12 +13,23 @@ export class GetBlogSwaggerResponseDto
             "id": "c998936e-2386-4a9d-a3a2-9f717694b3e9",
             "title": "Blog 1",
             "body": "asfsdgdsagdsgdsgzdfgdfg",
-            "image": {
+            "images": [ {
                 "url": "www.image.com",
                 "id": "fb1ab873-9c04-4cbe-b77c-260fd0a26e70"
-            },
+            } ],
             "publicationDate": "2024-01-05T04:00:00.000Z",
-            "trainerId": "25e39f38-2893-4b95-9b84-6fbab002dc94",
+            "trainer": {
+                "id": "8fe7e9dc-c594-4d27-8502-b7bd18d5a72f",
+                "firstName": "Jose",
+                "firstLastName": "Fernandez",
+                "secondLastName": "Estrada",
+                "email": "fer@gmail.com",
+                "phone": "04125687493",
+                "followersID": [],
+                "coursesID": [],
+                "blogsID": [],
+                "location": "99 Park Ave, New York, NY 10016, EE. UU."
+            },
             "categoryId": "b12702a2-55cd-4955-97b8-992048dfd499"
         },
     } )

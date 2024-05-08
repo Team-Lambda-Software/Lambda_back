@@ -30,6 +30,10 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
+import { SearchCourseByLevelsEntryDto } from "../dto/entry/search-course-by-levels-entry.dto"
+import { SearchCourseByLevelsServiceEntryDto } from "src/course/application/dto/param/search-course-by-levels-service-entry.dto"
+import { SearchCourseByLevelsApplicationService } from "src/course/application/services/queries/search-course-by-levels.service"
 
 
 @ApiTags('Course')
@@ -47,7 +51,8 @@ export class CourseController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper()
+                    new OrmSectionMapper(),
+                    new OrmTrainerMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
@@ -93,6 +98,27 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseServiceEntry )
+
+        return result.Value
+    }
+
+    @Post( 'levels/search' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan alguno de los niveles dados', type: SearchCoursesSwaggerResponseDto, isArray: true})
+    async searchCourseBylevels ( @Body() searchCourseByLevelsEntryDto: SearchCourseByLevelsEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
+    {
+        const searchCourseByLevelsServiceEntry: SearchCourseByLevelsServiceEntryDto = { ...searchCourseByLevelsEntryDto, userId: user.Id, pagination: pagination}
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchCourseByLevelsApplicationService(
+                        this.courseRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( searchCourseByLevelsServiceEntry )
 
         return result.Value
     }
