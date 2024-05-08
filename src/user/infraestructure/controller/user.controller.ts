@@ -11,14 +11,14 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { userUpdateEntryDtoService } from "src/user/dto/user-update-entry-Service";
 import { UpdateUserProfileAplicationService } from "src/user/application/services/update-user-profile.application.service";
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { User } from "src/user/domain/user";
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { FollowTrainerUserApplicationService } from "src/user/application/services/follow-trainer-user.application.service";
 import { UnfollowTrainerUserApplicationService } from "src/user/application/services/unfollow-trainer-user.application.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
-import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 
 
 @ApiTags('User')
@@ -37,6 +37,8 @@ export class UserController {
     }
 
     @Get(':id')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ 
         description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
         type: User
@@ -56,6 +58,7 @@ export class UserController {
     
     @Patch(':id')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     async updateUser(@Param('id') id: string, @Body() userDTO: userUpdateEntryDtoService){
 
         const userUpdateDto = {userId: id,...userDTO};
@@ -75,14 +78,15 @@ export class UserController {
 
     @Post('/follow/:trainerID')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiOkResponse({ 
         description: ' Agrega una nueva relacion entre un entrenado y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
         //type: User
     })
-    async followTrainer(@Param('trainerID') id: string, @Body() userId: ApplicationServiceEntryDto)
+    async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
     {
 
-        const userTrainerFollowDTO = {userId: userId.userId,trainerId: id}
+        const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
 
         const followService = new ExceptionDecorator(
             new LoggingDecorator(
@@ -91,17 +95,23 @@ export class UserController {
             )
         )
 
-        const resultado = (await followService.execute(userTrainerFollowDTO))
+        const resultado = await followService.execute(userTrainerFollowDTO)
+
+        if(!resultado.isSuccess){
+            return resultado.Error
+        }
 
         return resultado.Value
 
     }
 
     @Delete('unfollow/:trainerID')
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    async unfollowTrainer(@Param('trainerID') id: string, @Body() userId: ApplicationServiceEntryDto)
+    @ApiOkResponse({})
+    async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
     {
-        const userTrainerUnfollowDTO = {userId: userId.userId, trainerId: id}
+        const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
 
         const unfollowService = new ExceptionDecorator(
             new LoggingDecorator(
@@ -110,7 +120,11 @@ export class UserController {
             )
         )
 
-        const resultado = (await unfollowService.execute(userTrainerUnfollowDTO))
+        const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
+
+        if(!resultado.isSuccess){
+            return resultado.Error
+        }
 
         return resultado.Value
     }

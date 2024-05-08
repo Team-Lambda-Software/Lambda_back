@@ -15,7 +15,7 @@ export class OrmUser
     @Column( 'varchar' ) first_last_name: string
     @Column( 'varchar' ) second_last_name: string
     @Column( 'varchar', {unique: true, nullable:true}) phone: string
-    @ManyToMany(() => OrmTrainer, {eager:true})
+    @ManyToMany(() => OrmTrainer)
     @JoinTable({
         name: "follows",
         joinColumn: {

@@ -9,14 +9,25 @@ export class FollowTrainerUserApplicationService implements IApplicationService<
     
     private readonly trainerRepository: ITrainerRepository
 
-    constructor ( trainerRepository: ITrainerRepository)
+    constructor (trainerRepository: ITrainerRepository)
     {
         this.trainerRepository = trainerRepository
     }
 
-    execute(data: FollowUnfollowEntryDtoService): Promise<Result<Trainer>> 
+    async execute(data: FollowUnfollowEntryDtoService): Promise<Result<Trainer>> 
     {
-        const resultado = this.trainerRepository.followTrainer(data.trainerId,data.userId);
+
+        const trainer = await this.trainerRepository.findTrainerById(data.trainerId)
+
+        if(!trainer.isSuccess){
+            return Result.fail<Trainer>(trainer.Error,trainer.StatusCode,trainer.Message);
+        } 
+
+        const resultado = await this.trainerRepository.followTrainer(data.trainerId,data.userId);
+
+        if(!resultado.isSuccess){
+            return Result.fail<Trainer>(resultado.Error,resultado.StatusCode,resultado.Message);
+        }
 
         return resultado;
     }

@@ -14,10 +14,16 @@ export class UnfollowTrainerUserApplicationService implements IApplicationServic
         this.trainerRepository = trainerRepository
     }
 
-    execute(data: FollowUnfollowEntryDtoService): Promise<Result<Trainer>> 
+    async execute(data: FollowUnfollowEntryDtoService): Promise<Result<Trainer>> 
     {
 
-        const resultado = this.trainerRepository.unfollowTrainer(data.trainerId,data.userId)
+        const trainer = await this.trainerRepository.findTrainerById(data.trainerId)
+
+        if(!trainer.isSuccess){
+            return Result.fail<Trainer>(trainer.Error,trainer.StatusCode,trainer.Message);
+        } 
+
+        const resultado = await this.trainerRepository.unfollowTrainer(data.trainerId,data.userId)
 
         return resultado;
     }
