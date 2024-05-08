@@ -4,6 +4,7 @@ import { OrmSectionImage } from "./orm-section-images"
 import { OrmTrainer } from '../../../../trainer/infraestructure/entities/orm-entities/trainer.entity';
 import { OrmCategory } from "src/categories/infraesctructure/entities/orm-entities/orm-category"
 import { OrmCourseTags } from "./orm-course-tags"
+import { OrmProgressCourse } from "src/progress/infraestructure/entities/orm-entities/orm-progress-course"
 
 
 
@@ -30,6 +31,9 @@ export class OrmCourse
 
     @Column( { type: "uuid"} ) category_id: string
     @ManyToOne( () => OrmCategory, category => category.courses ) @JoinColumn({ name: 'category_id'}) category: OrmCategory
+
+    @OneToMany(()=> OrmProgressCourse, progressCourse => progressCourse.course_id)
+    progress: OrmProgressCourse[]
 
     @ManyToMany(()=>OrmCourseTags, {eager:true})
     @JoinTable({
