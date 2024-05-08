@@ -3,15 +3,22 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
 export class ProgressVideo
 {
+    private userId:string;
     private videoId:string;
     private playbackMilisec:number;
     private isCompleted:boolean;
 
-    protected constructor (videoId:string, playbackMilisec:number = 0, isCompleted:boolean = false)
+    protected constructor (userId:string, videoId:string, playbackMilisec:number = 0, isCompleted:boolean = false)
     {
+        this.userId = userId;
         this.videoId = videoId;
         this.playbackMilisec = playbackMilisec;
         this.isCompleted = isCompleted;
+    }
+
+    get UserId():string
+    {
+        return this.userId;
     }
 
     get VideoId():string
@@ -29,9 +36,9 @@ export class ProgressVideo
         return this.isCompleted;
     }
 
-    static create (videoId:string, playbackMilisec:number, isCompleted:boolean)
+    static create (userId:string, videoId:string, playbackMilisec:number, isCompleted:boolean)
     {
-        return new ProgressVideo(videoId, playbackMilisec, isCompleted);
+        return new ProgressVideo(userId, videoId, playbackMilisec, isCompleted);
     }
 
     public updateCompletion(isCompleted:boolean)

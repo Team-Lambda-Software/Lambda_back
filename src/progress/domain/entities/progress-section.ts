@@ -3,12 +3,14 @@ import { ProgressVideo } from "./progress-video";
 
 export class ProgressSection
 {
+    private userId:string;
     private sectionId:string;
     private isCompleted:boolean;
     private videos: Map<string, ProgressVideo> = new Map<string,ProgressVideo>();
 
-    protected constructor (sectionId:string, isCompleted:boolean, videos?:ProgressVideo[])
+    protected constructor (userId:string, sectionId:string, isCompleted:boolean, videos?:ProgressVideo[])
     {
+        this.userId = userId;
         this.sectionId = sectionId;
         this.isCompleted = isCompleted;
         if (videos != undefined)
@@ -18,6 +20,11 @@ export class ProgressSection
                 this.videos.set(video.VideoId, video);
             }
         }
+    }
+
+    get UserId():string
+    {
+        return this.userId;
     }
 
     get SectionId(): string
@@ -62,9 +69,9 @@ export class ProgressSection
         return videoArray;
     }
 
-    static create (sectionId:string, isCompleted:boolean, videos?:ProgressVideo[]):ProgressSection
+    static create (userId:string, sectionId:string, isCompleted:boolean, videos?:ProgressVideo[]):ProgressSection
     {
-        return new ProgressSection(sectionId, isCompleted, videos);
+        return new ProgressSection(userId, sectionId, isCompleted, videos);
     }
 
     public updateCompletion(isCompleted:boolean)
