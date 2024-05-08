@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColu
 import { OrmSection } from "./orm-section"
 import { OrmSectionImage } from "./orm-section-images"
 import { OrmTrainer } from '../../../../trainer/infraestructure/entities/orm-entities/trainer.entity';
+import { OrmCategory } from "src/categories/infraesctructure/entities/orm-entities/orm-category"
 
 
 
@@ -27,7 +28,7 @@ export class OrmCourse
     @ManyToOne( () => OrmTrainer, trainer => trainer.courses, {eager: true}) @JoinColumn({ name: 'trainer_id'}) trainer: OrmTrainer
 
     @Column( { type: "uuid", nullable: true } ) category_id: string
-    // @ManyToOne( () => OrmCategory, category => category.courses ) @JoinColumn({ name: 'category_id'}) category: OrmCategory
+    @ManyToOne( () => OrmCategory, category => category.courses ) @JoinColumn({ name: 'category_id'}) category: OrmCategory
 
     static create ( id: string, name: string, description: string, level: number, weeks_duration: number, minutes_per_section: number ): OrmCourse
     {
