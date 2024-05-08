@@ -1,10 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { Body, Controller, Delete, Get, Inject, Logger, Param, Patch, Post, UseGuards } from "@nestjs/common"
 import { OrmUserRepository } from "../repositories/orm-repositories/orm-user-repository"
-import { DataSource, /*EntityManager, In */} from "typeorm"
+import { DataSource} from "typeorm"
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { /*IdGenerator*/ } from "src/common/Application/Id-generator/id-generator.interface"
-import { /*UuidGenerator*/ } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { GetUserProfileApplicationService } from "src/user/application/services/get-user-profile.application.service"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
@@ -19,6 +17,8 @@ import { FollowTrainerUserApplicationService } from "src/user/application/servic
 import { UnfollowTrainerUserApplicationService } from "src/user/application/services/unfollow-trainer-user.application.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
+import { UpdateUserProfileSwaggerResponseDto } from "src/user/dto/response/update-user-profile-swagger-response.dto";
+import { FolloUnfollowSwaggerResponseDto } from "src/user/dto/response/follow-unfollow-entry-swagger-response.dto";
 
 
 @ApiTags('User')
@@ -59,6 +59,10 @@ export class UserController {
     @Patch(':id')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
+    @ApiOkResponse({
+        description: ', dado el id del usuario',
+        type: UpdateUserProfileSwaggerResponseDto
+    })
     async updateUser(@Param('id') id: string, @Body() userDTO: userUpdateEntryDtoService){
 
         const userUpdateDto = {userId: id,...userDTO};
@@ -80,8 +84,8 @@ export class UserController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ 
-        description: ' Agrega una nueva relacion entre un entrenado y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
-        //type: User
+        description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
+        type: FolloUnfollowSwaggerResponseDto
     })
     async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
     {
@@ -106,9 +110,12 @@ export class UserController {
     }
 
     @Delete('unfollow/:trainerID')
-    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
-    @ApiOkResponse({})
+    @ApiBearerAuth()
+    @ApiOkResponse({
+        description:', dado el id del entrenador y del usuario',
+        type: FolloUnfollowSwaggerResponseDto
+    })
     async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
     {
         const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
