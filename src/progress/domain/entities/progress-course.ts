@@ -69,6 +69,11 @@ export class ProgressCourse
         this.isCompleted = isCompleted;
     }
 
+    public saveSection(newSection: ProgressSection)
+    {
+        this.sections.set(newSection.SectionId, newSection);
+    }
+
     public updateSectionCompletionById(sectionId:string, isCompleted:boolean):Result<ProgressSection>
     {
         let target:ProgressSection = this.sections.get(sectionId);

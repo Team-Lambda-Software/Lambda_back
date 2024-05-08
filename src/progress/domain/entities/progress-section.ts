@@ -72,6 +72,11 @@ export class ProgressSection
         this.isCompleted = isCompleted;
     }
 
+    public saveVideo(newVideo:ProgressVideo)
+    {
+        this.videos.set(newVideo.VideoId, newVideo);
+    }
+
     public updateVideoCompletionById(videoId:string, isCompleted:boolean):Result<ProgressVideo>
     {
         let target:ProgressVideo = this.videos.get(videoId);
