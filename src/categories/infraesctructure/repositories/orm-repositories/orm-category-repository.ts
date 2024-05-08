@@ -2,7 +2,7 @@ import { Result } from "src/common/Application/result-handler/Result"
 import { Category } from "src/categories/domain/categories"
 import { Repository, DataSource } from 'typeorm'
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
-import { OrmCategory } from "../../entities/orm-entities/category.entity"
+import { OrmCategory } from "../../entities/orm-entities/orm-category"
 import { OrmCategoryMapper } from '../../mappers/orm-mappers/orm-category-mapper'
 
 export class OrmCategoryRepository extends Repository<OrmCategory> implements ICategoryRepository{
