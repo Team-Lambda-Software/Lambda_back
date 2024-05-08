@@ -16,7 +16,7 @@ export class OrmProgressVideo
     user_id:OrmUser;
 
     @Column('boolean') completed:boolean;
-    @Column('number') playback_milisec:number;
+    @Column('numeric') playback_milisec:number;
 
     static create (video:OrmSectionVideo, user:OrmUser, isCompleted:boolean, playbackMilisec:number): OrmProgressVideo
     {

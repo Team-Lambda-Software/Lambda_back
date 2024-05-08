@@ -16,7 +16,7 @@ export class OrmProgressSection
     user_id:OrmUser;
 
     @Column('boolean') completed:boolean;
-    @Column('number') completion_percent:number;
+    @Column('numeric') completion_percent:number;
 
     static create (section:OrmSection, user:OrmUser, isCompleted:boolean, completionPercent:number): OrmProgressSection
     {
