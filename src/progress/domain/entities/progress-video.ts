@@ -4,13 +4,13 @@ import { Entity } from "src/common/Domain/domain-object/entity.interface";
 export class ProgressVideo
 {
     private videoId:string;
-    private playbackSecond:number;
+    private playbackMilisec:number;
     private isCompleted:boolean;
 
-    protected constructor (videoId:string, playbackSecond:number = 0, isCompleted:boolean = false)
+    protected constructor (videoId:string, playbackMilisec:number = 0, isCompleted:boolean = false)
     {
         this.videoId = videoId;
-        this.playbackSecond = playbackSecond;
+        this.playbackMilisec = playbackMilisec;
         this.isCompleted = isCompleted;
     }
 
@@ -19,9 +19,9 @@ export class ProgressVideo
         return this.videoId;
     }
 
-    get PlaybackSecond():number
+    get PlaybackMilisec():number
     {
-        return this.playbackSecond;
+        return this.playbackMilisec;
     }
 
     get IsCompleted():boolean
@@ -29,9 +29,9 @@ export class ProgressVideo
         return this.isCompleted;
     }
 
-    static create (videoId:string, playbackSecond:number, isCompleted:boolean)
+    static create (videoId:string, playbackMilisec:number, isCompleted:boolean)
     {
-        return new ProgressVideo(videoId, playbackSecond, isCompleted);
+        return new ProgressVideo(videoId, playbackMilisec, isCompleted);
     }
 
     public updateCompletion(isCompleted:boolean)
@@ -39,8 +39,8 @@ export class ProgressVideo
         this.isCompleted = isCompleted;
     }
 
-    public updatePlaybackSecond(playbackSecond:number)
+    public updatePlaybackMilisec(playbackMilisec:number)
     {
-        this.playbackSecond = playbackSecond;
+        this.playbackMilisec = playbackMilisec;
     }
 }
