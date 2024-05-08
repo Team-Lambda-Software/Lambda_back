@@ -8,10 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { ScheduleModule } from '@nestjs/schedule'
-import { FirebaseService } from './notificaciones/firebase.service';
-import { FirebaseModule } from './notificaciones/firebase.module';
-import { TasksModule } from './tasks/tasks.module';
-import { TasksService } from './tasks/tasks.service';
+import { NotificationController } from './notification/infraestructure/notification.controller'
 
 @Module( {
   imports: [
@@ -23,18 +20,17 @@ import { TasksService } from './tasks/tasks.service';
         expiresIn: '2h'
       }
     }),
-    FirebaseModule,
-    TasksModule,
   ],
   controllers: [
     TestController, 
     UserController,
     AuthController,
     CourseController, 
-    BlogController
+    BlogController,
+    NotificationController
   ],
   providers: [     
-    ormDatabaseProvider, FirebaseService, TasksService
+    ormDatabaseProvider
   ],
 })
 
