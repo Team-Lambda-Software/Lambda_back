@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColu
 import { OrmBlogComment } from "./orm-blog-comment"
 import { OrmBlogImage } from "./orm-blog-image"
 import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
+import { OrmCategory } from "src/categories/infraesctructure/entities/orm-entities/orm-category"
 
 
 
@@ -18,7 +19,7 @@ export class OrmBlog
     @ManyToOne( () => OrmTrainer, trainer => trainer.blogs, {eager: true}) @JoinColumn( {name: 'trainer_id'} ) trainer: OrmTrainer
     
     @Column( { type: "uuid" } ) category_id: string
-    // @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
+    @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
 
     @OneToMany( () => OrmBlogImage, image => image.blog ) images: OrmBlogImage[]
 
