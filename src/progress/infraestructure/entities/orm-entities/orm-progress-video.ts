@@ -7,12 +7,12 @@ export class OrmProgressVideo
 {
     @ManyToOne(() => OrmSectionVideo)
     @JoinColumn( {name: 'video_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     video_id:OrmSectionVideo;
 
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     user_id:OrmUser;
 
     @Column('boolean') completed:boolean;

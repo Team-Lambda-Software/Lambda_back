@@ -7,12 +7,12 @@ export class OrmProgressSection
 {
     @ManyToOne(() => OrmSection)
     @JoinColumn( {name: 'section_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     section_id:OrmSection;
 
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn()
+    @PrimaryColumn( {type: "uuid"} )
     user_id:OrmUser;
 
     @Column('boolean') completed:boolean;
