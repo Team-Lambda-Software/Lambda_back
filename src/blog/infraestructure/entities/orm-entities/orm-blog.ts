@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { OrmBlogComment } from "./orm-blog-comment"
 import { OrmBlogImage } from "./orm-blog-image"
+import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 
 
 
@@ -12,14 +13,18 @@ export class OrmBlog
     @Column( 'varchar' ) title: string
     @Column( 'varchar' ) body: string
     @Column( 'timestamp' ) publication_date: Date
-    @Column( { type: "uuid" } ) trainer_id: string
-    @Column( { type: "uuid" } ) category_id: string
 
-    @OneToOne( () => OrmBlogImage, image => image.blog ) image: OrmBlogImage
+    @Column( { type: "uuid" } ) trainer_id: string
+    @ManyToOne( () => OrmTrainer, trainer => trainer.blogs, {eager: true}) @JoinColumn( {name: 'trainer_id'} ) trainer: OrmTrainer
+    
+    @Column( { type: "uuid" } ) category_id: string
+    // @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
+
+    @OneToMany( () => OrmBlogImage, image => image.blog ) images: OrmBlogImage[]
 
     @OneToMany(()=> OrmBlogComment, comment => comment.blog) comments: OrmBlogComment[]
 
-    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, image: OrmBlogImage): OrmBlog
+    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, images: OrmBlogImage[]): OrmBlog
     {
         const blog = new OrmBlog()
         blog.id = id
@@ -28,7 +33,7 @@ export class OrmBlog
         blog.publication_date = publicationDate
         blog.trainer_id = trainerId
         blog.category_id = categoryId
-        blog.image = image
+        blog.images = images
         return blog
     }
 

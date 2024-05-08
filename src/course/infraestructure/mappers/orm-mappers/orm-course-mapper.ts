@@ -5,16 +5,20 @@ import { Section } from "src/course/domain/entities/section"
 
 import { OrmSectionMapper } from "./orm-section-mapper"
 import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
+import { Trainer } from "src/trainer/domain/trainer"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 
 
 
 export class OrmCourseMapper implements IMapper<Course, OrmCourse>
 {
     private readonly ormSectionMapper: OrmSectionMapper
+    private readonly ormTrainerMapper: OrmTrainerMapper
 
-    constructor ( ormSectionMapper: OrmSectionMapper )
+    constructor ( ormSectionMapper: OrmSectionMapper, ormTrainerMapper: OrmTrainerMapper)
     {
         this.ormSectionMapper = ormSectionMapper
+        this.ormTrainerMapper = ormTrainerMapper
     }
 
     fromDomainToPersistence ( domain: Course ): Promise<OrmCourse>
@@ -32,8 +36,9 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
             }
         }
         //TODO relacion con trainer y con categoria
+        
         const course: Course =
-            Course.create( persistence.id, '15asdas', persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, 'asdasd', SectionImage.create( persistence.image.id, persistence.image.url ) )
+            Course.create( persistence.id, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, SectionImage.create( persistence.image.id, persistence.image.url ) )
         return course
     }
 
