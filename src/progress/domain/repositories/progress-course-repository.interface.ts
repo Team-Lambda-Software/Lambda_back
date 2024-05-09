@@ -11,11 +11,11 @@ export interface IProgressCourseRepository
     getSectionProgressById (userId:string, sectionId:string): Promise<Result<ProgressSection>>;
     getVideoProgressById (userId:string, videoId:string): Promise<Result<ProgressVideo>>;
 
-    findAllUsersInCourse (courseId:string, pagination:PaginationDto): Promise<Result<string[]>>;
+    findUserCountInCourse (courseId:string): Promise<Result<number>>;
     findAllStartedCourses (userId:string, pagination:PaginationDto): Promise<Result<ProgressCourse[]>>;
     findAllStartedSections (userId:string, courseId:string, pagination:PaginationDto): Promise<Result<ProgressSection[]>>;
 
-    saveCourseProgress (userId:string, progress:ProgressCourse): Promise<Result<ProgressCourse>>;
-    saveSectionProgress (userId:string, progress:ProgressSection): Promise<Result<ProgressSection>>;
-    saveVideoProgress (userId:string, progress:ProgressVideo): Promise<Result<ProgressVideo>>;
+    saveCourseProgress (progress:ProgressCourse): Promise<Result<ProgressCourse>>;
+    saveSectionProgress (progress:ProgressSection): Promise<Result<ProgressSection>>;
+    saveVideoProgress (progress:ProgressVideo): Promise<Result<ProgressVideo>>;
 }
