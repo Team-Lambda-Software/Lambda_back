@@ -61,4 +61,7 @@ export class FirebaseService {
       throw error;
     }
   }
+  getMessaging() {
+    return admin.messaging();
+  }
 }
