@@ -24,7 +24,6 @@ export class SignUpEntryInfrastructureDto {
   
   @ApiProperty({ example: 'Martinez' })
   @IsString()
-  @MinLength(2)
   secondLastName: string
 
   @ApiProperty({ example: '04131234123' })
