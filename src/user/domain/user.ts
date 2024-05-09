@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 
@@ -12,9 +13,10 @@ export class User extends Entity<string>
     private email: string
     private password: string
     private phone: string
+    private trainers: Trainer[]
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string )
+    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string, trainers?: Trainer[])
     {
         super( id )
         this.firstName = firstName
@@ -23,6 +25,7 @@ export class User extends Entity<string>
         this.email = email
         this.password = password
         this.phone = phone
+        this.trainers = trainers
     }
 
     get FirstName (): string
@@ -53,6 +56,11 @@ export class User extends Entity<string>
     get Phone (): string
     {
         return this.phone
+    }
+
+    get Trainers (): Trainer[]
+    {
+        return this.trainers
     }
 
     static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string ): User
