@@ -225,14 +225,38 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
     {
         try
         {
-            const courses = await this.createQueryBuilder().select().from(OrmProgressCourse, 'progCourse')
+            const courses = await this.createQueryBuilder().select()
                                 .where('user_id = :target', {target: userId})
                                 .skip(pagination.offset)
                                 .take(pagination.limit)
                                 .getMany();
             if (courses.length > 0)
             {
-                return Result.success<ProgressCourse[]>( await Promise.all( courses.map( async course => await this.ormProgressCourseMapper.fromPersistenceToDomain(course) ) ), 200 );
+                const domainCourses = await Promise.all( courses.map( async course => await this.ormProgressCourseMapper.fromPersistenceToDomain(course) ) );
+                for (let course of domainCourses)
+                {
+                    //Fetch associated course's sections
+                    const sectionsResult = await this.ormCourseRepository.findCourseSections(course.CourseId, {limit:100000, offset:0});
+                    if (!sectionsResult.isSuccess())
+                    {
+                        return Result.fail<ProgressCourse[]>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
+                    }
+                    const sections = sectionsResult.Value;
+                    //Fetch associated section progress' entities from course's sections
+                    for (let section of sections)
+                    {
+                        let target = await this.getSectionProgressById(userId, section.Id);
+                        if (target.isSuccess()) //Progress found or created from scratch
+                        {
+                            course.saveSection(target.Value);
+                        }
+                        else //Some error found
+                        {
+                            return Result.fail<ProgressCourse[]>(target.Error, target.StatusCode, target.Message); 
+                        }
+                    }
+                }
+                return Result.success<ProgressCourse[]>( domainCourses, 200 );
             }
             return Result.fail<ProgressCourse[]>(new Error("No started courses found"), 404, "No started courses found");
         }

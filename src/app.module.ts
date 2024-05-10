@@ -9,8 +9,10 @@ import { CourseController } from './course/infraestructure/controller/courses.co
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { NotificationController } from './notification/infraestructure/controller/notification.controller'
 import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 import { SearchController } from './search/infraestructure/controller/search.controller'
+import { ProgressController } from './progress/infraestructure/controller/progress.controller'
 
 @Module( {
   imports: [
@@ -30,9 +32,11 @@ import { SearchController } from './search/infraestructure/controller/search.con
     AuthController,
     CourseController, 
     BlogController,
+    NotificationController,
     CategoryController,
     SearchController,
-    TrainerController
+    TrainerController,
+    ProgressController
   ],
   providers: [     
     ormDatabaseProvider
