@@ -84,7 +84,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 return Result.fail<ProgressSection>(sectionResult.Error, sectionResult.StatusCode, sectionResult.Message);
             }
             const section = sectionResult.Value;
-
+            
             //Fetch associated video progress' entities from section's videos
             for (let video of section.Videos)
             {
@@ -99,7 +99,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 }
             }
 
-            return Result.success<ProgressSection>(domainProgress, 200);
+            const progress = domainProgress;
+            return Result.success<ProgressSection>( progress, 200 );
         }
         catch (error)
         {
@@ -124,16 +125,16 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 domainProgress = ProgressCourse.create(userId, courseId, false, []);
             }
             
-            //Fetch associated course
-            const courseResult = await this.ormCourseRepository.findCourseById(courseId);
-            if (!courseResult.isSuccess())
+            //Fetch associated course's sections
+            const sectionsResult = await this.ormCourseRepository.findCourseSections(courseId, {limit:100000, offset:0});
+            if (!sectionsResult.isSuccess())
             {
-                return Result.fail<ProgressCourse>(courseResult.Error, courseResult.StatusCode, courseResult.Message);
+                return Result.fail<ProgressCourse>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
             }
-            const course = courseResult.Value;
-
+            const sections = sectionsResult.Value;
+            
             //Fetch associated section progress' entities from course's sections
-            for (let section of course.Sections)
+            for (let section of sections)
             {
                 let target = await this.getSectionProgressById(userId, section.Id);
                 if (target.isSuccess()) //Progress found or created from scratch
@@ -146,7 +147,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 }
             }
 
-            return Result.success<ProgressCourse>(domainProgress, 200);
+            const progress = domainProgress;
+            return Result.success<ProgressCourse>( progress, 200 );
         }
         catch (error)
         {
