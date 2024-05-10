@@ -165,7 +165,9 @@ export class NotificationController {
     async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
         const findResult = await this.userRepository.findUserByEmail(getNotiDto.email)
         if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
-        return Result.success(findResult.Value, 200)
+        const alertResult = await this.notiAlertRepository.findAllByIdUser(findResult.Value.Id)
+        if ( !findResult.isSuccess() ) return { message: 'Sin alertas registradas', errorCode: 500 }
+        return Result.success(alertResult.Value, 200).Value
     }
 
 }
