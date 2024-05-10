@@ -9,6 +9,7 @@ import { CourseController } from './course/infraestructure/controller/courses.co
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 import { SearchController } from './search/infraestructure/controller/search.controller'
 
 @Module( {
@@ -20,7 +21,8 @@ import { SearchController } from './search/infraestructure/controller/search.con
       signOptions: {
         expiresIn: '2h'
       }
-    }),
+    })
+
   ],
   controllers: [
     TestController, 
@@ -28,6 +30,7 @@ import { SearchController } from './search/infraestructure/controller/search.con
     AuthController,
     CourseController, 
     BlogController,
+    CategoryController,
     SearchController,
     TrainerController
   ],

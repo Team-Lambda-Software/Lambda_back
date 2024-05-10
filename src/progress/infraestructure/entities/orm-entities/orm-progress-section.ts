@@ -5,24 +5,27 @@ import { OrmSection } from "src/course/infraestructure/entities/orm-entities/orm
 @Entity( {name:"progress_section"} )
 export class OrmProgressSection
 {
+
+    @PrimaryColumn( {type: "uuid"} )
+    section_id:string;
     @ManyToOne(() => OrmSection)
     @JoinColumn( {name: 'section_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    section_id:OrmSection;
+    section:OrmSection;
 
+    @PrimaryColumn( {type: "uuid"} )
+    user_id:string;
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    user_id:OrmUser;
+    user:OrmUser;
 
     @Column('boolean') completed:boolean;
     @Column('numeric') completion_percent:number;
 
-    static create (section:OrmSection, user:OrmUser, isCompleted:boolean, completionPercent:number): OrmProgressSection
+    static create (sectionId:string, userId:string, isCompleted:boolean, completionPercent:number): OrmProgressSection
     {
         const sectionProgress = new OrmProgressSection();
-        sectionProgress.section_id = section;
-        sectionProgress.user_id = user;
+        sectionProgress.section_id = sectionId;
+        sectionProgress.user_id = userId;
         sectionProgress.completed = isCompleted;
         sectionProgress.completion_percent = completionPercent;
         return sectionProgress;

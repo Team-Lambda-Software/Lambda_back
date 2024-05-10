@@ -5,24 +5,26 @@ import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-
 @Entity( {name:"progress_course"} )
 export class OrmProgressCourse
 {
+    @PrimaryColumn( {type: "uuid"} )
+    course_id:string;
     @ManyToOne(() => OrmCourse)
     @JoinColumn( {name: 'course_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    course_id:OrmCourse;
+    course:OrmCourse;
 
+    @PrimaryColumn( {type: "uuid"} )
+    user_id:string;
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    user_id:OrmUser;
+    user:OrmUser;
 
     @Column('boolean') completed:boolean;
     @Column('numeric') completion_percent:number;
 
-    static create (course:OrmCourse, user:OrmUser, isCompleted:boolean, completionPercent:number): OrmProgressCourse
+    static create (courseId:string, userId:string, isCompleted:boolean, completionPercent:number): OrmProgressCourse
     {
         const courseProgress = new OrmProgressCourse();
-        courseProgress.course_id = course;
-        courseProgress.user_id = user;
+        courseProgress.course_id = courseId;
+        courseProgress.user_id = userId;
         courseProgress.completed = isCompleted;
         courseProgress.completion_percent = completionPercent;
         return courseProgress;
