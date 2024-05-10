@@ -1,0 +1,35 @@
+import * as admin from 'firebase-admin';
+import { TokenNotification } from 'src/common/Application/notifier/dto/token-notification.dto';
+import { INotifier } from 'src/common/Application/notifier/notifier.application';
+import { Result } from 'src/common/Application/result-handler/Result';
+import { Course } from 'src/course/domain/course';
+
+export class RecommendCourseNotifier extends INotifier<Course> {
+    
+    variable: Course
+
+    setVariable(variable: Course): void {
+        this.variable = variable
+    }
+
+    async sendNotification(data: TokenNotification): Promise<Result<string>> {
+        let err = false
+
+        const message = { 
+            notification: { title: "Recomendación del día!", 
+                body: 'Te recomendamos personalmente el curso de ' + this.variable.Name
+            }, 
+            token: data.token
+        }
+        
+        try {
+            const res = await admin.messaging().send(message)
+        } catch(e) { 
+            err = true        
+        } 
+
+        if ( err == false ) return Result.success<string>('mensaje enviado', 200)
+        return Result.fail<string>(new Error('error enviando token'), 500, 'error enviando push')
+        
+    }
+} 

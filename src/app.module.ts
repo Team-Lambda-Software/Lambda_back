@@ -8,7 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
 import { ScheduleModule } from '@nestjs/schedule'
-import { NotificationController } from './notification/infraestructure/notification.controller'
+import { NotificationController } from './notification/infraestructure/controller/notification.controller'
 
 @Module( {
   imports: [
