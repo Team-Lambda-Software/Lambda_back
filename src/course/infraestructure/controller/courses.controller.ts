@@ -156,7 +156,7 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseByTagsServiceEntry )
-        return result
+        return result.Value;
     }
 
     @Get( 'category/:categoryId' )
