@@ -19,6 +19,7 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/dto/response/update-user-profile-swagger-response.dto";
 import { FolloUnfollowSwaggerResponseDto } from "src/user/dto/response/follow-unfollow-entry-swagger-response.dto";
+import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto"
 
 
 @ApiTags('User')
@@ -41,7 +42,7 @@ export class UserController {
     @ApiBearerAuth()
     @ApiOkResponse({ 
         description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
-        type: User
+        type: GetUserSwaggerResponseDto
     })
     async getUser(@Param('id') id: string) {
         

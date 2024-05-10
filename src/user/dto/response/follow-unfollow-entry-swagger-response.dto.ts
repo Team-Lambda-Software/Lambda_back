@@ -19,19 +19,33 @@ export class FolloUnfollowSwaggerResponseDto {
     @ApiProperty({example: 'arturoperez@gmail.com'})
     email: string
 
-    //Preguntar
-    @ApiProperty({example: ''})
-    password: string
-
     @ApiProperty({example: '0412125150'})
     phone: string
     
-    //Preguntar
     @ApiProperty({
-        example: [{
-
-        }]
+        example: [
+            'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        ]
     })
-    trainers: Trainer[]
+    followersID: string[]
+
+    @ApiProperty({
+        example: [
+            
+        ]
+    })
+    coursesID: string[]
+
+    @ApiProperty({
+        example: [
+            
+        ]
+    })
+    blogsID: string[]
+
+
+    @ApiProperty({example: 'park avenue'})
+    location: string
+
 
 }
