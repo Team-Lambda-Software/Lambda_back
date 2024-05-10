@@ -32,7 +32,7 @@ export class OrmSectionMapper implements IMapper<Section, OrmSection>{
             persistence.videos.forEach( video =>
             {
                 if ( video.section_id === persistence.id)
-                    videos.push( SectionVideo.create( video.id, video.url ) )
+                    videos.push( SectionVideo.create( video.url, video.id ) )
             } )
         }
         

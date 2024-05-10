@@ -8,7 +8,7 @@ import { OrmBlog } from "../../entities/orm-entities/orm-blog"
 import { OrmBlogComment } from "../../entities/orm-entities/orm-blog-comment"
 import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
 import { OrmBlogMapper } from "../../mappers/orm-mappers/orm-blog-mapper"
-import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto';
+import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto'
 
 
 
@@ -36,8 +36,8 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             const blog = await this.findOneBy( { id } )
             if ( blog )
             {
-                const blogImage = await this.ormImageRepository.findOneBy( { blog_id: id } )
-                blog.image = blogImage
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: id } )
+                blog.images = blogImages
 
                 return Result.success<Blog>( await this.ormBlogMapper.fromPersistenceToDomain( blog ), 200 )
             }
@@ -48,19 +48,19 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
-    async findBlogsByTitle ( title: string, pagination: PaginationDto): Promise<Result<Blog[]>>
+    async findBlogsByTitle ( title: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take(pagination.limit).skip(pagination.offset).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.limit ).skip( pagination.offset ).getMany()
 
             if ( blogs.length > 0 )
             {
 
                 for ( const blog of blogs )
                 {
-                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
-                    blog.image = blogImage
+                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                    blog.images = blogImages
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
@@ -71,19 +71,19 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
-    async findBlogsByCategory ( categoryId: string, pagination: PaginationDto): Promise<Result<Blog[]>>
+    async findBlogsByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
         try
         {
-            const blogs = await this.find( {where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit} )
+            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit } )
 
             if ( blogs.length > 0 )
             {
 
                 for ( const blog of blogs )
                 {
-                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
-                    blog.image = blogImage
+                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                    blog.images = blogImages
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
@@ -94,11 +94,11 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
-    async findBlogComments ( blogId: string, pagination: PaginationDto): Promise<Result<BlogComment[]>>
+    async findBlogComments ( blogId: string, pagination: PaginationDto ): Promise<Result<BlogComment[]>>
     {
         try
         {
-            const comments = await this.ormBlogCommentRepository.find({where: { blog_id: blogId }, skip: pagination.offset, take: pagination.limit })
+            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId }, skip: pagination.offset, take: pagination.limit } )
             return Result.success<BlogComment[]>( await Promise.all( comments.map( async comment => await this.ormBlogCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
         } catch ( error )
         {
@@ -121,18 +121,18 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
-    async findAllTrainerBlogs ( trainerId: string, pagination: PaginationDto): Promise<Result<Blog[]>>
+    async findAllTrainerBlogs ( trainerId: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
         try
         {
-            const blogs = await this.find({where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit })
+            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit } )
             if ( blogs.length > 0 )
             {
 
                 for ( const blog of blogs )
                 {
-                    const blogImage = await this.ormImageRepository.findOneBy( { blog_id: blog.id } )
-                    blog.image = blogImage
+                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                    blog.images = blogImages
                 }
                 return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
