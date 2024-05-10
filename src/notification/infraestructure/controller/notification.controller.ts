@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Logger } from "@nestjs/common";
+import { Body, Controller, Inject } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
@@ -18,12 +18,11 @@ import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { off } from "process";
 import { randomInt } from "crypto";
 import { RecommendCourseNotifier } from "../notifier/recommend-course-notifier";
 import { Course } from "src/course/domain/course";
-import { SectionImage } from "src/course/domain/entities/compose-fields/section-image";
 import { Result } from "src/common/Application/result-handler/Result";
+import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto copy";
 
 const credentials:object = {
     type: "service_account",
@@ -71,15 +70,15 @@ export class NotificationController {
     @Get('goodday')  
     async goodDayNotification() {
         const findResult = await this.notiAddressRepository.findAllTokens()
-        if ( !findResult.isSuccess() )  return Result.fail( new Error('Sin usuarios registrados'), 500, 'Sin usuarios registrados' )
-        const listTokens = findResult.Value
-        listTokens.forEach( async e => {
-            
-            try {
-                const result = await this.goodDayNotifier.sendNotification( { token: e.Token } )
-            } catch (e) {}
-
-        })
+        //if ( !findResult.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
+        if ( findResult.isSuccess() ) {
+            const listTokens = findResult.Value
+            listTokens.forEach( async e => {  
+                try {
+                    const result = await this.goodDayNotifier.sendNotification( { token: e.Token } )
+                } catch (e) {}
+            })
+        }
     }
 
     // CRON 24 HORA
@@ -87,30 +86,32 @@ export class NotificationController {
     async recommendCoursesRandomNotification() {
 
         const findResultTokens = await this.notiAddressRepository.findAllTokens()
-        if ( !findResultTokens.isSuccess() ) return Result.fail( new Error('Sin tokens registrados'), 500, 'Sin tokens registrados' )
+        //if ( !findResultTokens.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
         const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
-        if ( !findResultCourses.isSuccess() ) return Result.fail( new Error('Sin cursos registrados'), 500, 'Sin cursos registrados' )
+        //if ( !findResultCourses.isSuccess() ) return { message: 'Sin cursos registrados', errorCode: 500 }
 
-        const listTokens = findResultTokens.Value
-        const listCourses = findResultCourses.Value
-        var ran = randomInt(0, listCourses.length)
-        const course = listCourses[ran]
+        if ( findResultCourses.isSuccess && findResultTokens.isSuccess ) {
+
+            const listTokens = findResultTokens.Value
+            const listCourses = findResultCourses.Value
+            var ran = randomInt(0, listCourses.length)
+            const course = listCourses[ran]
         
-        this.recommendCourse.setVariable(course)
+            this.recommendCourse.setVariable(course)
             
-        listTokens.forEach( async e => {
-
-            try {
-                const result = await this.recommendCourse.sendNotification( { token: e.Token } )
-            } catch (e) {}
-            
-        })
+            listTokens.forEach( async e => {
+                try {
+                    const result = await this.recommendCourse.sendNotification( { token: e.Token } )
+                } catch (e) {}
+            })
+        }
+        
     }
 
     @Post('savetoken')
     async saveToken(@Body() saveTokenDto: SaveTokenDto) {
         const findResult = await this.userRepository.findUserByEmail(saveTokenDto.email)
-        if ( !findResult.isSuccess() ) return Result.fail( new Error('Email no registrado'), 500, 'Email no registrado' )
+        if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
         const saveResult = await this.notiAddressRepository.saveNotificationAddress(
             NotificationAddress.create(
                 await this.uuidGenerator.generateId(),
@@ -118,8 +119,18 @@ export class NotificationController {
                 saveTokenDto.token
             )
         )    
-        if ( !saveResult.isSuccess() ) return Result.fail( new Error('Error al registrar token'), 500, 'Error al registrar token' )
-        return Result.success('Guardado de token exitoso' , 200)
+        if ( !saveResult.isSuccess() ) return { message: 'Error al registrar token', errorCode: 500 }
+        return { message: 'Guardado de token exitoso', errorCode: 200 }
     }
+
+
+    @Post('getnotificationsuser')
+    async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
+        const findResult = await this.userRepository.findUserByEmail(getNotiDto.email)
+        if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
+        
+        return Result.success('Guardado de token exitoso', 200)
+    }
+
 
 }
