@@ -18,7 +18,7 @@ export class Result<T>
 
     isSuccess (): boolean
     {
-        if ( this.value )
+        if ( this.value || this.Value == 0)
             return true
         return false
     }

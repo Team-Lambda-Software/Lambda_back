@@ -35,8 +35,8 @@ export class GetMostPopularCoursesApplicationService implements IApplicationServ
 
         for ( const course of courses.Value )
         {
-            //const courseUsers = await this.progressRepository.findUserCountInCourse( course.Id )
-            const courseUsers = Result.success(randomInt( 0, 20 ),200)
+            const courseUsers = await this.progressRepository.findUserCountInCourse( course.Id )
+            console.log(courseUsers.Value)
             if ( !courseUsers.isSuccess() )
             {
                 return Result.fail<Course[]>( courseUsers.Error, courseUsers.StatusCode, courseUsers.Message )
