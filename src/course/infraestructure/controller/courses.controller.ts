@@ -215,7 +215,8 @@ export class CourseController
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetCourseSectionApplicationService(
-                        this.courseRepository
+                        this.courseRepository,
+                        this.progressRepository
                     ),
                     new NativeLogger( this.logger )
                 )
