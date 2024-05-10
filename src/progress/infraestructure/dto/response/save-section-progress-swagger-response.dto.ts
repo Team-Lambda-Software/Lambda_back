@@ -1,17 +1,16 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { ProgressVideo } from "src/progress/domain/entities/progress-video";
-import { UUID } from "typeorm/driver/mongodb/bson.typings";
 import { SaveVideoProgressSwaggerResponseDto } from "./save-video-progress-swagger-response.dto";
 
 export class SaveSectionProgressSwaggerResponseDto
 {
     @ApiProperty( {
-        example: 'a94d9eb1-efab-43a3-97d6-31f1236b198b', type:UUID
+        example: 'a94d9eb1-efab-43a3-97d6-31f1236b198b'
     } )
     userId:string;
 
     @ApiProperty( {
-        example: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2', type:UUID
+        example: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2'
     } )
     sectionId:string;
 
