@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Inject, Injectable } from '@nestjs/common';
 import {OrmUserRepository} from '../../user/infraestructure/repositories/orm-repositories/orm-user-repository'
-import { initializeApp } from "firebase/app";
+//import { initializeApp } from "firebase/app";
 import { OrmUserMapper } from 'src/user/infraestructure/mappers/orm-mapper/orm-user-mapper';
 import { DataSource, /*EntityManager, In */} from "typeorm"
 // TODO: Add SDKs for Firebase products that you want to use
@@ -18,7 +18,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+//const app = initializeApp(firebaseConfig);
 @Injectable()
 
 export class FirebaseService {

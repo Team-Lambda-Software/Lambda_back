@@ -1,7 +1,6 @@
 import { Body, Controller, Inject } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
-import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GoodDayNotifier } from "../notifier/good-day-notifier";
 import * as admin from 'firebase-admin';
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
