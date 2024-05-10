@@ -22,6 +22,10 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { SaveVideoProgressApplicationService } from "src/progress/application/services/commands/save-progress-video.application.service";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { SaveVideoProgressEntryDto } from "../dto/entry/save-video-progress-entry.dto";
+import { SaveSectionProgressSwaggerResponseDto } from "../dto/response/save-section-progress-swagger-response.dto";
+import { SaveSectionProgressEntryDto } from "../dto/entry/save-section-progress-entry.dto";
+import { SaveSectionProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-section-entry.dto";
+import { SaveSectionProgressApplicationService } from "src/progress/application/services/commands/save-progress-section.application.service";
 
 @ApiTags('Progress')
 @Controller('Progress')
@@ -66,6 +70,29 @@ export class ProgressController {
         )
 
         const updateResult = await saveVideoProgressService.execute(saveVideoProgressDto);
+        return updateResult.Value; //? Should this consider the possibility of having to return some error?
+    }
+
+    @Patch( '/ProgressSection/:sectionId' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Guarda el progreso de la seccion dada. En caso de incluir modificaciones en los videos, guarda su progreso en cascada. Retorna el objeto que refleja el progreso guardado', type: SaveSectionProgressSwaggerResponseDto })
+    async saveSectionProgress( @Body() saveDTO: SaveSectionProgressEntryDto, @GetUser()user:User)
+    {
+        //Use other application service to also save videos in cascade?
+        //! How to avoid service coupling to one another?
+        const saveVideoProgressService = new SaveVideoProgressApplicationService(this.progressRepository);
+
+        const saveSectionProgressDto:SaveSectionProgressServiceEntryDto = {userId:user.Id, ...saveDTO};
+
+        const saveSectionProgressService = new ExceptionDecorator(
+            new LoggingDecorator(
+                new SaveSectionProgressApplicationService(this.progressRepository, saveVideoProgressService),
+                new NativeLogger(this.logger)
+            )
+        )
+
+        const updateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
         return updateResult.Value; //? Should this consider the possibility of having to return some error?
     }
 }
