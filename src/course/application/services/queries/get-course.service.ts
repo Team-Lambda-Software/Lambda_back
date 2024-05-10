@@ -44,6 +44,8 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         const resultProgress = await this.progressRepository.getCourseProgressById( data.userId, data.courseId )
 
         const courseProgress = resultProgress.Value
+        const completePercent = courseProgress.CompletionPercent
+        const resultCourseProgress = {progress: courseProgress, completionPercent: completePercent}
         let sectionsProgress: ProgressSection[] = []
         for ( const section of course.Sections )
         {
@@ -55,7 +57,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
         
 
-        return Result.success<GetCourseServiceResponseDto>( {course, courseProgress, sectionsProgress} , 200)
+        return Result.success<GetCourseServiceResponseDto>( {course, courseProgress:resultCourseProgress, sectionsProgress} , 200)
     }
 
     get name (): string

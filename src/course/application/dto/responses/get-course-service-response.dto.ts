@@ -9,7 +9,7 @@ export interface GetCourseServiceResponseDto {
 
     course: Course
 
-    courseProgress: ProgressCourse
+    courseProgress: {progress: ProgressCourse, completionPercent: number}
 
     sectionsProgress: ProgressSection[] 
 
