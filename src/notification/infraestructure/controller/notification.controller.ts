@@ -23,6 +23,7 @@ import { randomInt } from "crypto";
 import { RecommendCourseNotifier } from "../notifier/recommend-course-notifier";
 import { Course } from "src/course/domain/course";
 import { SectionImage } from "src/course/domain/entities/compose-fields/section-image";
+import { Result } from "src/common/Application/result-handler/Result";
 
 const credentials:object = {
     type: "service_account",
@@ -70,20 +71,27 @@ export class NotificationController {
     @Get('goodday')  
     async goodDayNotification() {
         const findResult = await this.notiAddressRepository.findAllTokens()
+        if ( !findResult.isSuccess() )  return Result.fail( new Error('Sin usuarios registrados'), 500, 'Sin usuarios registrados' )
         const listTokens = findResult.Value
         listTokens.forEach( async e => {
-            const result = await this.goodDayNotifier.sendNotification( { token: e.Token } )
-            if ( result.isSuccess ) console.log('push-sended')
+            
+            try {
+                const result = await this.goodDayNotifier.sendNotification( { token: e.Token } )
+            } catch (e) {}
+
         })
     }
 
-    // CRON 24 HORAS
+    // CRON 24 HORA
     @Get('recommend')
     async recommendCoursesRandomNotification() {
-        const findResultTokens = await this.notiAddressRepository.findAllTokens()
-        const listTokens = findResultTokens.Value
 
+        const findResultTokens = await this.notiAddressRepository.findAllTokens()
+        if ( !findResultTokens.isSuccess() ) return Result.fail( new Error('Sin tokens registrados'), 500, 'Sin tokens registrados' )
         const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
+        if ( !findResultCourses.isSuccess() ) return Result.fail( new Error('Sin cursos registrados'), 500, 'Sin cursos registrados' )
+
+        const listTokens = findResultTokens.Value
         const listCourses = findResultCourses.Value
         var ran = randomInt(0, listCourses.length)
         const course = listCourses[ran]
@@ -91,14 +99,18 @@ export class NotificationController {
         this.recommendCourse.setVariable(course)
             
         listTokens.forEach( async e => {
-            const result = await this.recommendCourse.sendNotification( { token: e.Token } )
-            if ( result.isSuccess ) console.log('push-sended')
+
+            try {
+                const result = await this.recommendCourse.sendNotification( { token: e.Token } )
+            } catch (e) {}
+            
         })
     }
 
     @Post('savetoken')
     async saveToken(@Body() saveTokenDto: SaveTokenDto) {
         const findResult = await this.userRepository.findUserByEmail(saveTokenDto.email)
+        if ( !findResult.isSuccess() ) return Result.fail( new Error('Email no registrado'), 500, 'Email no registrado' )
         const saveResult = await this.notiAddressRepository.saveNotificationAddress(
             NotificationAddress.create(
                 await this.uuidGenerator.generateId(),
@@ -106,7 +118,8 @@ export class NotificationController {
                 saveTokenDto.token
             )
         )    
-        return { ok: true }
+        if ( !saveResult.isSuccess() ) return Result.fail( new Error('Error al registrar token'), 500, 'Error al registrar token' )
+        return Result.success('Guardado de token exitoso' , 200)
     }
 
 }
