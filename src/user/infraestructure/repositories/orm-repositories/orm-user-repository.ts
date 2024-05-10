@@ -95,7 +95,6 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         return Result.fail<User[]>( new Error( 'Non-existing users' ), 404, 'Non-existing users')
 
     }
-
     async getUserCount(): Promise<Result<number>>
     {
 
@@ -112,5 +111,4 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
        return Result.success<number>(usuarios_registrados,200)
 
     }
-
 }
