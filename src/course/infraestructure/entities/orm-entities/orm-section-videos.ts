@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm"
 import { OrmSection } from "./orm-section"
+import { OrmProgressVideo } from "src/progress/infraestructure/entities/orm-entities/orm-progress-video"
 
 
 
@@ -15,6 +16,9 @@ export class OrmSectionVideo
 
     @Column( { type: "uuid" } ) section_id: string
     @ManyToOne( () => OrmSection, { eager: true } ) @JoinColumn( { name: 'section_id' } ) section: OrmSection
+
+    @OneToMany(()=>OrmProgressVideo, progressVideo => progressVideo.video_id)
+    progress: OrmProgressVideo[]
 
     //TODO buscar la seccion dado el id para asignarselo a la entity
     static create ( id: string, url: string ): OrmSectionVideo

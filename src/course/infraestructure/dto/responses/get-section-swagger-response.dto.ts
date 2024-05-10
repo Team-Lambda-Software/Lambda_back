@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Section } from "src/course/domain/entities/section"
 import { SectionComment } from "src/course/domain/entities/section-comment"
+import { ProgressVideo } from "src/progress/domain/entities/progress-video"
 
 
 
@@ -25,6 +26,7 @@ export class GetSectionSwaggerResponseDto
     } )
     section: Section
 
+    
     @ApiProperty( {
         example: [
             {
@@ -37,5 +39,16 @@ export class GetSectionSwaggerResponseDto
         ]
     } )
     comments: SectionComment[]
-
+    
+    @ApiProperty( {
+        example: [
+            {
+              "userId": "e0f943f5-1327-45e1-a4f9-100c925486f0",
+              "videoId": "96c87e47-6e42-4a32-9788-1c4f7342f4fc",
+              "playbackMilisec": "200",
+              "isCompleted": false
+            }
+          ]
+    } )
+    videoProgress: ProgressVideo[]
 }
