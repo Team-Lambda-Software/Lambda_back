@@ -147,7 +147,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
                         .delete()
                         .from('follows')
                         .where("trainer_id = :tid", { tid: trainerID } )
-                        .andWhere("user_id = :uid", { uid: userID } )
+                        .andWhere("follower_id = :uid", { uid: userID } )
                         .execute();
             return this.findTrainerById(trainerID);
         }

@@ -75,4 +75,25 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
 
+    async findAllUser(): Promise<Result<User[]>> 
+    {
+        
+        const OrmUsers = await this.find()
+
+        if(OrmUsers.length > 0){
+            
+            const list_users: User[] = [];
+
+            for(const user of OrmUsers){
+                list_users.push(await this.ormUserMapper.fromPersistenceToDomain(user))
+            }
+
+            return Result.success<User[]>(list_users,200);
+
+        }
+
+        return Result.fail<User[]>( new Error( 'Non-existing users' ), 404, 'Non-existing users')
+
+    }
+
 }

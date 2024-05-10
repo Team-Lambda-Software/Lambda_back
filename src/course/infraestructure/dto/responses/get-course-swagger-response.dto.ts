@@ -1,6 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger"
+import { Course } from "src/course/domain/course"
 import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
 import { Section } from "src/course/domain/entities/section"
+import { ProgressCourse } from "src/progress/domain/entities/progress-course"
+import { ProgressSection } from "src/progress/domain/entities/progress-section"
 import { Trainer } from "src/trainer/domain/trainer"
 
 
@@ -10,87 +13,87 @@ export class GetCourseSwaggerResponseDto
 {
 
     @ApiProperty( {
-        example: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
+        example: {
+            "id": "c380d1b4-edb3-4fd9-9304-5c0c39452464",
+            "trainer": {
+              "id": "8fe7e9dc-c594-4d27-8502-b7bd18d5a72f",
+              "firstName": "Jose",
+              "firstLastName": "Fernandez",
+              "secondLastName": "Estrada",
+              "email": "fer@gmail.com",
+              "phone": "04125687493",
+              "followersID": [],
+              "coursesID": [],
+              "blogsID": [],
+              "location": "99 Park Ave, New York, NY 10016, EE. UU."
+            },
+            "name": "Curso Yoga 1",
+            "description": "Este es un curo de yoga que va a volarte la cabeza",
+            "weeksDuration": 15,
+            "minutesPerSection": 25,
+            "level": 1,
+            "sections": [
+              {
+                "id": "d1381133-a423-475a-9947-eefd3cfdb1bd",
+                "name": "seccion 1",
+                "description": "primera seccion de este tremendo curso",
+                "videos": [
+                  {
+                    "url": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/170246-843069659_small.mp4",
+                    "id": "96c87e47-6e42-4a32-9788-1c4f7342f4fc"
+                  }
+                ],
+                "images": [
+                  {
+                    "url": "2b081d53-e64f-4262-8a48-ad4152f38f70",
+                    "id": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/16300683348682.jpg"
+                  },
+                  {
+                    "url": "2b081d53-e64f-4262-8a48-ad4152f38f71",
+                    "id": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/samuel_jose_defensa_tesis.jpeg"
+                  }
+                ],
+                "paragraph": "En el corazón del frenesí moderno, el yoga emerge como un oasis de paz y armonía. Una práctica milenaria que invita a conectar con nuestro cuerpo, mente y espíritu, trascendiendo las limitaciones físicas y explorando las infinitas posibilidades que residen en nuestro interior.\n\nMás allá de simples posturas o ejercicios físicos, el yoga se presenta como un viaje de autodescubrimiento. Un camino que nos guía hacia la consciencia plena, permitiéndonos observar nuestros pensamientos y emociones sin juicio, abrazando la quietud y la serenidad que habitan en nuestro ser."
+              }
+            ],
+            "categoryId": "f8caeedb-6bb8-44bf-bdde-04a532bbf261",
+            "image": {
+              "url": "96954cbd-c90d-4458-b354-b3c26957e69d",
+              "id": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/yoga-en-casa-principiantes_471fbed4_231129144856_1280x800.jpg"
+            },
+            "tags": [
+              "yoga",
+              "men"
+            ]
+          },
     } )
-    id: string
+    course: Course
 
     @ApiProperty( {
         example: {
-            "id": "8fe7e9dc-c594-4d27-8502-b7bd18d5a72f",
-            "firstName": "Jose",
-            "firstLastName": "Fernandez",
-            "secondLastName": "Estrada",
-            "email": "fer@gmail.com",
-            "phone": "04125687493",
-            "followersID": [],
-            "coursesID": [],
-            "blogsID": [],
-            "location": "99 Park Ave, New York, NY 10016, EE. UU."
+            "progress": {
+              "sections": {},
+              "userId": "e0f943f5-1327-45e1-a4f9-100c925486f0",
+              "courseId": "c380d1b4-edb3-4fd9-9304-5c0c39452464",
+              "isCompleted": false
+            },
+            "completionPercent": 0
           }
     } )
-    trainer: Trainer
+    courseProgress: ProgressCourse
 
     @ApiProperty( {
-        example: 'Curso de programacion en python',
+        example: [{
+          "progress":{
+              "videos": {},
+              "userId": "e0f943f5-1327-45e1-a4f9-100c925486f0",
+              "sectionId": "d1381133-a423-475a-9947-eefd3cfdb1bd",
+              "isCompleted": true
+            },
+            "completionPercent": 0
+          }
+          ],
     } )
-    name: string
-
-    @ApiProperty( {
-        example: 'Curso de programacion en python',
-    } )
-    description: string
-
-    @ApiProperty( {
-        example: 8,
-    } )
-    weeks_duration: number
-
-    @ApiProperty( {
-        example: 30,
-    } )
-    minutes_per_section: number
-
-    @ApiProperty( {
-        example: 1,
-    } )
-    level: number
-
-    @ApiProperty( {
-        example: [
-            {
-                id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
-                name: 'Introduccion a yoga',
-                description: 'En esta seccion aprenderas lo basico de yoga',
-                videos: [ {
-                    id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
-                    url: 'https://www.google.com'
-                } ],
-                images: [ {
-                    id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
-                    url: 'https://www.google.com'
-                } ],
-                paragraph: 'En la postura del sol naciente vas a poder alcanzar',
-            }
-        ]
-    } )
-    sections: Section[]
-
-    @ApiProperty( {
-        example: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
-    } )
-    categoryId: string
-
-    @ApiProperty( {
-        example: {
-            id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
-            url: 'https://www.google.com'
-        },
-    } )
-    image: SectionImage
-
-    @ApiProperty( {
-        example: ['yoga', 'salud'],
-    } )
-    tags: string[]
+    sectionProgress: ProgressSection
 
 }
