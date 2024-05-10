@@ -98,14 +98,13 @@ export class NotificationController {
     //@Cron(CronExpression.EVERY_12_HOURS)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
-
         const findResultTokens = await this.notiAddressRepository.findAllTokens()
         //if ( !findResultTokens.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
         const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
         //if ( !findResultCourses.isSuccess() ) return { message: 'Sin cursos registrados', errorCode: 500 }
         const recommendCourse = new RecommendCourseNotifier()
         
-        if ( findResultCourses.isSuccess && findResultTokens.isSuccess ) {
+        if ( findResultCourses.isSuccess() && findResultTokens.isSuccess() ) {
 
             const listTokens = findResultTokens.Value
             const listCourses = findResultCourses.Value
@@ -113,7 +112,7 @@ export class NotificationController {
             const course = listCourses[ran]
         
             recommendCourse.setVariable(course)
-            
+
             listTokens.forEach( async e => {
                 try {
                     const result = await recommendCourse.sendNotification( { token: e.Token } )
@@ -130,7 +129,6 @@ export class NotificationController {
                 } catch (e) {}
             })
         }
-
     }
 
     @Post('savetoken')
@@ -145,11 +143,9 @@ export class NotificationController {
             )
         )    
         if ( !saveResult.isSuccess() ) return { message: 'Error al registrar token', errorCode: 500 }
-
         const welcomeNotifier = new WelcomeNotifier()
         welcomeNotifier.setVariable( findResult.Value.FirstName )
         const result = await welcomeNotifier.sendNotification( { token: saveTokenDto.token } )
-
         if ( result.isSuccess() ) 
             this.notiAlertRepository.saveNotificationAlert(
                 NotificationAlert.create(
@@ -159,7 +155,6 @@ export class NotificationController {
                     'be Welcome my dear ' + findResult.Value.FirstName
                 )
             )
-        
         return { message: 'Guardado de token exitoso', errorCode: 200 }
     }
 
