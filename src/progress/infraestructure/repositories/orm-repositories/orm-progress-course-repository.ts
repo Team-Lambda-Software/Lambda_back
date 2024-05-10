@@ -205,9 +205,10 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
     {
         try
         {
-            const userCount = await this.createQueryBuilder().select('COUNT(user_id)').from(OrmProgressCourse, 'progCourse')
+            const userCount = await this.createQueryBuilder()
                                         .where('course_id = :id', {id: courseId})
-                                        .getRawOne<number>();
+                                        .getCount();
+            
             if (userCount != null)
             {
                 return Result.success<number>( userCount, 200 );
