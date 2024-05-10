@@ -20,10 +20,12 @@ import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
 import { randomInt } from "crypto";
 import { RecommendCourseNotifier } from "../notifier/recommend-course-notifier";
-import { Course } from "src/course/domain/course";
 import { Result } from "src/common/Application/result-handler/Result";
 import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto copy";
 import { WelcomeNotifier } from "../notifier/welcome-notifier";
+import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
+import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
+import { NotificationAlert } from "src/notification/domain/entities/notification-alert";
 
 const credentials:object = {
     type: "service_account",
@@ -46,6 +48,7 @@ export class NotificationController {
  
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly userRepository: IUserRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
 
@@ -55,6 +58,7 @@ export class NotificationController {
         this.notiAddressRepository = new OrmNotificationAddressRepository( dataSource )
         this.uuidGenerator = new UuidGenerator()
         this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
+        this.notiAlertRepository = new OrmNotificationAlertRepository( dataSource )
         this.courseRepository = new OrmCourseRepository( 
             new OrmCourseMapper( new OrmSectionMapper() ),
             new OrmSectionMapper(),
@@ -74,6 +78,16 @@ export class NotificationController {
             listTokens.forEach( async e => {  
                 try {
                     const result = await goodDayNotifier.sendNotification( { token: e.Token } )
+                    if ( result.isSuccess ) {
+                        this.notiAlertRepository.saveNotificationAlert(
+                            NotificationAlert.create(
+                                await this.uuidGenerator.generateId(),
+                                e.UserId,
+                                "Good new Day!",
+                                'be Happy, my budy'
+                            )
+                        )
+                    }
                 } catch (e) {}
             })
         }
@@ -101,6 +115,16 @@ export class NotificationController {
             listTokens.forEach( async e => {
                 try {
                     const result = await recommendCourse.sendNotification( { token: e.Token } )
+                    if ( result.isSuccess ) {
+                        this.notiAlertRepository.saveNotificationAlert(
+                            NotificationAlert.create(
+                                await this.uuidGenerator.generateId(),
+                                e.UserId,
+                                "Recomendación del día!",
+                                'Te recomendamos personalmente el curso de ' + course.Name
+                            )
+                        )
+                    }
                 } catch (e) {}
             })
         }
@@ -124,11 +148,18 @@ export class NotificationController {
         welcomeNotifier.setVariable( findResult.Value.FirstName )
         const result = await welcomeNotifier.sendNotification( { token: saveTokenDto.token } )
 
-        if ( !result.isSuccess() ) console.log('token invalido')
-
+        if ( result.isSuccess() ) 
+            this.notiAlertRepository.saveNotificationAlert(
+                NotificationAlert.create(
+                    await this.uuidGenerator.generateId(),
+                    findResult.Value.Id,
+                    "Welcome",
+                    'be Welcome my dear ' + findResult.Value.FirstName
+                )
+            )
+        
         return { message: 'Guardado de token exitoso', errorCode: 200 }
     }
-
 
     @Post('getnotificationsuser')
     async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
@@ -136,6 +167,5 @@ export class NotificationController {
         if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
         return Result.success(findResult.Value, 200)
     }
-
 
 }
