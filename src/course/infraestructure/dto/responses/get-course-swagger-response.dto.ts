@@ -83,13 +83,15 @@ export class GetCourseSwaggerResponseDto
     courseProgress: ProgressCourse
 
     @ApiProperty( {
-        example: [
-            {
+        example: [{
+          "progress":{
               "videos": {},
               "userId": "e0f943f5-1327-45e1-a4f9-100c925486f0",
               "sectionId": "d1381133-a423-475a-9947-eefd3cfdb1bd",
               "isCompleted": true
-            }
+            },
+            "completionPercent": 0
+          }
           ],
     } )
     sectionProgress: ProgressSection

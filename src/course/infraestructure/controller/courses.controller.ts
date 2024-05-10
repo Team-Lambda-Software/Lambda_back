@@ -41,6 +41,8 @@ import { OrmProgressCourseRepository } from '../../../progress/infraestructure/r
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+import { GetMostPopularCoursesServiceEntryDto } from "src/course/application/dto/param/get-most-popular-courses-service-entry.dto"
+import { GetMostPopularCoursesApplicationService } from "src/course/application/services/queries/get-most-popular-courses.service"
 
 
 @ApiTags('Course')
@@ -114,6 +116,28 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseServiceEntry )
+
+        return result.Value
+    }
+
+    @Get( 'search/PopularCourses' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos mas populares', type: SearchCoursesSwaggerResponseDto, isArray: true})
+    async searchPopularCourse ( @GetUser()user: User, @Query() pagination: PaginationDto )
+    {
+        const searchPopularCourseServiceEntry: GetMostPopularCoursesServiceEntryDto = { userId: user.Id, pagination: pagination}
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetMostPopularCoursesApplicationService(
+                        this.courseRepository,
+                        this.progressRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( searchPopularCourseServiceEntry )
 
         return result.Value
     }
