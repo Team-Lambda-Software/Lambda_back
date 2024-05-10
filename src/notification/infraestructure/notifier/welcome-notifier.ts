@@ -26,18 +26,20 @@ admin.initializeApp({ credential: admin.credential.cert(credentials) })*/
 
 export class WelcomeNotifier extends INotifier<string> {
     
+    variable: string = 'none'
+
     setVariable(variable: string): void {
-        throw new Error('Method not implemented.');
+        this.variable = variable
     }
     
     async sendNotification(data: TokenNotification): Promise<Result<string>> {
         let err = false
 
         const message = { 
-            notification: { title: "Welcome", body: 'Welcome my budy!' }, 
+            notification: { title: "Welcome", body: 'be Welcome my dear'+ this.variable }, 
             token: data.token
         }
-        
+       
         try {
             const res = await admin.messaging().send(message)
         } catch(e) {  /// e.errorInfo

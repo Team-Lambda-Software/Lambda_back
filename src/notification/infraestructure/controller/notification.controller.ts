@@ -23,6 +23,7 @@ import { RecommendCourseNotifier } from "../notifier/recommend-course-notifier";
 import { Course } from "src/course/domain/course";
 import { Result } from "src/common/Application/result-handler/Result";
 import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto copy";
+import { WelcomeNotifier } from "../notifier/welcome-notifier";
 
 const credentials:object = {
     type: "service_account",
@@ -47,17 +48,13 @@ export class NotificationController {
     private readonly userRepository: IUserRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
-    private goodDayNotifier: INotifier<string>
-    private recommendCourse: INotifier<Course>
 
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
     ) {
         this.notiAddressRepository = new OrmNotificationAddressRepository( dataSource )
         this.uuidGenerator = new UuidGenerator()
-        this.goodDayNotifier = new GoodDayNotifier()
         this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
-        this.recommendCourse = new RecommendCourseNotifier()
         this.courseRepository = new OrmCourseRepository( 
             new OrmCourseMapper( new OrmSectionMapper() ),
             new OrmSectionMapper(),
@@ -70,12 +67,13 @@ export class NotificationController {
     @Get('goodday')  
     async goodDayNotification() {
         const findResult = await this.notiAddressRepository.findAllTokens()
+        const goodDayNotifier = new GoodDayNotifier()
         //if ( !findResult.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
         if ( findResult.isSuccess() ) {
             const listTokens = findResult.Value
             listTokens.forEach( async e => {  
                 try {
-                    const result = await this.goodDayNotifier.sendNotification( { token: e.Token } )
+                    const result = await goodDayNotifier.sendNotification( { token: e.Token } )
                 } catch (e) {}
             })
         }
@@ -89,7 +87,8 @@ export class NotificationController {
         //if ( !findResultTokens.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
         const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
         //if ( !findResultCourses.isSuccess() ) return { message: 'Sin cursos registrados', errorCode: 500 }
-
+        const recommendCourse = new RecommendCourseNotifier()
+        
         if ( findResultCourses.isSuccess && findResultTokens.isSuccess ) {
 
             const listTokens = findResultTokens.Value
@@ -97,15 +96,15 @@ export class NotificationController {
             var ran = randomInt(0, listCourses.length)
             const course = listCourses[ran]
         
-            this.recommendCourse.setVariable(course)
+            recommendCourse.setVariable(course)
             
             listTokens.forEach( async e => {
                 try {
-                    const result = await this.recommendCourse.sendNotification( { token: e.Token } )
+                    const result = await recommendCourse.sendNotification( { token: e.Token } )
                 } catch (e) {}
             })
         }
-        
+
     }
 
     @Post('savetoken')
@@ -120,6 +119,13 @@ export class NotificationController {
             )
         )    
         if ( !saveResult.isSuccess() ) return { message: 'Error al registrar token', errorCode: 500 }
+
+        const welcomeNotifier = new WelcomeNotifier()
+        welcomeNotifier.setVariable( findResult.Value.FirstName )
+        const result = await welcomeNotifier.sendNotification( { token: saveTokenDto.token } )
+
+        if ( !result.isSuccess() ) console.log('token invalido')
+
         return { message: 'Guardado de token exitoso', errorCode: 200 }
     }
 
@@ -128,8 +134,7 @@ export class NotificationController {
     async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
         const findResult = await this.userRepository.findUserByEmail(getNotiDto.email)
         if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
-        
-        return Result.success('Guardado de token exitoso', 200)
+        return Result.success(findResult.Value, 200)
     }
 
 

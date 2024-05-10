@@ -6,7 +6,7 @@ import { Course } from 'src/course/domain/course';
 
 export class RecommendCourseNotifier extends INotifier<Course> {
     
-    variable: Course
+    variable: Course = null
 
     setVariable(variable: Course): void {
         this.variable = variable
@@ -14,6 +14,9 @@ export class RecommendCourseNotifier extends INotifier<Course> {
 
     async sendNotification(data: TokenNotification): Promise<Result<string>> {
         let err = false
+
+        if ( this.variable == null ) 
+            return Result.fail(new Error('Error al enviar notificacion'), 500, 'Error al enviar notificacion')
 
         const message = { 
             notification: { title: "Recomendación del día!", 
