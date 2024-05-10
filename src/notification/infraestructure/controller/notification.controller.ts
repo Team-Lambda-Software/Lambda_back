@@ -25,6 +25,8 @@ import { WelcomeNotifier } from "../notifier/welcome-notifier";
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
 import { NotificationAlert } from "src/notification/domain/entities/notification-alert";
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
+import { ApiTags } from "@nestjs/swagger";
 
 const credentials:object = {
     type: "service_account",
@@ -42,6 +44,7 @@ const credentials:object = {
 
 admin.initializeApp({ credential: admin.credential.cert(credentials) })
 
+@ApiTags('Notification')
 @Controller('notification')
 export class NotificationController {
  
@@ -59,14 +62,14 @@ export class NotificationController {
         this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
         this.notiAlertRepository = new OrmNotificationAlertRepository( dataSource )
         this.courseRepository = new OrmCourseRepository( 
-            new OrmCourseMapper( new OrmSectionMapper() ),
+            new OrmCourseMapper( new OrmSectionMapper(), new OrmTrainerMapper() ),
             new OrmSectionMapper(),
             new OrmSectionCommentMapper(),
             dataSource
         )
     }
     
-    // CRON 24 HORAS
+    //@Cron(CronExpression.EVERY_DAY_AT_10AM)
     @Get('goodday')  
     async goodDayNotification() {
         const findResult = await this.notiAddressRepository.findAllTokens()
@@ -92,7 +95,7 @@ export class NotificationController {
         }
     }
 
-    // CRON 24 HORA
+    //@Cron(CronExpression.EVERY_12_HOURS)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
 
