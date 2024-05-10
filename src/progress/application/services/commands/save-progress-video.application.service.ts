@@ -22,9 +22,9 @@ export class SaveVideoProgressApplicationService implements IApplicationService<
         }
         const progressUpdate:ProgressVideo = progressResult.Value;
 
-        if (data.isCompleted) progressUpdate.updateCompletion(data.isCompleted);
+        if (data.isCompleted != undefined) progressUpdate.updateCompletion(data.isCompleted);
         if (data.playbackMilisec) progressUpdate.updatePlaybackMilisec(data.playbackMilisec);
-
+        
         const updateResult = await this.progressRepository.saveVideoProgress(progressUpdate);
         if (!updateResult.isSuccess())
         {
