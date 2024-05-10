@@ -12,6 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { NotificationController } from './notification/infraestructure/controller/notification.controller'
 import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 import { SearchController } from './search/infraestructure/controller/search.controller'
+import { ProgressController } from './progress/infraestructure/controller/progress.controller'
 
 @Module( {
   imports: [
@@ -34,7 +35,8 @@ import { SearchController } from './search/infraestructure/controller/search.con
     NotificationController,
     CategoryController,
     SearchController,
-    TrainerController
+    TrainerController,
+    ProgressController
   ],
   providers: [     
     ormDatabaseProvider
