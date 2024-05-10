@@ -41,6 +41,74 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
     }
+    async findCoursesByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.find()
+            let filteredCourses = courses.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
+            
+            if ( filteredCourses.length <= pagination.offset && filteredCourses.length > 0 )
+                return Result.fail<Course[]>( new Error( 'offset execedes lenght of courses' ), 404, 'offset execedes lenght of courses' )
+
+            filteredCourses = filteredCourses.slice( pagination.offset, pagination.limit)
+
+            if ( filteredCourses.length > 0 )
+            {
+
+                for ( const course of filteredCourses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+
+                }
+                return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
+    async saveCourseAggregate ( course: Course ): Promise<Result<Course>>
+    {
+        try {
+            const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
+            const savedCourse = await this.save( newCourse )
+            return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( savedCourse ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
+        
+        }
+    }
+    async findCoursesByLevels ( levels: number[], pagination: PaginationDto ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            
+            if ( courses.length > 0 )
+            {
+
+                for ( const course of courses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+
+                }
+                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+        }
+    }
 
     async findAllTrainerCourses ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
@@ -139,7 +207,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
 
             if ( courses.length > 0 )
             {
