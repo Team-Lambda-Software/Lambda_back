@@ -19,6 +19,7 @@ export class GetUserProfileApplicationService implements IApplicationService<App
     async execute ( data: ApplicationServiceEntryDto ): Promise<Result<User>>
     {
         const user = await this.userRepository.findUserById(data.userId)
+        //TODO: Add the search for the user active courses
 
         return user
     }
