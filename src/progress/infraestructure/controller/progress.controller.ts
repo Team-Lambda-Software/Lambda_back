@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Patch, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { OrmProgressCourseRepository } from "../repositories/orm-repositories/orm-progress-course-repository";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
@@ -22,6 +22,14 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { SaveVideoProgressApplicationService } from "src/progress/application/services/commands/save-progress-video.application.service";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { SaveVideoProgressEntryDto } from "../dto/entry/save-video-progress-entry.dto";
+import { SaveSectionProgressSwaggerResponseDto } from "../dto/response/save-section-progress-swagger-response.dto";
+import { SaveSectionProgressEntryDto } from "../dto/entry/save-section-progress-entry.dto";
+import { SaveSectionProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-section-entry.dto";
+import { SaveSectionProgressApplicationService } from "src/progress/application/services/commands/save-progress-section.application.service";
+import { SaveCourseProgressSwaggerResponseDto } from "../dto/response/save-course-progress-swagger-response.dto";
+import { SaveCourseProgressEntryDto } from "../dto/entry/save-course-progress-entry.dto";
+import { SaveCourseProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-course-entry.dto";
+import { SaveCourseProgressApplicationService } from "src/progress/application/services/commands/save-progress-course.application.service";
 
 @ApiTags('Progress')
 @Controller('Progress')
@@ -66,6 +74,53 @@ export class ProgressController {
         )
 
         const updateResult = await saveVideoProgressService.execute(saveVideoProgressDto);
+        return updateResult.Value; //? Should this consider the possibility of having to return some error?
+    }
+
+    @Patch( '/ProgressSection/:sectionId' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Guarda el progreso de la seccion dada. En caso de incluir modificaciones en los videos, guarda su progreso en cascada. Retorna el objeto que refleja el progreso guardado', type: SaveSectionProgressSwaggerResponseDto })
+    async saveSectionProgress( @Body() saveDTO: SaveSectionProgressEntryDto, @GetUser()user:User)
+    {
+        //Use other application service to also save videos in cascade?
+        //! How to avoid service coupling to one another?
+        const saveVideoProgressService = new SaveVideoProgressApplicationService(this.progressRepository);
+
+        const saveSectionProgressDto:SaveSectionProgressServiceEntryDto = {userId:user.Id, ...saveDTO};
+
+        const saveSectionProgressService = new ExceptionDecorator(
+            new LoggingDecorator(
+                new SaveSectionProgressApplicationService(this.progressRepository, saveVideoProgressService),
+                new NativeLogger(this.logger)
+            )
+        )
+
+        const updateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
+        return updateResult.Value; //? Should this consider the possibility of having to return some error?
+    }
+
+    @Patch( '/ProgressCourse/:courseId' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    //? How to create typed objects again? How to use ValidationPipe? @UsePipes(new ValidationPipe({transform: true}))
+    @ApiOkResponse({ description: 'Guarda el progreso del curso dado. En caso de incluir modificaciones en las secciones, guarda su progreso en cascada. Retorna el objeto que refleja el progreso guardado', type: SaveCourseProgressSwaggerResponseDto })
+    async saveCourseProgress( @Body() saveDTO: SaveCourseProgressEntryDto, @GetUser()user:User)
+    {
+        //Use other application service to also save videos in cascade?
+        //! How to avoid service coupling to one another?
+        const saveSectionProgressService = new SaveSectionProgressApplicationService(this.progressRepository, new SaveVideoProgressApplicationService(this.progressRepository));
+
+        const saveCourseProgressDto:SaveCourseProgressServiceEntryDto = {userId:user.Id, ...saveDTO};
+
+        const saveCourseProgressService = new ExceptionDecorator(
+            new LoggingDecorator(
+                new SaveCourseProgressApplicationService(this.progressRepository, saveSectionProgressService),
+                new NativeLogger(this.logger)
+            )
+        )
+
+        const updateResult = await saveCourseProgressService.execute(saveCourseProgressDto);
         return updateResult.Value; //? Should this consider the possibility of having to return some error?
     }
 }
