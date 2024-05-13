@@ -7,7 +7,12 @@ import { AuthController } from './auth/infraestructure/controller/auth.controlle
 import { JwtModule } from '@nestjs/jwt';
 import { CourseController } from './course/infraestructure/controller/courses.controller'
 import { BlogController } from './blog/infraestructure/controller/blog.controller'
+import { TrainerController } from './trainer/infraestructure/controller/trainer.controller'
 import { ScheduleModule } from '@nestjs/schedule'
+import { NotificationController } from './notification/infraestructure/controller/notification.controller'
+import { CategoryController } from './categories/infraesctructure/controller/category.controller'
+import { SearchController } from './search/infraestructure/controller/search.controller'
+import { ProgressController } from './progress/infraestructure/controller/progress.controller'
 
 @Module( {
   imports: [
@@ -18,14 +23,20 @@ import { ScheduleModule } from '@nestjs/schedule'
       signOptions: {
         expiresIn: '2h'
       }
-    }),
+    })
+
   ],
   controllers: [
     TestController, 
     UserController,
     AuthController,
     CourseController, 
-    BlogController
+    BlogController,
+    NotificationController,
+    CategoryController,
+    SearchController,
+    TrainerController,
+    ProgressController
   ],
   providers: [     
     ormDatabaseProvider

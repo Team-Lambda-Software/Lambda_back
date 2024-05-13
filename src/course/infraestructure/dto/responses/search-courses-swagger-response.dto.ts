@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
 import { Section } from "src/course/domain/entities/section"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 
@@ -14,9 +15,20 @@ export class SearchCoursesSwaggerResponseDto
     id: string
 
     @ApiProperty( {
-        example: '7bcbfd8a-e775-4149-52ee-7ba4c709e8a2',
+        example: {
+            "id": "8fe7e9dc-c594-4d27-8502-b7bd18d5a72f",
+            "firstName": "Jose",
+            "firstLastName": "Fernandez",
+            "secondLastName": "Estrada",
+            "email": "fer@gmail.com",
+            "phone": "04125687493",
+            "followersID": [],
+            "coursesID": [],
+            "blogsID": [],
+            "location": "99 Park Ave, New York, NY 10016, EE. UU."
+          }
     } )
-    trainerId: string
+    trainer: Trainer
 
     @ApiProperty( {
         example: 'Curso de programacion en python',
@@ -69,5 +81,10 @@ export class SearchCoursesSwaggerResponseDto
         },
     } )
     image: SectionImage
+
+    @ApiProperty( {
+        example: ['tag1', 'tag2'],
+    } )
+    tags: string[]
 
 }

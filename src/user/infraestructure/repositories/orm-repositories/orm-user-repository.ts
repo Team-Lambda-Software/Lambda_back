@@ -19,7 +19,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
     }
 
     async deleteById(id: string): Promise<Result<User>> {
-        
+
         const user = await this.findOneBy({id});
 
         if(user){
@@ -45,9 +45,9 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         try
         {
             const ormUser = await this.ormUserMapper.fromDomainToPersistence( user )
-            
+
             await this.save( ormUser )
-            
+
             return Result.success<User>( user, 200 )
         } catch ( error )
         {
@@ -75,4 +75,40 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
 
+    async findAllUser(): Promise<Result<User[]>>
+    {
+
+        const OrmUsers = await this.find()
+
+        if(OrmUsers.length > 0){
+
+            const list_users: User[] = [];
+
+            for(const user of OrmUsers){
+                list_users.push(await this.ormUserMapper.fromPersistenceToDomain(user))
+            }
+
+            return Result.success<User[]>(list_users,200);
+
+        }
+
+        return Result.fail<User[]>( new Error( 'Non-existing users' ), 404, 'Non-existing users')
+
+    }
+    async getUserCount(): Promise<Result<number>>
+    {
+
+        let usuarios_registrados: number = 0
+
+        const OrmUsers = await this.findAllUser()
+
+        if(!OrmUsers.isSuccess){
+            return Result.fail<number>(OrmUsers.Error,OrmUsers.StatusCode,OrmUsers.Message)
+        }
+
+        usuarios_registrados = OrmUsers.Value.length;
+
+       return Result.success<number>(usuarios_registrados,200)
+
+    }
 }

@@ -7,15 +7,15 @@ import { GetBlogServiceResponseDto } from "../../dto/responses/get-blog-service-
 
 
 
-export class GetBlogApplicationService implements IApplicationService<GetBlogServiceEntryDto,GetBlogServiceResponseDto> 
+export class GetBlogApplicationService implements IApplicationService<GetBlogServiceEntryDto, GetBlogServiceResponseDto> 
 {
     private readonly blogRepository: IBlogRepository
-    
+
     constructor ( blogRepository: IBlogRepository )
     {
         this.blogRepository = blogRepository
     }
-  
+
     async execute ( data: GetBlogServiceEntryDto ): Promise<Result<GetBlogServiceResponseDto>>
     {
         const resultBlog = await this.blogRepository.findBlogById( data.blogId )
@@ -24,15 +24,16 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
             return Result.fail<GetBlogServiceResponseDto>( resultBlog.Error, resultBlog.StatusCode, resultBlog.Message )
         }
         const blog = resultBlog.Value
-        const resultComments = await this.blogRepository.findBlogComments( blog.Id )
+        const { limit = 10, offset = 0 } = data.commentPagination
+        const resultComments = await this.blogRepository.findBlogComments( blog.Id, { limit, offset } )
         if ( !resultComments.isSuccess() )
         {
             return Result.fail<GetBlogServiceResponseDto>( resultComments.Error, resultComments.StatusCode, resultComments.Message )
         }
         const comments = resultComments.Value
-        const response: GetBlogServiceResponseDto = {blog, comments}
+        const response: GetBlogServiceResponseDto = { blog, comments }
 
-        return Result.success<GetBlogServiceResponseDto>( response , 200)
+        return Result.success<GetBlogServiceResponseDto>( response, 200 )
 
     }
 
