@@ -37,6 +37,12 @@ import { SearchCourseByLevelsApplicationService } from "src/course/application/s
 import { SearchCourseByTagsEntryDto } from "../dto/entry/search-course-by-tags-entry.dto"
 import { SearchCourseByTagsServiceEntryDto } from "src/course/application/dto/param/search-course-by-tags-service-entry.dto"
 import { SearchCourseByTagsApplicationService } from "src/course/application/services/queries/search-courses-by-tags.service"
+import { OrmProgressCourseRepository } from '../../../progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository';
+import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
+import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+import { GetMostPopularCoursesServiceEntryDto } from "src/course/application/dto/param/get-most-popular-courses-service-entry.dto"
+import { GetMostPopularCoursesApplicationService } from "src/course/application/services/queries/get-most-popular-courses.service"
 
 
 @ApiTags('Course')
@@ -45,6 +51,7 @@ export class CourseController
 {
 
     private readonly courseRepository: OrmCourseRepository
+    private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CourseController" )
@@ -61,6 +68,13 @@ export class CourseController
                 new OrmSectionCommentMapper(),
                 dataSource
             )
+        this.progressRepository = 
+        new OrmProgressCourseRepository(
+            new OrmProgressCourseMapper(),
+            new OrmProgressSectionMapper(),
+            new OrmProgressVideoMapper(),
+            this.courseRepository, 
+            dataSource)        
         this.auditingRepository = new OrmAuditingRepository(dataSource)
 
     }
@@ -75,7 +89,8 @@ export class CourseController
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetCourseApplicationService(
-                        this.courseRepository
+                        this.courseRepository,
+                        this.progressRepository
                     ),
                     new NativeLogger( this.logger )
                 )
@@ -101,6 +116,28 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseServiceEntry )
+
+        return result.Value
+    }
+
+    @Get( 'search/PopularCourses' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos mas populares', type: SearchCoursesSwaggerResponseDto, isArray: true})
+    async searchPopularCourse ( @GetUser()user: User, @Query() pagination: PaginationDto )
+    {
+        const searchPopularCourseServiceEntry: GetMostPopularCoursesServiceEntryDto = { userId: user.Id, pagination: pagination}
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetMostPopularCoursesApplicationService(
+                        this.courseRepository,
+                        this.progressRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( searchPopularCourseServiceEntry )
 
         return result.Value
     }
@@ -143,7 +180,7 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseByTagsServiceEntry )
-        return result
+        return result.Value;
     }
 
     @Get( 'category/:categoryId' )
@@ -178,7 +215,8 @@ export class CourseController
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetCourseSectionApplicationService(
-                        this.courseRepository
+                        this.courseRepository,
+                        this.progressRepository
                     ),
                     new NativeLogger( this.logger )
                 )

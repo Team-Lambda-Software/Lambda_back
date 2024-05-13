@@ -2,15 +2,17 @@
 const Mailjet = require('node-mailjet')
 //const key_public = process.env.MAILJET_PUBLIC_KEY
 //const key_private = process.env.MAILJET_PRIVATE_KEY
-const key_public = 'c439ad5be1a0205a8de4b0af41ce9a69'
-const key_private = '0f5e6e38c79ce05e1f9edd40cfc94103'
+//const key_public = 'c439ad5be1a0205a8de4b0af41ce9a69'
+//const key_private = '0f5e6e38c79ce05e1f9edd40cfc94103'
+const key_public = '0c60df846dc2fc584fab3944907d4b9e'
+const key_private = '9838597e9c6285f6417e99bd647e55e7'
 
 export abstract class EmailSender {
     private mailjet = Mailjet.apiConnect( key_public, key_private )
     private subjectText: string
     private textPart: string
     private htmlPart: string  
-    private senderEmail = process.env.SENDER_EMAIL
+    private senderEmail = 'gymnasticlambda@gmail.com'
     private senderName = process.env.APP_NAME
     
     abstract setVariable( variable: string ): void

@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Inject, Logger, Param, Patch, Post, UseGuards } from "@nestjs/common"
+import { Body, Controller, Delete, Get, Inject, Logger, Param, Patch, Post, Query, UseGuards } from "@nestjs/common"
 import { OrmUserRepository } from "../repositories/orm-repositories/orm-user-repository"
 import { DataSource} from "typeorm"
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
@@ -19,6 +19,16 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/dto/response/update-user-profile-swagger-response.dto";
 import { FolloUnfollowSwaggerResponseDto } from "src/user/dto/response/follow-unfollow-entry-swagger-response.dto";
+import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto"
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
+import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
+import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
+import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
+import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
+import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
+import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 
 
 @ApiTags('User')
@@ -27,31 +37,50 @@ export class UserController {
 
     private readonly userRepository: OrmUserRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly courseRepository: OrmCourseRepository
+    private readonly progressRepository: OrmProgressCourseRepository
     private readonly logger: Logger = new Logger( "UserController" )
     
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
         
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
         this. trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
+        this.courseRepository =
+            new OrmCourseRepository(
+                new OrmCourseMapper(
+                    new OrmSectionMapper(),
+                    new OrmTrainerMapper()
+                ),
+                new OrmSectionMapper(),
+                new OrmSectionCommentMapper(),
+                dataSource
+            )
+        this.progressRepository = 
+        new OrmProgressCourseRepository(
+            new OrmProgressCourseMapper(),
+            new OrmProgressSectionMapper(),
+            new OrmProgressVideoMapper(),
+            this.courseRepository, 
+            dataSource)    
 
     }
 
-    @Get(':id')
+    @Get('')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ 
         description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
-        type: User
+        type: GetUserSwaggerResponseDto
     })
-    async getUser(@Param('id') id: string) {
+    async getUser(@GetUser() user: User, @Query() pagination: PaginationDto) {
         
         const getUserProfileService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetUserProfileApplicationService(this.userRepository), 
+                new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
                 new NativeLogger(this.logger)
             )
         )
-        return (await getUserProfileService.execute({userId: id})).Value
+        return (await getUserProfileService.execute({userId: user.Id, pagination})).Value
         
     }
 

@@ -3,6 +3,7 @@ import { OrmCourse } from "./orm-course"
 import { OrmSectionImage } from "./orm-section-images"
 import { OrmSectionVideo } from "./orm-section-videos"
 import { OrmSectionComment } from "./orm-section-comment"
+import { OrmProgressSection } from "src/progress/infraestructure/entities/orm-entities/orm-progress-section"
 
 
 
@@ -26,6 +27,9 @@ export class OrmSection
 
     @OneToMany(()=> OrmSectionComment, comment => comment.section)
     comments: OrmSectionComment[]
+
+    @OneToMany(()=> OrmProgressSection, progressSection => progressSection.section_id)
+    progress: OrmProgressSection[]
 
     
 

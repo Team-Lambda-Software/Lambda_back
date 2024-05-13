@@ -5,24 +5,27 @@ import { OrmSectionVideo } from "src/course/infraestructure/entities/orm-entitie
 @Entity( {name:"progress_video"} )
 export class OrmProgressVideo
 {
+    @PrimaryColumn( {type: "uuid"} )
+    video_id:string;
     @ManyToOne(() => OrmSectionVideo)
     @JoinColumn( {name: 'video_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    video_id:OrmSectionVideo;
+    video:OrmSectionVideo;
 
+    @PrimaryColumn( {type: "uuid"} )
+    user_id:string;
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
-    @PrimaryColumn( {type: "uuid"} )
-    user_id:OrmUser;
+    user:OrmUser;
 
     @Column('boolean') completed:boolean;
     @Column('numeric') playback_milisec:number;
 
-    static create (video:OrmSectionVideo, user:OrmUser, isCompleted:boolean, playbackMilisec:number): OrmProgressVideo
+    //? Does this work without having the reference to the entity? Note. Same doubt on orm-progress-section and orm-progress-course
+    static create (videoId:string, userId:string, isCompleted:boolean, playbackMilisec:number): OrmProgressVideo
     {
         const videoProgress = new OrmProgressVideo();
-        videoProgress.video_id = video;
-        videoProgress.user_id = user;
+        videoProgress.video_id = videoId;
+        videoProgress.user_id = userId;
         videoProgress.completed = isCompleted;
         videoProgress.playback_milisec = playbackMilisec;
         return videoProgress;
