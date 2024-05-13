@@ -18,6 +18,13 @@ export class Course extends Entity<string>
     private categoryId: string
     private sections: Section[]
     private image: SectionImage
+    private tags: string[]
+    
+    
+    get Tags (): string[]
+    {
+        return this.tags
+    }
 
     get Trainer (): Trainer
     {
@@ -63,7 +70,7 @@ export class Course extends Entity<string>
     {
         return this.image
     }
-    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage )
+    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[])
     {
         super( id )
         this.trainer = trainer
@@ -75,6 +82,7 @@ export class Course extends Entity<string>
         this.sections = sections
         this.categoryId = categoryId
         this.image = image
+        this.tags = tags
         this.ensureValidState()
     }
 
@@ -110,9 +118,9 @@ export class Course extends Entity<string>
         this.sections = sections
     }
 
-    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage ): Course
+    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[]): Course
     {
-        return new Course( id, trainer, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image )
+        return new Course( id, trainer, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image, tags)
     }
 
 }

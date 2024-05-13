@@ -82,4 +82,9 @@ export class SearchCoursesSwaggerResponseDto
     } )
     image: SectionImage
 
+    @ApiProperty( {
+        example: ['tag1', 'tag2'],
+    } )
+    tags: string[]
+
 }
