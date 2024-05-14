@@ -3,10 +3,10 @@ import { Result } from "src/common/Application/result-handler/Result";
 import { SaveTokenAddressEntryApplicationDto } from "../dto/save-token-address-entry.application";
 import { WelcomeNotifier } from "src/notification/infraestructure/notifier/welcome-notifier";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
-import { NotificationAddress } from "../entities/notification-address";
-import { NotificationAlert } from "../entities/notification-alert";
-import { INotificationAddressRepository } from "../repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../repositories/notification-alert-repository.interface";
+import { NotificationAddress } from "../../domain/entities/notification-address";
+import { NotificationAlert } from "../../domain/entities/notification-alert";
+import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 
 export class SaveTokenAddressApplicationService implements IApplicationService<SaveTokenAddressEntryApplicationDto, any> {
