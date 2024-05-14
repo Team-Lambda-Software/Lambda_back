@@ -1,14 +1,12 @@
-import { Body, Controller, Inject } from "@nestjs/common";
+import { Body, Controller, Inject, Logger, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
-import { GoodDayNotifier } from "../notifier/good-day-notifier";
 import * as admin from 'firebase-admin';
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { OrmNotificationAddressRepository } from "../repositories/orm-notification-repository";
 import { DataSource } from "typeorm";
 import { INotificationAddressRepository } from "src/notification/domain/repositories/notification-address-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { NotificationAddress } from "src/notification/domain/entities/notification-address";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
@@ -17,16 +15,21 @@ import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { randomInt } from "crypto";
-import { RecommendCourseNotifier } from "../notifier/recommend-course-notifier";
-import { Result } from "src/common/Application/result-handler/Result";
-import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto copy";
-import { WelcomeNotifier } from "../notifier/welcome-notifier";
+import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto";
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
-import { NotificationAlert } from "src/notification/domain/entities/notification-alert";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { GetNotificationsUserByEmailApplicationService } from "src/notification/domain/service/get-notifications-user-by-email.service";
+import { SaveTokenAddressApplicationService } from "src/notification/domain/service/save-token-address-services.service";
+import { NotifyGoodDayApplicationService } from "src/notification/domain/service/notify-good-day-services.service";
+import { NotifyRecommendCourseApplicationService } from "src/notification/domain/service/notify-recommend-course-services.service";
+import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
+import { SaveTokenSwaggerResponseDto } from "../dto/response/save-token-address-swagger-response.dto";
+import { GetNotificationsUserSwaggerResponseDto } from "../dto/response/get-notifications-user-swagger-response.dto";
+import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
+import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
+import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 
 const credentials:object = {
     type: "service_account",
@@ -53,10 +56,12 @@ export class NotificationController {
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
-
+    private readonly logger: Logger
+    
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
     ) {
+        this.logger = new Logger('NotificationController')
         this.notiAddressRepository = new OrmNotificationAddressRepository( dataSource )
         this.uuidGenerator = new UuidGenerator()
         this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
@@ -72,99 +77,78 @@ export class NotificationController {
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)
     @Get('goodday')  
     async goodDayNotification() {
-        const findResult = await this.notiAddressRepository.findAllTokens()
-        const goodDayNotifier = new GoodDayNotifier()
-        //if ( !findResult.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
-        if ( findResult.isSuccess() ) {
-            const listTokens = findResult.Value
-            listTokens.forEach( async e => {  
-                try {
-                    const result = await goodDayNotifier.sendNotification( { token: e.Token } )
-                    if ( result.isSuccess ) {
-                        this.notiAlertRepository.saveNotificationAlert(
-                            NotificationAlert.create(
-                                await this.uuidGenerator.generateId(),
-                                e.UserId,
-                                "Good new Day!",
-                                'be Happy, my budy'
-                            )
-                        )
-                    }
-                } catch (e) {}
-            })
-        }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new NotifyGoodDayApplicationService(
+                    this.notiAlertRepository,
+                    this.notiAddressRepository,
+                    this.uuidGenerator
+                ),
+                new NativeLogger(this.logger)
+            )    
+        )
+        return (await service.execute( { userId: 'none' } )).Value    
     }
 
     //@Cron(CronExpression.EVERY_12_HOURS)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
-        const findResultTokens = await this.notiAddressRepository.findAllTokens()
-        //if ( !findResultTokens.isSuccess() ) return { message: 'Sin tokens registrados', errorCode: 500 }
-        const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
-        //if ( !findResultCourses.isSuccess() ) return { message: 'Sin cursos registrados', errorCode: 500 }
-        const recommendCourse = new RecommendCourseNotifier()
-        
-        if ( findResultCourses.isSuccess() && findResultTokens.isSuccess() ) {
-
-            const listTokens = findResultTokens.Value
-            const listCourses = findResultCourses.Value
-            var ran = randomInt(0, listCourses.length)
-            const course = listCourses[ran]
-        
-            recommendCourse.setVariable(course)
-
-            listTokens.forEach( async e => {
-                try {
-                    const result = await recommendCourse.sendNotification( { token: e.Token } )
-                    if ( result.isSuccess ) {
-                        this.notiAlertRepository.saveNotificationAlert(
-                            NotificationAlert.create(
-                                await this.uuidGenerator.generateId(),
-                                e.UserId,
-                                "Recomendación del día!",
-                                'Te recomendamos personalmente el curso de ' + course.Name
-                            )
-                        )
-                    }
-                } catch (e) {}
-            })
-        }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new NotifyRecommendCourseApplicationService(   
+                    this.notiAlertRepository,
+                    this.notiAddressRepository,
+                    this.courseRepository,
+                    this.uuidGenerator
+                ),
+                new NativeLogger(this.logger)
+            )    
+        )
+        return (await service.execute( { userId: 'none' } )).Value
     }
 
     @Post('savetoken')
+    //@UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ 
+        description: 'Registrar el token de direccion de un usuario', 
+        type: SaveTokenSwaggerResponseDto
+    })
+    //@ApiBearerAuth()
     async saveToken(@Body() saveTokenDto: SaveTokenDto) {
-        const findResult = await this.userRepository.findUserByEmail(saveTokenDto.email)
-        if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
-        const saveResult = await this.notiAddressRepository.saveNotificationAddress(
-            NotificationAddress.create(
-                await this.uuidGenerator.generateId(),
-                findResult.Value.Id,
-                saveTokenDto.token
-            )
-        )    
-        if ( !saveResult.isSuccess() ) return { message: 'Error al registrar token', errorCode: 500 }
-        const welcomeNotifier = new WelcomeNotifier()
-        welcomeNotifier.setVariable( findResult.Value.FirstName )
-        const result = await welcomeNotifier.sendNotification( { token: saveTokenDto.token } )
-        if ( result.isSuccess() ) 
-            this.notiAlertRepository.saveNotificationAlert(
-                NotificationAlert.create(
-                    await this.uuidGenerator.generateId(),
-                    findResult.Value.Id,
-                    "Welcome",
-                    'be Welcome my dear ' + findResult.Value.FirstName
-                )
-            )
-        return { message: 'Guardado de token exitoso', errorCode: 200 }
+        const data = { userId: 'none', ...saveTokenDto }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new SaveTokenAddressApplicationService(
+                    this.userRepository,
+                    this.notiAlertRepository,
+                    this.notiAddressRepository,
+                    this.uuidGenerator
+                ),
+                new NativeLogger(this.logger)
+            )    
+        )
+        return (await service.execute( data )).Value
     }
 
     @Post('getnotificationsuser')
+    //@UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ 
+        description: 'Obtener notificaciones recibidas por un usuario', 
+        type: GetNotificationsUserSwaggerResponseDto 
+    })
+    ///@ApiBearerAuth()
     async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
-        const findResult = await this.userRepository.findUserByEmail(getNotiDto.email)
-        if ( !findResult.isSuccess() ) return { message: 'Email no registrado', errorCode: 500 }
-        const alertResult = await this.notiAlertRepository.findAllByIdUser(findResult.Value.Id)
-        if ( !findResult.isSuccess() ) return { message: 'Sin alertas registradas', errorCode: 500 }
-        return Result.success(alertResult.Value, 200).Value
+        const data = { userId: 'none', ...getNotiDto }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new GetNotificationsUserByEmailApplicationService(
+                    this.userRepository,
+                    this.notiAlertRepository
+                ),
+                new NativeLogger(this.logger)
+            )    
+        )    
+        return (await service.execute( data )).Value
     }
 
 }

@@ -32,7 +32,6 @@ export class OrmNotificationAddressRepository extends Repository<OrmNotification
             await this.save( ormNoti )
             return Result.success<NotificationAddress>( noti_address, 200 )
         } catch ( error ) {
-            console.log(error)
             return Result.fail<NotificationAddress>( new Error( error.detail ), error.code, error.detail )
         }
     }
