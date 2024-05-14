@@ -1,10 +1,10 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Application/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { INotificationAddressRepository } from "../repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../repositories/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
 import { GoodDayNotifier } from "src/notification/infraestructure/notifier/good-day-notifier";
-import { NotificationAlert } from "../entities/notification-alert";
+import { NotificationAlert } from "../../domain/entities/notification-alert";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 
 export class NotifyGoodDayApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {

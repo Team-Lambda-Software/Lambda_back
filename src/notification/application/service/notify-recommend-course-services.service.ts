@@ -2,12 +2,12 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { INotificationAddressRepository } from "../repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../repositories/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
 import { RecommendCourseNotifier } from "src/notification/infraestructure/notifier/recommend-course-notifier";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { randomInt } from "crypto";
-import { NotificationAlert } from "../entities/notification-alert";
+import { NotificationAlert } from "../../domain/entities/notification-alert";
 
 export class NotifyRecommendCourseApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
     

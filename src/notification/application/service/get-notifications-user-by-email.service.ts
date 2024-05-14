@@ -2,7 +2,7 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { GetNotificationsUserEntryApplicationDto } from "../dto/get-notifications-user-by-email.application";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
-import { INotificationAlertRepository } from "../repositories/notification-alert-repository.interface";
+import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
 
 export class GetNotificationsUserByEmailApplicationService 
     implements IApplicationService<GetNotificationsUserEntryApplicationDto, any> {
