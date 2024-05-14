@@ -71,9 +71,7 @@ export class AuthController {
         type: CheckTokenSwaggerResponseDto
     })
     @ApiBearerAuth()
-    async checkToken() { 
-        return { tokenIsValid: true } 
-    }
+    async checkToken() { return { tokenIsValid: true } }
     
     @Get('newtoken')
     @UseGuards(JwtAuthGuard)
@@ -92,10 +90,7 @@ export class AuthController {
         type: LogInUserSwaggerResponseDto 
     })
     async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
-        const data: LogInEntryApplicationDto = {
-            userId: 'none',
-            ...logInDto,
-        }
+        const data = { userId: 'none', ...logInDto }
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new LogInUserApplicationService(
@@ -115,10 +110,7 @@ export class AuthController {
         type: SignUpUserSwaggerResponseDto 
     })
     async signUpUser(@Body() signUpDto: SignUpEntryInfrastructureDto) {
-        const data: SignUpEntryApplicationDto = {
-            userId: 'none',
-            ...signUpDto,
-        }
+        const data = { userId: 'none', ...signUpDto }
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
@@ -140,10 +132,7 @@ export class AuthController {
         type: GetCodeUpdatePasswordSwaggerResponseDto
     })
     async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
-        const data: GetCodeUpdatePasswordEntryApplicationDto = {
-            userId: 'none',
-            ...getCodeUpdateDto,
-        }
+        const data = { userId: 'none', ...getCodeUpdateDto, }
         const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetCodeUpdatePasswordUserApplicationService(
@@ -155,7 +144,7 @@ export class AuthController {
             )
         )
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
-        if ( result.isSuccess ) {
+        if ( result.isSuccess() ) {
             this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
             this.secretCodes.push( result.Value )
         }
@@ -169,11 +158,8 @@ export class AuthController {
     })
     async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {     
         const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( result == false ) return { message: 'code invalid', code: updatePasswordDto.code }
-        const data: UpdatePasswordEntryApplicationDto = { 
-            userId: 'none', 
-            ...updatePasswordDto 
-        }
+        if ( !result ) return { message: 'code invalid', code: updatePasswordDto.code }
+        const data = { userId: 'none',  ...updatePasswordDto }
         const updatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new UpdatePasswordUserApplicationService(

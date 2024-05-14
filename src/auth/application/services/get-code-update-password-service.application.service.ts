@@ -21,13 +21,8 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
     
     async execute(updateDto: GetCodeUpdatePasswordEntryApplicationDto): Promise<Result<any>> {
         const result = await this.userRepository.findUserByEmail( updateDto.email )
-        if ( !result.isSuccess() ) {
-            return Result.fail(
-                new Error('Cuenta no existente'),
-                500,
-                'Cuenta no existente'
-            )
-        }
+        if ( !result.isSuccess() ) 
+            return Result.fail( new Error('Cuenta no existente'), 500, 'Cuenta no existente' )
         const code = this.codeGenerator.generateCode(4)
         this.emailSender.setVariable( code )
         this.emailSender.sendEmail( updateDto.email, updateDto.email )
