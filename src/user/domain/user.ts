@@ -1,7 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
+import { ProgressCourse } from "src/progress/domain/entities/progress-course"
+import { ProgressSection } from "src/progress/domain/entities/progress-section"
+import { ProgressVideo } from "src/progress/domain/entities/progress-video"
 import { Trainer } from "src/trainer/domain/trainer"
-
 
 
 export class User extends Entity<string>
@@ -14,9 +16,12 @@ export class User extends Entity<string>
     private password: string
     private phone: string
     private trainers: Trainer[]
+    private progressVideo:ProgressVideo[]
+    private progressCourse: ProgressCourse[]
+    private progressSection: ProgressSection[]
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string, trainers?: Trainer[])
+    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
     {
         super( id )
         this.firstName = firstName
@@ -26,6 +31,9 @@ export class User extends Entity<string>
         this.password = password
         this.phone = phone
         this.trainers = trainers
+        this.progressCourse = progressCourse
+        this.progressSection = progressSection
+        this.progressVideo = progressVideo
     }
 
     get FirstName (): string
@@ -61,6 +69,21 @@ export class User extends Entity<string>
     get Trainers (): Trainer[]
     {
         return this.trainers
+    }
+
+    get ProgressCourse(): ProgressCourse[]
+    {
+        return this.progressCourse
+    }
+
+    get ProgressSection(): ProgressSection[]
+    {
+        return this.progressSection
+    }
+
+    get ProgressVideo(): ProgressVideo[]
+    {
+        return this.progressVideo
     }
 
     static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string ): User
