@@ -1,6 +1,7 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Section } from "./entities/section"
 import { SectionImage } from "./entities/compose-fields/section-image"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 
@@ -8,7 +9,7 @@ import { SectionImage } from "./entities/compose-fields/section-image"
 export class Course extends Entity<string>
 {
 
-    private trainerId: string
+    private trainer: Trainer
     private name: string
     private description: string
     private weeksDuration: number
@@ -17,10 +18,17 @@ export class Course extends Entity<string>
     private categoryId: string
     private sections: Section[]
     private image: SectionImage
-
-    get TrainerId (): string
+    private tags: string[]
+    
+    
+    get Tags (): string[]
     {
-        return this.trainerId
+        return this.tags
+    }
+
+    get Trainer (): Trainer
+    {
+        return this.trainer
     }
 
     get Name (): string
@@ -62,10 +70,10 @@ export class Course extends Entity<string>
     {
         return this.image
     }
-    protected constructor ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage )
+    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[])
     {
         super( id )
-        this.trainerId = trainerId
+        this.trainer = trainer
         this.name = name
         this.description = description
         this.weeksDuration = weeksDuration
@@ -74,13 +82,14 @@ export class Course extends Entity<string>
         this.sections = sections
         this.categoryId = categoryId
         this.image = image
+        this.tags = tags
         this.ensureValidState()
     }
 
     //las validaciones de aqui que son de los atributos en si van a estar en los value objects en un futuro
     protected ensureValidState (): void
     {
-        if ( !this.trainerId )
+        if ( !this.trainer )
             throw new Error( "Course must have a trainer" )
 
         if ( !this.name )
@@ -109,9 +118,9 @@ export class Course extends Entity<string>
         this.sections = sections
     }
 
-    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage ): Course
+    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesPerSection: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[]): Course
     {
-        return new Course( id, trainerId, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image )
+        return new Course( id, trainer, name, description, weeksDuration, minutesPerSection, level, sections, categoryId, image, tags)
     }
 
 }

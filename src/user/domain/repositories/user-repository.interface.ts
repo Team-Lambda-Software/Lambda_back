@@ -8,4 +8,6 @@ export interface IUserRepository {
   findUserById(id: string): Promise<Result<User>>;
   updateUserPassword(email: string, newPassword: string): Promise<Result<User>>;
   deleteById(id: string): Promise<Result<User>>;
+  findAllUser(): Promise<Result<User[]>>;
+  getUserCount(): Promise<Result<number>>;
 }
