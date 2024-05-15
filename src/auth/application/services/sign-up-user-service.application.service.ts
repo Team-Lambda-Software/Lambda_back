@@ -32,13 +32,8 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     
     async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail( signUpDto.email )
-        if ( findResult.isSuccess() ) {
-            return Result.fail(
-                new Error('Correo electrónico ya registrado'),
-                500,
-                'Correo electrónico ya registrado'
-            )
-        }
+        if ( findResult.isSuccess() ) 
+            return Result.fail( new Error('Correo electrónico ya registrado'), 500, 'Correo electrónico ya registrado')
 
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
         const userResult = await this.userRepository.saveUserAggregate(
@@ -52,13 +47,9 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 signUpDto.phone,
             )
         )
-        if ( !userResult.isSuccess() ) {
-            return Result.fail(
-                userResult.Error,
-                500,
-                'Error al registrar usuario'
-            )
-        }
+        if ( !userResult.isSuccess() ) 
+            return Result.fail( userResult.Error, 500, 'Error al registrar usuario' )
+        
         const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
         this.emailSender.setVariable( signUpDto.firstName )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
