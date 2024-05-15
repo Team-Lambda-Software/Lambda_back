@@ -5,7 +5,6 @@ import * as admin from 'firebase-admin';
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { OrmNotificationAddressRepository } from "../repositories/orm-notification-repository";
 import { DataSource } from "typeorm";
-import { INotificationAddressRepository } from "src/notification/application/repositories/notification-address-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
@@ -16,7 +15,6 @@ import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
 import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto";
-import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface";
 import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
@@ -30,22 +28,8 @@ import { GetNotificationsUserSwaggerResponseDto } from "../dto/response/get-noti
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-
-const credentials:object = {
-    type: "service_account",
-    project_id: "myawe-91958",
-    private_key_id: "cdd2a0da10bd579f3b4052cbad71ca0140d91d7d",
-    private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCSs35f3hHNKTb4\nNZO6lOfMrH864dAgRF54TD/QkxnUMde+u2sJbhypD29oa3nUngeMF5zsnkHFNrBs\n/DSLsAlHl1C4gJArbvvADeopWSBylhhZHsot995V0UyFgpDfjL8fSt08So0aGPD2\nOtGZKZlEDBby4TCTWMPgsI78NaQUP2YY2dbmIkQRlfXKfMoEVJX+Pj6OysGDL1TY\nnwItMX9cDDCAU2acNlabOKNtrSvssISr4FF+qxec7WX/I/1PcNrHsWbrUzDfZUqo\n5Ndmr97EY8QF4OoREa87HcLd23hZ33Y56tsoqZgMBxI+pXQzgcAh25PZxRj/gMcn\ndrkYhS3BAgMBAAECggEABGdWAygjGRlIR6xRzNZdxJEOZQrQktnjizVYfm0Of8Yu\n4IhPJ9Rn4McsXi5I/Qnw/n6KVtffr/0er9hUplduiWEmZqHxFfUwAl92jqcAymDF\nHoZ+HaHy0RkaNLknCrdemLiYTlgrbvfGArGwf1JKYgqR/Sinauplj5z0L1fnvuXu\nSLvgSfTeEzOP9seYtYFbE0ERyB/2uAyQw4eYKAvgkeuyNkeh0nxV76tpReHfB55L\nlMn9BFY0/RCpjzrkzPsR9VeggBJngqQsiZ4IGC3+n2DaK5pG48VqwA93awaO/KM7\nwDe7skpOqAnbmFVtKq8aGxJ0+R65NnnfxGaNAmAKoQKBgQDJVIeKNNPXeiYzOwNt\nwG+kEDJiUDPG0fEZAltF/xANNsuwHmHSYgV5WeELrBGlCGGHFXt34hmT28/+XXoW\nYlOJtOvo2ON9zKe+/YMgGh+anJrUJtYNp5jEiPpTihD/Tkwj8Q3Dlk6+oyDePW4S\nVmvXnAeIeZ8b3oclSH5uMePXoQKBgQC6iWzrj56FwzP15oru74SGfoTwxoazcfWc\nDxWTfQ2wEHhMG0FUpOA/V929GxCFJg31Bky8hJ2sApUitbKJDPCPb8+DNevJdzdv\nzvJY05bNbvbvbghLxpOBSEEl0E2G9rv9LsM/jxGSxiFwaZfXGGbMa7aKO6iEfmZ/\nhqTsnKMiIQKBgQDC+i8NpN2oJ67JHJTUfHJiNCFnXv7VxMo2izaz0jHMak3XMYVR\nBwcAIBA3ipvH9RbmiOJ7Fqforw9+6y5qcS0wBtwVM78VPNcTu1Z7B3Gl/ZZgcYAJ\n1062v2WW8/ZEGqLYiAHpci6upzMUp+9qqPFl7MDK5eY2Sksdy1hOBdj/IQKBgQCn\n16nK1yKDJ15knzlZvuiW/9Zss6VWZ27hKe13FSmwx1EG4etJ10TzmgMp+eVGeTRL\nyYxYgFdDA9vfLHBlwt/doHSukmEDmSKnlyUW6eQiGvtT+sS6MgZdaH8+IAzyKKaE\nLISAdyIP1/kUpd57KzisLStFfGKoPPfLPYK+aD6dIQKBgQC5ZLAitAMsUhgiWqZQ\nJDsAcwlM8zZ5JbQluC8yNo6PEu6o1JKlu47nrNMNUNFE9vER6vVIcW87rHc6KQZ9\n9wSqak8Qwnl22H1yXMUMIa/iJoVkxIsjpqqnHRabzB6uN5Vy6VinY/Wukdpp2dJW\neAVjCy4AWeIe6D+8hoBL3nhIaA==\n-----END PRIVATE KEY-----\n",
-    client_email: "firebase-adminsdk-6p01o@myawe-91958.iam.gserviceaccount.com",
-    client_id: "106988493002814302645",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    token_uri: "https://oauth2.googleapis.com/token",
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-    client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-6p01o%40myawe-91958.iam.gserviceaccount.com",
-    universe_domain: "googleapis.com"
-}
-
-admin.initializeApp({ credential: admin.credential.cert(credentials) })
+import { INotificationAddressRepository } from "src/notification/domain/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 
 @ApiTags('Notification')
 @Controller('notification')
@@ -72,6 +56,23 @@ export class NotificationController {
             new OrmSectionCommentMapper(),
             dataSource
         )
+
+        const credentials:object = {
+            type: process.env.FB_TYPE,
+            project_id: process.env.FB_PROJECT_ID,
+            private_key_id: process.env.FB_PRIVATE_KEY_ID,
+            private_key: process.env.FB_PRIVATE_KEY,
+            client_email: process.env.FB_CLIENT_EMAIL,
+            client_id: process.env.FB_CLIENT_ID,
+            auth_uri: process.env.FB_AUTH_URI,
+            token_uri: process.env.FB_TOKEN_URI,
+            auth_provider_x509_cert_url: process.env.FB_AUTH_PROVIDER,
+            client_x509_cert_url: process.env.FB_CLIENT,
+            universe_domain: process.env.FB_DOMAIN
+        }
+        
+        admin.initializeApp({ credential: admin.credential.cert(credentials) })
+
     }
     
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)

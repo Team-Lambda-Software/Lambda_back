@@ -1,9 +1,9 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
-import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface"
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert"
 import { NotificationAlert } from "src/notification/domain/entities/notification-alert"
 import { OrmNotificationAlertMapper } from "../mappers/orm-mappers/orm-notification-alert-mapper"
+import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface"
 
 export class OrmNotificationAlertRepository extends Repository<OrmNotificationAlert> implements INotificationAlertRepository {
 

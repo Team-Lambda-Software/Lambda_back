@@ -1,9 +1,9 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmNotificationAddress } from "../entities/orm-entities/orm-notification-address"
-import { INotificationAddressRepository } from "src/notification/application/repositories/notification-address-repository.interface"
 import { NotificationAddress } from "src/notification/domain/entities/notification-address"
 import { OrmNotificationAddressMapper } from "../mappers/orm-mappers/orm-notification-address-mapper"
+import { INotificationAddressRepository } from "src/notification/domain/repositories/notification-address-repository.interface"
 
 export class OrmNotificationAddressRepository extends Repository<OrmNotificationAddress> implements INotificationAddressRepository {
 
