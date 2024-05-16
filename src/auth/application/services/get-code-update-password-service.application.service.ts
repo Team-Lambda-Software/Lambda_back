@@ -24,7 +24,7 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
         if ( !result.isSuccess() ) 
             return Result.fail( new Error('Cuenta no existente'), 500, 'Cuenta no existente' )
         const code = this.codeGenerator.generateCode(4)
-        this.emailSender.setVariable( code )
+        this.emailSender.setVariables( { firstname: result.Value.FirstName, secretcode: code } )
         this.emailSender.sendEmail( updateDto.email, updateDto.email )
         const answer = {
             email: updateDto.email,

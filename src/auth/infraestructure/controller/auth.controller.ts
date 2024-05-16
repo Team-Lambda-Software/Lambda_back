@@ -27,9 +27,7 @@ import { SecretCodeGenerator } from "../secret-code-generator/secret-code-genera
 import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/entry/get-code-update-password-user-entry.infrastructure.dto";
 import { UpdatePasswordUserInfrastructureDto } from "../dto/entry/update-password-user.entry.infraestructure.dto";
 import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
-import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/update-password-entry.application.dto";
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
-import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -71,8 +69,8 @@ export class AuthController {
         type: CheckTokenSwaggerResponseDto
     })
     @ApiBearerAuth()
-    async checkToken() { return { tokenIsValid: true } }
-    
+    async checkToken() { return { tokenIsValid: true } }    
+
     @Get('newtoken')
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ 
