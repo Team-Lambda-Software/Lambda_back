@@ -1,20 +1,15 @@
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application"
+import { JetEmailSender } from "./jet-email-sender.infraestructure"
 
-export class WelcomeSender extends EmailSender {
+export class WelcomeSender extends JetEmailSender {
+
     constructor() {
         super()
-        this.setSubjectText('Welcome!')
+        this.setSubjectText('Welcome to Gymtastic Family!')
         this.setTextPart('Greetings!')
-        this.setHtmlPart('be welcome dear <h2>null</h2>')
+        super.setTemplateId(5969844)
     }
 
-    public setVariable( variable: string ){
-        this.setHtmlPart( 
-            `be welcome dear <h2>${variable}</h2>`    
-        )
-    }
-
-    public sendEmail(emailReceiver: string, nameReceiver: string): void {
+    public sendEmail(emailReceiver: string, nameReceiver: string) {
         super.sendEmail(emailReceiver, nameReceiver)
     }
 }
