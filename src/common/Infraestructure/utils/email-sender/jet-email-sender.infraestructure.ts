@@ -1,7 +1,8 @@
+import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application"
 
 const Mailjet = require('node-mailjet')
 
-export abstract class EmailSender {
+export abstract class JetEmailSender implements IEmailSender {
     private subjectText: string
     private textPart: string
     private senderEmail = process.env.SENDER_EMAIL
@@ -34,7 +35,7 @@ export abstract class EmailSender {
 
     public sendEmail( 
         emailReceiver: string, nameReceiver: string
-    ): void {
+    ){
         const request = this.mailjet.post('send', { version: 'v3.1' }).request({
             Messages: [{
                 From: { Email: this.senderEmail, Name: this.senderName, },
@@ -48,5 +49,6 @@ export abstract class EmailSender {
           })
         .then( result => { console.log('email_sended') })
         .catch( err => { console.log('error_in_email_sending') })
+
     }
 }

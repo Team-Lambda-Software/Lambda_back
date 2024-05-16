@@ -3,7 +3,7 @@ import { TokenNotification } from 'src/common/Application/notifier/dto/token-not
 import { INotifier } from 'src/common/Application/notifier/notifier.application';
 import { Result } from 'src/common/Application/result-handler/Result';
 
-export class WelcomeNotifier extends INotifier<string> {    
+export class WelcomeNotifier implements INotifier<string> {    
     variable: string = 'none'
     setVariable(variable: string): void { this.variable = variable }
     async sendNotification(data: TokenNotification): Promise<Result<string>> {

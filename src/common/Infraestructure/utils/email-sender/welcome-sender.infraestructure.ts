@@ -1,6 +1,6 @@
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application"
+import { JetEmailSender } from "./jet-email-sender.infraestructure"
 
-export class WelcomeSender extends EmailSender {
+export class WelcomeSender extends JetEmailSender {
 
     constructor() {
         super()
@@ -9,7 +9,7 @@ export class WelcomeSender extends EmailSender {
         super.setTemplateId(5969844)
     }
 
-    public sendEmail(emailReceiver: string, nameReceiver: string): void {
+    public sendEmail(emailReceiver: string, nameReceiver: string) {
         super.sendEmail(emailReceiver, nameReceiver)
     }
 }

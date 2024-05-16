@@ -2,16 +2,16 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { GetCodeUpdatePasswordEntryApplicationDto } from "../dto/get-code-update-password-entry.application";
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
 import { ICodeGenerator } from "../interface/code-generator.interface";
+import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
 
 export class GetCodeUpdatePasswordUserApplicationService implements IApplicationService<GetCodeUpdatePasswordEntryApplicationDto, any> {
     private readonly userRepository: IUserRepository   
-    private readonly emailSender: EmailSender;
+    private readonly emailSender: IEmailSender;
     private readonly codeGenerator: ICodeGenerator<string>; 
     constructor(
         userRepository: IUserRepository,
-        emailSender: EmailSender,
+        emailSender: IEmailSender,
         codeGenerator: ICodeGenerator<string>,
     ){
         this.userRepository = userRepository
