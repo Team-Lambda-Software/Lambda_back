@@ -20,6 +20,9 @@ import { ExceptionDecorator } from "src/common/Application/application-services/
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { SearchAllApplicationService } from "src/search/application/services/search-all.service"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { SearchAllByTagsEntryDto } from "../dto/entry/search-all-by-tags.dto"
+import { SearchAllByTagsServiceEntryDto } from "src/search/application/dto/param/search-all-by-tags-service-entry.dto"
+import { SearchAllByTagsApplicationService } from "src/search/application/services/search-all-by-tags.service"
 
 @ApiTags('Search')
 @Controller( 'search' )
@@ -58,7 +61,7 @@ export class SearchController
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos y blogs que tengan el nombre dado', type: SearchAllSwaggerResponseDto})
     async searchCourse ( @Body() searchCourseEntryDto: SearchAllEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
     {
-        const searchCourseServiceEntry: SearchAllServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
+        const searchAllServiceEntry: SearchAllServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
@@ -69,7 +72,29 @@ export class SearchController
                     new NativeLogger( this.logger )
                 )
             )
-        const result = await service.execute( searchCourseServiceEntry )
+        const result = await service.execute( searchAllServiceEntry )
+
+        return result.Value
+    }
+
+    @Post( 'tags' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos y blogs que tengan las tags dadas', type: SearchAllSwaggerResponseDto})
+    async searchCourseByTags ( @Body() searchCourseEntryDto: SearchAllByTagsEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
+    {
+        const searchAllServiceEntry: SearchAllByTagsServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchAllByTagsApplicationService(
+                        this.courseRepository,
+                        this.blogRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( searchAllServiceEntry )
 
         return result.Value
     }

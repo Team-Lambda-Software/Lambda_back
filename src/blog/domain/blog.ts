@@ -13,8 +13,9 @@ export class Blog extends Entity<string>{
     private publicationDate: Date
     private trainer: Trainer
     private categoryId: string
+    private tags: string[]
 
-    protected constructor ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string )
+    protected constructor ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string, tags: string[])
     {
         super( id )
         this.title = title
@@ -23,6 +24,7 @@ export class Blog extends Entity<string>{
         this.publicationDate = publicationDate
         this.trainer = trainer
         this.categoryId = categoryId
+        this.tags = tags
         this.validateState()
     }
 
@@ -84,9 +86,14 @@ export class Blog extends Entity<string>{
         return this.categoryId
     }
 
-    static create ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string ): Blog
+    get Tags (): string[]
     {
-        return new Blog( id, title, body, images, publicationDate, trainer, categoryId )
+        return this.tags
+    }
+
+    static create ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string, tags: string[]): Blog
+    {
+        return new Blog( id, title, body, images, publicationDate, trainer, categoryId, tags)
     }
 
 }

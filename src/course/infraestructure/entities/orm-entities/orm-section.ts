@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { OrmCourse } from "./orm-course"
 import { OrmSectionImage } from "./orm-section-images"
 import { OrmSectionVideo } from "./orm-section-videos"
@@ -19,11 +19,11 @@ export class OrmSection
     @Column( { type: "uuid" } ) course_id: string
     @ManyToOne( () => OrmCourse, { eager: true, nullable: true } ) @JoinColumn( { name: 'course_id' } ) course: OrmCourse
 
-    @OneToMany(()=> OrmSectionImage, image => image.section)
-    images: OrmSectionImage[]
+    @OneToOne(()=> OrmSectionImage, image => image.section, { eager: true })
+    image: OrmSectionImage
 
-    @OneToMany(()=> OrmSectionVideo, video => video.section)
-    videos: OrmSectionVideo[]
+    @OneToOne(()=> OrmSectionVideo, video => video.section, { eager: true })
+    video: OrmSectionVideo
 
     @OneToMany(()=> OrmSectionComment, comment => comment.section)
     comments: OrmSectionComment[]

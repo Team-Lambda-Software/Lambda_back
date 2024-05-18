@@ -57,4 +57,9 @@ export class SearchBlogsSwaggerResponseDto
     } )
     categoryId: string
 
+    @ApiProperty( {
+        example: [ "tag1", "tag2" ]
+    } )
+    tags: string[]
+
 }
