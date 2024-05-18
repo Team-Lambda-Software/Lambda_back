@@ -4,7 +4,7 @@ import { INotifier } from 'src/common/Application/notifier/notifier.application'
 import { Result } from 'src/common/Application/result-handler/Result';
 import { Course } from 'src/course/domain/course';
 
-export class RecommendCourseNotifier extends INotifier<Course> {
+export class RecommendCourseNotifier implements INotifier<Course> {
     variable: Course = null
     setVariable(variable: Course): void { this.variable = variable }
     async sendNotification(data: TokenNotification): Promise<Result<string>> {

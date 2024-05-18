@@ -1,20 +1,15 @@
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application"
+import { JetEmailSender } from "./jet-email-sender.infraestructure"
 
-export class UpdatePasswordSender extends EmailSender {
+export class UpdatePasswordSender extends JetEmailSender {
+
     constructor() {
         super()
-        this.setSubjectText('Change password gym-app')
+        this.setSubjectText('Change password Gymtastic-App')
         this.setTextPart('Greetings!')
-        this.setHtmlPart('ur code is: <h2>null</h2>')
+        super.setTemplateId(5969894)
     }
 
-    public setVariable( variable: string ){
-        this.setHtmlPart( 
-            `ur code is: <h2>${variable}</h2>`    
-        )
-    }
-
-    public sendEmail(emailReceiver: string, nameReceiver: string): void {
+    public sendEmail(emailReceiver: string, nameReceiver: string) {
         super.sendEmail(emailReceiver, nameReceiver)
     }
 }
