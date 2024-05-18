@@ -1,13 +1,15 @@
+import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application"
 
 const Mailjet = require('node-mailjet')
 
-export abstract class EmailSender {
+export abstract class JetEmailSender implements IEmailSender {
     private subjectText: string
     private textPart: string
-    private htmlPart: string  
     private senderEmail = process.env.SENDER_EMAIL
     private senderName = process.env.APP_NAME
     private mailjet = null
+    private templateId = 5969844
+    private variables = {}
 
     constructor() {
         const key_public = process.env.MAILJET_PUBLIC_KEY
@@ -15,33 +17,38 @@ export abstract class EmailSender {
         this.mailjet = Mailjet.apiConnect( key_public, key_private )
     }
 
-    abstract setVariable( variable: string ): void
+    public setVariables( variables: any ) {
+        this.variables = variables
+    }
 
     public setTextPart( text: string ){
         this.textPart = text
     }
     
+    public setTemplateId( templateId: number ){
+        this.templateId = templateId
+    }
+
     public setSubjectText( text: string ){
         this.subjectText = text
     }
 
-    public setHtmlPart( html: string ){
-        this.htmlPart = html
-    }
-
     public sendEmail( 
         emailReceiver: string, nameReceiver: string
-    ): void {
+    ){
         const request = this.mailjet.post('send', { version: 'v3.1' }).request({
             Messages: [{
                 From: { Email: this.senderEmail, Name: this.senderName, },
                 To: [ { Email: emailReceiver, Name: nameReceiver, }, ],
+                TemplateID: this.templateId,
                 Subject: this.subjectText,
                 TextPart: this.textPart,
-                HTMLPart: this.htmlPart, 
+                Variables: this.variables,
+                TemplateLanguage: true,
             }],
           })
-        .then( result => { console.log('email_sended') } )
-        .catch( err => { console.log('error_in_email_sending') } )
+        .then( result => { console.log('email_sended') })
+        .catch( err => { console.log('error_in_email_sending') })
+
     }
 }
