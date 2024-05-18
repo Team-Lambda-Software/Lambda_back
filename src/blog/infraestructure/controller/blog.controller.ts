@@ -27,6 +27,9 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
+import { SearchBlogByTagsServiceEntryDto } from "src/blog/application/dto/params/search-blog-by-tags-service-entry.dto"
+import { SearchBlogsByTagsApplicationService } from "src/blog/application/services/queries/search-blog-by-tags.service"
+import { SearchBlogsByTagsEntryDto } from "../dto/entry/search-blog-by-tags-entry.dto"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -137,6 +140,26 @@ export class BlogController
         const data = { ...comment, blogId, userId: user.Id }
         const result = await service.execute( data )
         return result.Value
+    }
+
+    @Post( 'tags/search' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Devuelve la informacion de los blogs que tengan alguno de los tags dados', type: SearchBlogsSwaggerResponseDto, isArray: true})
+    async searchBlogsByTags ( @Body() searchCourseByTagsEntryDto: SearchBlogsByTagsEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
+    {
+        const searchBlogsByTagsServiceEntry: SearchBlogByTagsServiceEntryDto = { ...searchCourseByTagsEntryDto, userId: user.Id, pagination: pagination}
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchBlogsByTagsApplicationService(
+                        this.blogRepository
+                    ),
+                    new NativeLogger( this.logger )
+                )
+            )
+        const result = await service.execute( searchBlogsByTagsServiceEntry )
+        return result.Value;
     }
 
 
