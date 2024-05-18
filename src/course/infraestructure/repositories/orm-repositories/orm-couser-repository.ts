@@ -144,21 +144,21 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             if ( !section )
                 return Result.fail<Section>( new Error( 'Section not found' ), 404, 'Section not found' )
 
-            let sectionImages: OrmSectionImage[] = []
-            let sectionVideos: OrmSectionVideo[] = []
+            let sectionImage: OrmSectionImage = null
+            let sectionVideo: OrmSectionVideo = null
             let sectionComments: OrmSectionComment[] = []
 
-            const images = await this.ormImageRepository.findBy( { section_id: section.id } )
-            const videos = await this.ormVideoRepository.findBy( { section_id: section.id } )
+            const image = await this.ormImageRepository.findOneBy( { section_id: section.id } )
+            const video = await this.ormVideoRepository.findOneBy( { section_id: section.id } )
             const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
-            sectionImages = sectionImages.concat( images )
-            sectionVideos = sectionVideos.concat( videos )
+            sectionImage = image
+            sectionVideo = video
             sectionComments = sectionComments.concat( comments )
 
 
 
-            section.images = sectionImages.filter( image => image.section_id === section.id )
-            section.videos = sectionVideos.filter( video => video.section_id === section.id )
+            section.image = sectionImage
+            section.video = sectionVideo
             section.comments = sectionComments.filter( comment => comment.section_id === section.id )
 
 
@@ -225,7 +225,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.message )
         }
     }
 
@@ -234,25 +234,15 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         try
         {
             const sections = await this.ormSectionRepository.find( { where: { course_id: id }, skip: pagination.offset, take: pagination.limit } )
-            let sectionImages: OrmSectionImage[] = []
-            let sectionVideos: OrmSectionVideo[] = []
-            let sectionComments: OrmSectionComment[] = []
             for ( const section of sections )
             {
-                const images = await this.ormImageRepository.findBy( { section_id: section.id } )
-                const videos = await this.ormVideoRepository.findBy( { section_id: section.id } )
+                const image = await this.ormImageRepository.findOneBy( { section_id: section.id } )
+                const video = await this.ormVideoRepository.findOneBy( { section_id: section.id } )
                 const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
-                sectionImages = sectionImages.concat( images )
-                sectionVideos = sectionVideos.concat( videos )
-                sectionComments = sectionComments.concat( comments )
+                section.image = image
+                section.video = video
+                section.comments = comments
             }
-
-            sections.forEach( section =>
-            {
-                section.images = sectionImages.filter( image => image.section_id === section.id )
-                section.videos = sectionVideos.filter( video => video.section_id === section.id )
-                section.comments = sectionComments.filter( comment => comment.section_id === section.id )
-            } )
 
             return Result.success<Section[]>( await Promise.all( sections.map( async section => await this.ormSectionMapper.fromPersistenceToDomain( section ) ) ), 200 )
         } catch ( error )

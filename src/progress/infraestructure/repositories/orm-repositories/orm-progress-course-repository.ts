@@ -86,18 +86,17 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             const section = sectionResult.Value;
             
             //Fetch associated video progress' entities from section's videos
-            for (let video of section.Videos)
+            
+            let target = await this.getVideoProgressById(userId, section.Video.Id);
+            if (target.isSuccess()) //Progress found or created from scratch
             {
-                let target = await this.getVideoProgressById(userId, video.Id);
-                if (target.isSuccess()) //Progress found or created from scratch
-                {
-                    domainProgress.saveVideo(target.Value);
-                }
-                else //Some error found
-                {
-                    return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
-                }
+                domainProgress.saveVideo(target.Value);
             }
+            else //Some error found
+            {
+                return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
+            }
+        
 
             const progress = domainProgress;
             return Result.success<ProgressSection>( progress, 200 );

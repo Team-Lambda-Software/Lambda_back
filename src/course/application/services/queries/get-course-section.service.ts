@@ -40,17 +40,15 @@ export class GetCourseSectionApplicationService implements IApplicationService<G
         
         const comments = resultComments.Value
 
-        const videosProgress: ProgressVideo[] = []
-        for ( const video of section.Videos )
+        let videoProgress: ProgressVideo = null
+        const resultVideoProgress = await this.progressRepository.getVideoProgressById( data.userId, section.Video.Id )
+        if ( resultVideoProgress.isSuccess() )
         {
-            const resultVideoProgress = await this.progressRepository.getVideoProgressById( data.userId, video.Id )
-            if ( resultVideoProgress.isSuccess() )
-            {
-                videosProgress.push( resultVideoProgress.Value )
-            }
+            videoProgress = resultVideoProgress.Value
         }
+        
 
-        return Result.success<GetCourseSectionServiceResponseDto>( {section, comments, videoProgress: videosProgress} , 200)
+        return Result.success<GetCourseSectionServiceResponseDto>( {section, comments, videoProgress: videoProgress} , 200)
     }
 
     get name (): string
