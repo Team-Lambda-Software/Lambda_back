@@ -32,7 +32,7 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
             await this.save( ormNoti )
             return Result.success<NotificationAlert>( noti_alert, 200 )
         } catch ( error ) {
-            return Result.fail<NotificationAlert>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<NotificationAlert>( new Error( error.message ), error.code, error.message )
         }
     }
 

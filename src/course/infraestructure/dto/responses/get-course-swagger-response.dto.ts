@@ -37,22 +37,18 @@ export class GetCourseSwaggerResponseDto
                 "id": "d1381133-a423-475a-9947-eefd3cfdb1bd",
                 "name": "seccion 1",
                 "description": "primera seccion de este tremendo curso",
-                "videos": [
+                "video": 
                   {
                     "url": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/170246-843069659_small.mp4",
                     "id": "96c87e47-6e42-4a32-9788-1c4f7342f4fc"
                   }
-                ],
-                "images": [
+                ,
+                "image": 
                   {
                     "url": "2b081d53-e64f-4262-8a48-ad4152f38f70",
                     "id": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/16300683348682.jpg"
-                  },
-                  {
-                    "url": "2b081d53-e64f-4262-8a48-ad4152f38f71",
-                    "id": "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/samuel_jose_defensa_tesis.jpeg"
                   }
-                ],
+                ,
                 "paragraph": "En el corazón del frenesí moderno, el yoga emerge como un oasis de paz y armonía. Una práctica milenaria que invita a conectar con nuestro cuerpo, mente y espíritu, trascendiendo las limitaciones físicas y explorando las infinitas posibilidades que residen en nuestro interior.\n\nMás allá de simples posturas o ejercicios físicos, el yoga se presenta como un viaje de autodescubrimiento. Un camino que nos guía hacia la consciencia plena, permitiéndonos observar nuestros pensamientos y emociones sin juicio, abrazando la quietud y la serenidad que habitan en nuestro ser."
               }
             ],

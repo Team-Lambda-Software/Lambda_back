@@ -1,8 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm"
 import { OrmBlogComment } from "./orm-blog-comment"
 import { OrmBlogImage } from "./orm-blog-image"
 import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 import { OrmCategory } from "src/categories/infraesctructure/entities/orm-entities/orm-category"
+import { OrmBlogTags } from "./orm-blog-tags"
 
 
 
@@ -24,6 +25,20 @@ export class OrmBlog
     @OneToMany( () => OrmBlogImage, image => image.blog ) images: OrmBlogImage[]
 
     @OneToMany(()=> OrmBlogComment, comment => comment.blog) comments: OrmBlogComment[]
+
+    @ManyToMany(()=>OrmBlogTags, {eager:true})
+    @JoinTable({
+        name: "b_t",
+        joinColumn: {
+            name: "blog_id",
+            referencedColumnName: "id"
+        },
+        inverseJoinColumn: {
+            name: "tag_name",
+            referencedColumnName: "name"
+        }
+    })
+    tags: OrmBlogTags[]
 
     static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, images: OrmBlogImage[]): OrmBlog
     {

@@ -41,20 +41,22 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
         course.changeSections( resultSections.Value )
 
-        const resultProgress = await this.progressRepository.getCourseProgressById( data.userId, data.courseId )
+        // let resultProgress = await this.progressRepository.getCourseProgressById( data.userId, data.courseId )
 
-        const courseProgress = resultProgress.Value
-        const completePercent = courseProgress.CompletionPercent
-        const resultCourseProgress = {progress: courseProgress, completionPercent: completePercent}
+        // const courseProgress = resultProgress.Value
+        const courseProgress = null
+        // const completePercent = courseProgress.CompletionPercent
+        // const resultCourseProgress = {progress: courseProgress, completionPercent: completePercent}
+        const resultCourseProgress = {progress: courseProgress, completionPercent: 0}
         let sectionsProgress: {progress: ProgressSection, completionPercent: number}[] = []
-        for ( const section of course.Sections )
-        {
-            const resultSectionProgress = await this.progressRepository.getSectionProgressById( data.userId, section.Id )
-            if ( resultSectionProgress.isSuccess() )
-            {
-                sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
-            }
-        }
+        // for ( const section of course.Sections )
+        // {
+        //     const resultSectionProgress = await this.progressRepository.getSectionProgressById( data.userId, section.Id )
+        //     if ( resultSectionProgress.isSuccess() )
+        //     {
+        //         sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
+        //     }
+        // }
         
 
         return Result.success<GetCourseServiceResponseDto>( {course, courseProgress:resultCourseProgress, sectionsProgress} , 200)
