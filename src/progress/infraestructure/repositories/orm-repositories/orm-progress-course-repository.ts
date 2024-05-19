@@ -125,7 +125,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             }
             
             //Fetch associated course's sections
-            const sectionsResult = await this.ormCourseRepository.findCourseSections(courseId, {limit:100000, offset:0});
+            const sectionsResult = await this.ormCourseRepository.findCourseSections(courseId);
             if (!sectionsResult.isSuccess())
             {
                 return Result.fail<ProgressCourse>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
@@ -226,8 +226,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         {
             const courses = await this.createQueryBuilder().select()
                                 .where('user_id = :target', {target: userId})
-                                .skip(pagination.offset)
-                                .take(pagination.limit)
+                                .skip(pagination.page)
+                                .take(pagination.perPage)
                                 .getMany();
             if (courses.length > 0)
             {
@@ -235,7 +235,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 for (let course of domainCourses)
                 {
                     //Fetch associated course's sections
-                    const sectionsResult = await this.ormCourseRepository.findCourseSections(course.CourseId, {limit:100000, offset:0});
+                    const sectionsResult = await this.ormCourseRepository.findCourseSections(course.CourseId);
                     if (!sectionsResult.isSuccess())
                     {
                         return Result.fail<ProgressCourse[]>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
@@ -279,7 +279,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
 
             //Load all sections' progress
             let progressArray:Array<ProgressSection> = new Array<ProgressSection>();
-            let skipCount:number = pagination.offset;
+            let skipCount:number = pagination.page;
             for (let section of course.Sections)
             {
                 let progressResult:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
@@ -299,7 +299,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                         progressArray.push(progress);
                     }
                 }
-                if ( progressArray.length >= pagination.limit )
+                if ( progressArray.length >= pagination.perPage )
                 {
                     break;
                 }

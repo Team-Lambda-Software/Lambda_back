@@ -31,8 +31,8 @@ export class GetCourseSectionApplicationService implements IApplicationService<G
         }
 
         const section = resultSection.Value
-        const {offset = 0, limit = 10} = data.commentPagination
-        const resultComments = await this.courseRepository.findSectionComments( section.Id, {offset, limit})
+        const {page = 0, perPage = 10} = data.commentPagination
+        const resultComments = await this.courseRepository.findSectionComments( section.Id, {page, perPage})
         if ( !resultComments.isSuccess() )
         {
             return Result.fail<GetCourseSectionServiceResponseDto>( resultComments.Error, resultComments.StatusCode, resultComments.Message )

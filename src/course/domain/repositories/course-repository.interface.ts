@@ -11,7 +11,7 @@ export interface ICourseRepository
 
     findCourseById ( id: string ): Promise<Result<Course>>
     findCoursesByName ( name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
-    findCourseSections ( id: string, pagination: PaginationDto ): Promise<Result<Section[]>>
+    findCourseSections ( id: string ): Promise<Result<Section[]>>
     addCommentToSection ( comment: SectionComment ): Promise<Result<SectionComment>>
     //suponiendo que esto se vaya a hacer por separado de los blogs
     findCoursesByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<Course[]>>

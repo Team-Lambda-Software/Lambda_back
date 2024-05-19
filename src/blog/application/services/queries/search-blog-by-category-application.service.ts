@@ -18,8 +18,8 @@ export class SearchBlogByCategoryApplicationService implements IApplicationServi
 
     async execute ( data: SearchBlogByCategoryEntryDto ): Promise<Result<Blog[]>>
     {
-        const { limit = 10, offset = 0 } = data.pagination
-        const resultBlogs = await this.blogRepository.findBlogsByCategory( data.categoryId, { limit, offset } )
+        const { perPage = 10, page = 0 } = data.pagination
+        const resultBlogs = await this.blogRepository.findBlogsByCategory( data.categoryId, { perPage, page } )
         if ( !resultBlogs.isSuccess() )
         {
             return Result.fail<Blog[]>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
