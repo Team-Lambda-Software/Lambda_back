@@ -50,7 +50,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<Trainer[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<Trainer[]>( new Error(error.message), error.code, error.message );
         }
     } 
 
@@ -72,7 +72,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<Trainer[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<Trainer[]>( new Error(error.message), error.code, error.message );
         }
     }    
 
@@ -94,7 +94,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<string[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<string[]>( new Error(error.message), error.code, error.message );
         }
     }
 
@@ -114,7 +114,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<number>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<number>( new Error(error.message), error.code, error.message );
         }
     }
 
@@ -134,7 +134,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<Trainer>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<Trainer>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -153,7 +153,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
         catch (error)
         {
-            return Result.fail<Trainer>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<Trainer>(new Error(error.message), error.code, error.message);
         }
     }
 }

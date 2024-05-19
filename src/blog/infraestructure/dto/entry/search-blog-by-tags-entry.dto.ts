@@ -3,7 +3,7 @@ import { ArrayMinSize, IsArray, IsPositive, IsString, MinLength } from "class-va
 
 
 
-export class SearchCourseByTagsEntryDto{
+export class SearchBlogsByTagsEntryDto{
     
     @ApiProperty({ type: String, example: ["yoga", "men"], description: "niveles de los cursos"})
     @IsArray()

@@ -8,5 +8,5 @@ export interface GetCourseSectionServiceResponseDto {
 
     section: Section
     comments: SectionComment[]
-    videoProgress: ProgressVideo[]
+    videoProgress: ProgressVideo
 }
