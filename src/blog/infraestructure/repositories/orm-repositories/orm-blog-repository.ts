@@ -55,7 +55,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -74,7 +74,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog>( new Error( 'Blog not found' ), 404, 'Blog not found' )
         } catch ( error )
         {
-            return Result.fail<Blog>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -97,7 +97,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -120,7 +120,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -133,7 +133,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         } catch ( error )
         {
 
-            return Result.fail<BlogComment[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<BlogComment[]>( new Error( error.message ), error.code, error.message )
 
         }
     }
@@ -147,7 +147,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.success<BlogComment>( await this.ormBlogCommentMapper.fromPersistenceToDomain( newComment ), 200 )
         } catch ( error )
         {
-            return Result.fail<BlogComment>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<BlogComment>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -169,7 +169,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 

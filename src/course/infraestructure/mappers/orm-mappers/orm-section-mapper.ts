@@ -30,7 +30,7 @@ export class OrmSectionMapper implements IMapper<Section, OrmSection>{
         {
             video =  SectionVideo.create( persistence.video.url, persistence.video.id ) 
         }
-        const section: Section = Section.create( persistence.id, persistence.name, persistence.description, video, image, persistence.text )
+        const section: Section = Section.create( persistence.id, persistence.name, persistence.description,persistence.duration ,video, image, persistence.text )
         return section
     }
 

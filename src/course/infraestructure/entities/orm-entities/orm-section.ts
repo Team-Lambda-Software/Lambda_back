@@ -15,7 +15,7 @@ export class OrmSection
     @Column( 'varchar' ) name: string
     @Column( 'varchar' ) description: string
     @Column( 'varchar', { nullable: true } ) text: string
-
+    @Column( 'float', {default: 1000}) duration: number
     @Column( { type: "uuid" } ) course_id: string
     @ManyToOne( () => OrmCourse, { eager: true, nullable: true } ) @JoinColumn( { name: 'course_id' } ) course: OrmCourse
 

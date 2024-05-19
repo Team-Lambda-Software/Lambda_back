@@ -69,7 +69,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
         }
     }
     async saveCourseAggregate ( course: Course ): Promise<Result<Course>>
@@ -80,7 +80,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( savedCourse ), 200 )
         } catch ( error )
         {
-            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course>( new Error( error.message ), error.code, error.message )
         
         }
     }
@@ -106,7 +106,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -132,7 +132,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -165,7 +165,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( section ), 200 )
         } catch ( error )
         {
-            return Result.fail<Section>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Section>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -178,7 +178,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         } catch ( error )
         {
 
-            return Result.fail<SectionComment[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<SectionComment[]>( new Error( error.message ), error.code, error.message )
 
         }
     }
@@ -199,7 +199,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course>( new Error( 'Course not found' ), 404, 'Course not found' )
         } catch ( error )
         {
-            return Result.fail<Course>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -225,7 +225,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.message )
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -247,7 +247,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.success<Section[]>( await Promise.all( sections.map( async section => await this.ormSectionMapper.fromPersistenceToDomain( section ) ) ), 200 )
         } catch ( error )
         {
-            return Result.fail<Section[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Section[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -260,7 +260,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.success<SectionComment>( await this.ormSectionCommentMapper.fromPersistenceToDomain( newComment ), 200 )
         } catch ( error )
         {
-            return Result.fail<SectionComment>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<SectionComment>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -286,7 +286,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
         } catch ( error )
         {
-            return Result.fail<Course[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
         }
     }
 

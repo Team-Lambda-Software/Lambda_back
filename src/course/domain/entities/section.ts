@@ -9,11 +9,12 @@ export class Section extends Entity<string>
 
     private name: string
     private description: string
+    private duration: number
     private video?: SectionVideo
     private image?: SectionImage
     private paragraph?: string
 
-    protected constructor ( id: string, name: string, description: string, video?: SectionVideo, image?: SectionImage, paragraph?: string)
+    protected constructor ( id: string, name: string, description: string, duration: number, video?: SectionVideo, image?: SectionImage, paragraph?: string)
     {
         super( id )
         this.name = name
@@ -21,6 +22,7 @@ export class Section extends Entity<string>
         this.video = video
         this.image = image
         this.paragraph = paragraph
+        this.duration = duration
         this.ensureValidState()
     }
 
@@ -49,10 +51,17 @@ export class Section extends Entity<string>
         return this.paragraph
     }
 
+    get Duration (): number
+    {
+        return this.duration
+    }
+
     protected ensureValidState (): void
     {
         if ( !this.name )
             throw new Error( "Section must have a name" )
+
+
 
         if (( !this.video && !this.image && !this.paragraph ) || 
         ( this.video && (this.image || this.paragraph) ) || 
@@ -62,9 +71,9 @@ export class Section extends Entity<string>
 
     }
 
-    static create ( id: string, name: string, description: string, video?: SectionVideo, image?: SectionImage, paragraph?: string ): Section
+    static create ( id: string, name: string, description: string, duration: number, video?: SectionVideo, image?: SectionImage, paragraph?: string ): Section
     {
-        return new Section( id, name, description, video, image, paragraph )
+        return new Section( id, name, description,duration ,video, image, paragraph )
     }
 
 
