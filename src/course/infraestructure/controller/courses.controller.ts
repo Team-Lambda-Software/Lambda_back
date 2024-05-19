@@ -79,11 +79,11 @@ export class CourseController
 
     }
 
-    @Get( ':id' )
+    @Get( 'one/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto })
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User, @Query() sectionPagination: PaginationDto )
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser()user: User)
     {
         const service =
             new ExceptionDecorator(
@@ -95,7 +95,7 @@ export class CourseController
                     new NativeLogger( this.logger )
                 )
             )
-        const result = await service.execute( { courseId: id, userId: user.Id, sectionPagination: sectionPagination } )
+        const result = await service.execute( { courseId: id, userId: user.Id } )
         return result.Value
     }
 

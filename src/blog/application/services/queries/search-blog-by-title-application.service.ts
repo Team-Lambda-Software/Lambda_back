@@ -18,8 +18,8 @@ export class SearchBlogByTitleApplicationService implements IApplicationService<
 
     async execute ( data: SearchBlogByTitleEntryDto ): Promise<Result<Blog[]>>
     {
-        const { limit = 10, offset = 0 } = data.pagination
-        const resultBlogs = await this.blogRepository.findBlogsByTitle( data.title, { limit, offset } )
+        const { perPage = 10, page = 0 } = data.pagination
+        const resultBlogs = await this.blogRepository.findBlogsByTitle( data.title, { perPage, page } )
         if ( !resultBlogs.isSuccess() )
         {
             return Result.fail<Blog[]>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
