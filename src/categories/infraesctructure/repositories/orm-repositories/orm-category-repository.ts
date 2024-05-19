@@ -20,7 +20,7 @@ export class OrmCategoryRepository extends Repository<OrmCategory> implements IC
             const categories = await this.find()
             return Result.success<Category[]>( await Promise.all( categories.map( async ( category ) => await this.ormCategoryMapper.fromPersistenceToDomain( category ) ) ), 200 )
         } catch (error) {
-            return Result.fail<Category[]>( error, error.code, error.detail )
+            return Result.fail<Category[]>( error, error.code, error.message )
         }
     }
 
@@ -35,7 +35,7 @@ export class OrmCategoryRepository extends Repository<OrmCategory> implements IC
             }
             return Result.fail<Category>( new Error( 'Categorie not found' ), 404, 'Categorie not found' )
         }catch (error) {
-            return Result.fail<Category>( error, error.code, error.detail )
+            return Result.fail<Category>( error, error.code, error.message )
         }
     }
 

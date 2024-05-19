@@ -56,7 +56,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressVideo>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -86,25 +86,24 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             const section = sectionResult.Value;
             
             //Fetch associated video progress' entities from section's videos
-            for (let video of section.Videos)
+            
+            let target = await this.getVideoProgressById(userId, section.Video.Id);
+            if (target.isSuccess()) //Progress found or created from scratch
             {
-                let target = await this.getVideoProgressById(userId, video.Id);
-                if (target.isSuccess()) //Progress found or created from scratch
-                {
-                    domainProgress.saveVideo(target.Value);
-                }
-                else //Some error found
-                {
-                    return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
-                }
+                domainProgress.saveVideo(target.Value);
             }
+            else //Some error found
+            {
+                return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
+            }
+        
 
             const progress = domainProgress;
             return Result.success<ProgressSection>( progress, 200 );
         }
         catch (error)
         {
-            return Result.fail<ProgressSection>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressSection>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -152,7 +151,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressCourse>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressCourse>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -167,7 +166,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressVideo>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -182,7 +181,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressSection>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressSection>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -197,7 +196,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressCourse>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressCourse>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -217,7 +216,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<number>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<number>( new Error(error.message), error.code, error.message );
         }
     }
 
@@ -262,7 +261,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressCourse[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<ProgressCourse[]>( new Error(error.message), error.code, error.message );
         }
     }
     
@@ -315,7 +314,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressSection[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<ProgressSection[]>( new Error(error.message), error.code, error.message );
         }
     }
 }

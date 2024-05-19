@@ -28,7 +28,7 @@ export class OrmAuditingRepository extends Repository<OrmAuditing> implements IA
         }
         catch (error)
         {
-            return Result.fail(error, error.code, error.detail)
+            return Result.fail(error, error.code, error.message)
         }
     }
 }

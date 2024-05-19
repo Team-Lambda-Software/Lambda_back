@@ -14,29 +14,23 @@ export class OrmSectionMapper implements IMapper<Section, OrmSection>{
     }
     async fromPersistenceToDomain ( persistence: OrmSection ): Promise<Section>
     {
-        let images: SectionImage[] = []
-        if ( persistence.images )
+        
+        let image: SectionImage = null
+        if ( persistence.image )
         {
-            persistence.images.forEach( image =>
-            {
-                if ( image.section_id === persistence.id)
-                    images.push( SectionImage.create( image.id, image.url ) )
-            } )
+            
+            image = SectionImage.create( persistence.image.id, persistence.image.url )
+            
         }
         
 
-        let videos: SectionVideo[] = []
+        let video: SectionVideo = null
         
-        if ( persistence.videos )
+        if ( persistence.video )
         {
-            persistence.videos.forEach( video =>
-            {
-                if ( video.section_id === persistence.id)
-                    videos.push( SectionVideo.create( video.url, video.id ) )
-            } )
+            video =  SectionVideo.create( persistence.video.url, persistence.video.id ) 
         }
-        
-        const section: Section = Section.create( persistence.id, persistence.name, persistence.description, videos, images, persistence.text )
+        const section: Section = Section.create( persistence.id, persistence.name, persistence.description,persistence.duration ,video, image, persistence.text )
         return section
     }
 
