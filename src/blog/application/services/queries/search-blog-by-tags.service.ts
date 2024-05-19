@@ -20,9 +20,9 @@ export class SearchBlogsByTagsApplicationService implements IApplicationService<
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchBlogByTagsServiceEntryDto ): Promise<Result<Blog[]>>
     {
-        let { offset = 0, limit = 10 } = data.pagination
-        limit = limit + offset
-        return await this.blogRepository.findBlogsByTags( data.tags, { offset, limit } )
+        let { page = 0, perPage = 10 } = data.pagination
+        perPage = perPage + page
+        return await this.blogRepository.findBlogsByTags( data.tags, { page, perPage } )
     }
 
     get name (): string

@@ -36,10 +36,10 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             const blogs = await this.find()
             let filteredBlogs = blogs.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
             
-            if ( filteredBlogs.length <= pagination.offset && filteredBlogs.length > 0 )
-                return Result.fail<Blog[]>( new Error( 'offset execedes lenght of blogs' ), 404, 'offset execedes lenght of blogs' )
+            if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
+                return Result.fail<Blog[]>( new Error( 'page execedes lenght of blogs' ), 404, 'page execedes lenght of blogs' )
 
-            filteredBlogs = filteredBlogs.slice( pagination.offset, pagination.limit)
+            filteredBlogs = filteredBlogs.slice( pagination.page, pagination.perPage)
 
             if ( filteredBlogs.length > 0 )
             {
@@ -82,7 +82,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.limit ).skip( pagination.offset ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.perPage ).skip( pagination.page ).getMany()
 
             if ( blogs.length > 0 )
             {
@@ -105,7 +105,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit } )
+            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
 
             if ( blogs.length > 0 )
             {
@@ -128,7 +128,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId }, skip: pagination.offset, take: pagination.limit } )
+            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId }, skip: pagination.page, take: pagination.perPage } )
             return Result.success<BlogComment[]>( await Promise.all( comments.map( async comment => await this.ormBlogCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
         } catch ( error )
         {
@@ -155,7 +155,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit } )
+            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
             if ( blogs.length > 0 )
             {
 

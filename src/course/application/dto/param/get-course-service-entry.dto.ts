@@ -5,5 +5,4 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 
 export interface GetCourseServiceEntryDto extends ApplicationServiceEntryDto{
     courseId: string
-    sectionPagination: PaginationDto
 }

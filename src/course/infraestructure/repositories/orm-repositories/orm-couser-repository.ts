@@ -48,10 +48,10 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             const courses = await this.find()
             let filteredCourses = courses.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
             
-            if ( filteredCourses.length <= pagination.offset && filteredCourses.length > 0 )
-                return Result.fail<Course[]>( new Error( 'offset execedes lenght of courses' ), 404, 'offset execedes lenght of courses' )
+            if ( filteredCourses.length <= pagination.page && filteredCourses.length > 0 )
+                return Result.fail<Course[]>( new Error( 'page execedes lenght of courses' ), 404, 'page execedes lenght of courses' )
 
-            filteredCourses = filteredCourses.slice( pagination.offset, pagination.limit)
+            filteredCourses = filteredCourses.slice( pagination.page, pagination.perPage)
 
             if ( filteredCourses.length > 0 )
             {
@@ -88,7 +88,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.page ).take( pagination.perPage ).getMany()
             
             if ( courses.length > 0 )
             {
@@ -114,7 +114,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit } )
+            const courses = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
 
             if ( courses.length > 0 )
             {
@@ -173,7 +173,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const comments = await this.ormCommentRepository.find( { where: { section_id: sectionId }, skip: pagination.offset, take: pagination.limit } )
+            const comments = await this.ormCommentRepository.find( { where: { section_id: sectionId }, skip: pagination.page, take: pagination.perPage } )
             return Result.success<SectionComment[]>( await Promise.all( comments.map( async comment => await this.ormSectionCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
         } catch ( error )
         {
@@ -207,7 +207,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.offset ).take( pagination.limit ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.page ).take( pagination.perPage ).getMany()
 
             if ( courses.length > 0 )
             {
@@ -229,11 +229,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         }
     }
 
-    async findCourseSections ( id: string, pagination: PaginationDto ): Promise<Result<Section[]>>
+    async findCourseSections ( id: string ): Promise<Result<Section[]>>
     {
         try
         {
-            const sections = await this.ormSectionRepository.find( { where: { course_id: id }, skip: pagination.offset, take: pagination.limit } )
+            const sections = await this.ormSectionRepository.find( { where: { course_id: id } } )
             for ( const section of sections )
             {
                 const image = await this.ormImageRepository.findOneBy( { section_id: section.id } )
@@ -268,7 +268,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit } )
+            const courses = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
 
             if ( courses.length > 0 )
             {

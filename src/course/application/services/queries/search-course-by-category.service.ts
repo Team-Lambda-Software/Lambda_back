@@ -19,8 +19,8 @@ export class SearchCourseByCategoryApplicationService implements IApplicationSer
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchCourseByCategoryServiceEntryDto ): Promise<Result<Course[]>>
     {
-        const {offset = 0, limit = 10} = data.pagination
-        return await this.courseRepository.findCoursesByCategory( data.categoryId, {offset, limit})
+        const {page = 0, perPage = 10} = data.pagination
+        return await this.courseRepository.findCoursesByCategory( data.categoryId, {page, perPage})
     }
 
     get name (): string
