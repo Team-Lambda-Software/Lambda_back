@@ -7,14 +7,7 @@ import { OrmCourseRepository } from "../repositories/orm-repositories/orm-couser
 import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmSectionMapper } from "../mappers/orm-mappers/orm-section-mapper"
-import { SearchCourseApplicationService } from "src/course/application/services/queries/search-course.service"
-import { SearchCourseEntryDto } from "../dto/entry/search-course-entry.dto"
-import { SearchCourseServiceEntryDto } from "src/course/application/dto/param/search-course-service-entry.dto"
-import { SearchCourseByCategoryServiceEntryDto } from "src/course/application/dto/param/search-course-by-category-service-entry.dto"
-import { SearchCourseByCategoryApplicationService } from "src/course/application/services/queries/search-course-by-category.service"
 import { OrmSectionCommentMapper } from "../mappers/orm-mappers/orm-section-comment-mapper"
-import { GetCourseSectionApplicationService } from "src/course/application/services/queries/get-course-section.service"
-import { GetCourseSectionServiceEntryDto } from "src/course/application/dto/param/get-course-section-service-entry.dto"
 import { AddCommentToSectionEntryDto } from "../dto/entry/add-comment-to-section-entry.dto"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
@@ -22,7 +15,6 @@ import { AddCommentToSectionApplicationService } from "src/course/application/se
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
-import { GetSectionSwaggerResponseDto } from "../dto/responses/get-section-swagger-response.dto"
 import { AddCommentToSectionSwaggerResponseDto } from "../dto/responses/add-comment-to-section-swagger-response.dto"
 import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
@@ -34,15 +26,13 @@ import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper
 import { SearchCourseByLevelsEntryDto } from "../dto/entry/search-course-by-levels-entry.dto"
 import { SearchCourseByLevelsServiceEntryDto } from "src/course/application/dto/param/search-course-by-levels-service-entry.dto"
 import { SearchCourseByLevelsApplicationService } from "src/course/application/services/queries/search-course-by-levels.service"
-import { SearchCourseByTagsEntryDto } from "../dto/entry/search-course-by-tags-entry.dto"
-import { SearchCourseByTagsServiceEntryDto } from "src/course/application/dto/param/search-course-by-tags-service-entry.dto"
-import { SearchCourseByTagsApplicationService } from "src/course/application/services/queries/search-courses-by-tags.service"
 import { OrmProgressCourseRepository } from '../../../progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository';
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
-import { GetMostPopularCoursesServiceEntryDto } from "src/course/application/dto/param/get-most-popular-courses-service-entry.dto"
-import { GetMostPopularCoursesApplicationService } from "src/course/application/services/queries/get-most-popular-courses.service"
+import { SearchCourseQueryParametersDto } from "../dto/queryParameters/search-course-query-parameters.dto"
+import { GetMostPopularCoursesByCategoryServiceEntryDto } from "src/course/application/dto/param/get-most-popular-courses-by-category-service-entry.dto"
+import { GetMostPopularCoursesByCategoryApplicationService } from "src/course/application/services/queries/get-most-popular-courses-by-category.service"
 
 
 @ApiTags('Course')
@@ -99,38 +89,18 @@ export class CourseController
         return result.Value
     }
 
-    @Post( 'search' )
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan el nombre dado', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourse ( @Body() searchCourseEntryDto: SearchCourseEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
-    {
-        const searchCourseServiceEntry: SearchCourseServiceEntryDto = { ...searchCourseEntryDto, userId: user.Id, pagination: pagination}
-        const service =
-            new ExceptionDecorator(
-                new LoggingDecorator(
-                    new SearchCourseApplicationService(
-                        this.courseRepository
-                    ),
-                    new NativeLogger( this.logger )
-                )
-            )
-        const result = await service.execute( searchCourseServiceEntry )
-
-        return result.Value
-    }
-
     @Get( 'search/PopularCourses' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve la informacion de los cursos mas populares', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchPopularCourse ( @GetUser()user: User, @Query() pagination: PaginationDto )
+    async searchPopularCourse ( @GetUser()user: User, @Query() searchCourseParams: SearchCourseQueryParametersDto)
     {
-        const searchPopularCourseServiceEntry: GetMostPopularCoursesServiceEntryDto = { userId: user.Id, pagination: pagination}
+        
+        const searchPopularCourseServiceEntry: GetMostPopularCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.Id, pagination: {page: searchCourseParams.page,perPage: searchCourseParams.perPage}}
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetMostPopularCoursesApplicationService(
+                    new GetMostPopularCoursesByCategoryApplicationService(
                         this.courseRepository,
                         this.progressRepository
                     ),
@@ -159,70 +129,6 @@ export class CourseController
                 )
             )
         const result = await service.execute( searchCourseByLevelsServiceEntry )
-
-        return result.Value
-    }
-
-    @Post( 'tags/search' )
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que tengan alguno de los tags dados', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourseByTags ( @Body() searchCourseByTagsEntryDto: SearchCourseByTagsEntryDto, @GetUser()user: User, @Query() pagination: PaginationDto )
-    {
-        const searchCourseByTagsServiceEntry: SearchCourseByTagsServiceEntryDto = { ...searchCourseByTagsEntryDto, userId: user.Id, pagination: pagination}
-        const service =
-            new ExceptionDecorator(
-                new LoggingDecorator(
-                    new SearchCourseByTagsApplicationService(
-                        this.courseRepository
-                    ),
-                    new NativeLogger( this.logger )
-                )
-            )
-        const result = await service.execute( searchCourseByTagsServiceEntry )
-        return result.Value;
-    }
-
-    @Get( 'category/:categoryId' )
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Devuelve la informacion de los cursos que pertenezcan a la misma categoria', type: SearchCoursesSwaggerResponseDto, isArray: true})
-    async searchCourseByCategory ( @Param('categoryId', ParseUUIDPipe) categoryId: string, @GetUser()user: User, @Query() pagination: PaginationDto )
-    {
-        const searchCourseByCategoryServiceEntry: SearchCourseByCategoryServiceEntryDto = { categoryId, userId: user.Id, pagination: pagination}
-        const service =
-            new ExceptionDecorator(
-                new LoggingDecorator(
-                    new SearchCourseByCategoryApplicationService(
-                        this.courseRepository
-                    ),
-                    new NativeLogger( this.logger )
-                )
-            )
-        const result = await service.execute( searchCourseByCategoryServiceEntry )
-
-        return result.Value
-    }
-
-    @Get( 'section/:sectionId' )
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Devuelve la informacion de una seccion dado el id', type: GetSectionSwaggerResponseDto })
-    async getSection ( @Param( 'sectionId', ParseUUIDPipe ) sectionId: string, @GetUser()user: User, @Query() commentPagination: PaginationDto )
-    {
-        const data: GetCourseSectionServiceEntryDto = { sectionId, userId: user.Id, commentPagination: commentPagination}
-        const service =
-            new ExceptionDecorator(
-                new LoggingDecorator(
-                    new GetCourseSectionApplicationService(
-                        this.courseRepository,
-                        this.progressRepository
-                    ),
-                    new NativeLogger( this.logger )
-                )
-            )
-        
-        const result = await service.execute( data )
 
         return result.Value
     }
