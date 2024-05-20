@@ -1,10 +1,15 @@
-import { Blog } from "src/blog/domain/blog"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
-
 
 
 export interface GetBlogServiceResponseDto
 {
-    blog: Blog
-    comments: BlogComment[]
+    title: string
+    description: string
+    category: string
+    images: string[]
+    trainer: {
+        id: string
+        name: string
+    }
+    tags: string[]
+    date: Date
 }

@@ -3,9 +3,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 
 
 
-
-export interface SearchBlogByCategoryEntryDto extends ApplicationServiceEntryDto
-{
+export interface SearchBlogsByCategoryServiceEntryDto extends ApplicationServiceEntryDto{
     categoryId: string
     pagination: PaginationDto
 }

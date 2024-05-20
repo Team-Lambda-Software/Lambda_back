@@ -3,6 +3,8 @@ import { GetBlogServiceEntryDto } from "../../dto/params/get-blog-service-entry.
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Result } from "src/common/Application/result-handler/Result"
 import { GetBlogServiceResponseDto } from "../../dto/responses/get-blog-service-response.dto"
+import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
+import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 
 
 
@@ -10,10 +12,14 @@ import { GetBlogServiceResponseDto } from "../../dto/responses/get-blog-service-
 export class GetBlogApplicationService implements IApplicationService<GetBlogServiceEntryDto, GetBlogServiceResponseDto> 
 {
     private readonly blogRepository: IBlogRepository
+    private readonly categoryRepository: ICategoryRepository
+    private readonly trainerRepository: ITrainerRepository
 
-    constructor ( blogRepository: IBlogRepository )
+    constructor ( blogRepository: IBlogRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository)
     {
         this.blogRepository = blogRepository
+        this.categoryRepository = categoryRepository
+        this.trainerRepository = trainerRepository
     }
 
     async execute ( data: GetBlogServiceEntryDto ): Promise<Result<GetBlogServiceResponseDto>>
@@ -24,14 +30,28 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
             return Result.fail<GetBlogServiceResponseDto>( resultBlog.Error, resultBlog.StatusCode, resultBlog.Message )
         }
         const blog = resultBlog.Value
-        const { perPage = 10, page = 0 } = data.commentPagination
-        const resultComments = await this.blogRepository.findBlogComments( blog.Id, { perPage, page } )
-        if ( !resultComments.isSuccess() )
+        const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+        if ( !category.isSuccess() )
         {
-            return Result.fail<GetBlogServiceResponseDto>( resultComments.Error, resultComments.StatusCode, resultComments.Message )
+            return Result.fail<GetBlogServiceResponseDto>( category.Error, category.StatusCode, category.Message )
         }
-        const comments = resultComments.Value
-        const response: GetBlogServiceResponseDto = { blog, comments }
+        const trainer = await this.trainerRepository.findTrainerById( blog.Trainer.Id )
+        if ( !trainer.isSuccess() )
+        {
+            return Result.fail<GetBlogServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
+        }
+        const response: GetBlogServiceResponseDto = {
+            title: blog.Title,
+            description: blog.Body,
+            category: category.Value.Name,
+            images: blog.Images.map( image => image.Url ),
+            trainer: {
+                id: trainer.Value.Id,
+                name: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName
+            },
+            tags: blog.Tags,
+            date: blog.PublicationDate
+        }
 
         return Result.success<GetBlogServiceResponseDto>( response, 200 )
 
