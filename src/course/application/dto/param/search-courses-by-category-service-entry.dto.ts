@@ -3,7 +3,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 
 
 
-export interface GetMostPopularCoursesByCategoryServiceEntryDto extends ApplicationServiceEntryDto{
+export interface SearchCoursesByCategoryServiceEntryDto extends ApplicationServiceEntryDto{
     categoryId: string
     pagination: PaginationDto
 }

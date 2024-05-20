@@ -41,11 +41,36 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
     }
+    async findCoursesByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.find( { where: { trainer_id: trainerId }, order: {date: 'DESC'} ,skip: pagination.page, take: pagination.perPage } )
+
+            if ( courses.length > 0 )
+            {
+
+                for ( const course of courses )
+                {
+                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                    course.sections = sections
+                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                    course.image = courseImage
+
+                }
+                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+            }
+            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
+        }
+    }
     async findCoursesByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.find()
+            const courses = await this.find({order: {date: 'DESC'}})
             let filteredCourses = courses.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
             
             if ( filteredCourses.length <= pagination.page && filteredCourses.length > 0 )
@@ -88,7 +113,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.page ).take( pagination.perPage ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).orderBy({date: 'DESC'}).skip( pagination.page ).take( pagination.perPage ).getMany()
             
             if ( courses.length > 0 )
             {
@@ -114,7 +139,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
+            const courses = await this.find( { where: { trainer_id: trainerId }, order: { date: 'DESC'} ,skip: pagination.page, take: pagination.perPage } )
 
             if ( courses.length > 0 )
             {
@@ -207,7 +232,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.page ).take( pagination.perPage ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).orderBy({date: 'DESC'}).skip( pagination.page ).take( pagination.perPage ).getMany()
 
             if ( courses.length > 0 )
             {
@@ -268,7 +293,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
+            const courses = await this.find( { where: { category_id: categoryId }, order: {date: 'DESC'} ,skip: pagination.page, take: pagination.perPage } )
 
             if ( courses.length > 0 )
             {

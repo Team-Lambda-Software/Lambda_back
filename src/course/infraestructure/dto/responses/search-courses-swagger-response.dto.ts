@@ -27,12 +27,12 @@ export class SearchCoursesSwaggerResponseDto
     date: Date
 
     @ApiProperty({
-        example: "e9b3b3b3-4b3b-4b3b-4b3b-4b3b3b3b3b3b",
+        example: "yoga",
     })
     category: string
 
     @ApiProperty({
-        example: "e9b3b3b3-4b3b-4b3b-4b3b-4b3b3b3b3b3b",
+        example: "pedro pascal perez",
     })
     trainer: string
 
