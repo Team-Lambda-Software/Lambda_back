@@ -32,7 +32,7 @@ export class OrmNotificationAddressRepository extends Repository<OrmNotification
             await this.save( ormNoti )
             return Result.success<NotificationAddress>( noti_address, 200 )
         } catch ( error ) {
-            return Result.fail<NotificationAddress>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<NotificationAddress>( new Error( error.message ), error.code, error.message )
         }
     }
     async findTokenByIdUser(user_id: string): Promise<Result<NotificationAddress>> {
@@ -42,7 +42,7 @@ export class OrmNotificationAddressRepository extends Repository<OrmNotification
                 return Result.success<NotificationAddress>( await this.ormNotificationAddressMapper.fromPersistenceToDomain( not_address ), 200 )
             return Result.fail<NotificationAddress>( new Error( 'noti_address not found' ), 404, 'noti_address not found' )
         } catch ( error ) {
-            return Result.fail<NotificationAddress>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<NotificationAddress>( new Error( error.message ), error.code, error.message )
         }
     }   
 

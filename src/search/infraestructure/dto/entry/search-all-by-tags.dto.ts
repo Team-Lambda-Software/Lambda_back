@@ -3,13 +3,13 @@ import { ArrayMinSize, IsArray, IsPositive, IsString, MinLength } from "class-va
 
 
 
-export class SearchCourseByTagsEntryDto{
+export class SearchAllByTagsEntryDto{
     
     @ApiProperty({ type: String, example: ["yoga", "men"], description: "niveles de los cursos"})
     @IsArray()
     @IsString({each: true})
     @MinLength( 1, {each: true} )
-    @ArrayMinSize(1)
+    @ArrayMinSize(0)
     tags: string[]
     
 }

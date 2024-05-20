@@ -29,7 +29,7 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         domain.Tags.forEach(tag => {
             tags.push(OrmCourseTags.create(tag))
         })
-        return OrmCourse.create( domain.Id, domain.Name, domain.Description, domain.Level, domain.WeeksDuration, domain.MinutesPerSection, domain.Trainer.Id, domain.CategoryId, OrmSectionImage.create(domain.Image.Id, domain.Image.Url), tags)
+        return OrmCourse.create( domain.Id, domain.Name, domain.Description, domain.Level, domain.WeeksDuration, domain.MinutesDuration, domain.Trainer.Id, domain.CategoryId, OrmSectionImage.create(domain.Image.Id, domain.Image.Url), tags)
     }
     async fromPersistenceToDomain ( persistence: OrmCourse ): Promise<Course>
     {
@@ -49,10 +49,8 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
             }
         }
         //TODO relacion con trainer y con categoria
-
         const course: Course =
-            Course.create( persistence.id, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, SectionImage.create( persistence.image.id, persistence.image.url ), tags)
-        
+            Course.create( persistence.id, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, SectionImage.create( persistence.image.url, persistence.image.id ), tags, persistence.date)
         return course
     }
 

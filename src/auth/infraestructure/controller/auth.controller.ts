@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Request } from "@nestjs/common"
+import { Controller, Get, Post } from "@nestjs/common"
 import { LogInEntryInfrastructureDto } from "../dto/entry/log-in-entry.infrastructure.dto";
 import { SignUpEntryInfrastructureDto } from "../dto/entry/sign-up-entry.infrastructure.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
@@ -15,8 +15,6 @@ import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.inte
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { JwtGenerator } from "../jwt/jwt-generator";
-import { SignUpEntryApplicationDto } from "src/auth/application/dto/sign-up-entry.application.dto";
-import { LogInEntryApplicationDto } from "src/auth/application/dto/log-in-entry.application.dto";
 import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
 import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
@@ -27,9 +25,7 @@ import { SecretCodeGenerator } from "../secret-code-generator/secret-code-genera
 import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/entry/get-code-update-password-user-entry.infrastructure.dto";
 import { UpdatePasswordUserInfrastructureDto } from "../dto/entry/update-password-user.entry.infraestructure.dto";
 import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
-import { UpdatePasswordEntryApplicationDto } from "src/auth/application/dto/update-password-entry.application.dto";
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
-import { GetCodeUpdatePasswordEntryApplicationDto } from "src/auth/application/dto/get-code-update-password-entry.application";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 import { Cron, CronExpression } from "@nestjs/schedule";
@@ -71,8 +67,8 @@ export class AuthController {
         type: CheckTokenSwaggerResponseDto
     })
     @ApiBearerAuth()
-    async checkToken() { return { tokenIsValid: true } }
-    
+    async checkToken() { return { tokenIsValid: true } }    
+
     @Get('newtoken')
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ 

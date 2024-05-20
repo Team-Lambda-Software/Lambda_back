@@ -30,7 +30,8 @@ export class GetBlogSwaggerResponseDto
                 "blogsID": [],
                 "location": "99 Park Ave, New York, NY 10016, EE. UU."
             },
-            "categoryId": "b12702a2-55cd-4955-97b8-992048dfd499"
+            "categoryId": "b12702a2-55cd-4955-97b8-992048dfd499",
+            "tags": [ "tag1", "tag2" ],
         },
     } )
     blog: Blog

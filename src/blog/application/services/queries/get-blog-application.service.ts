@@ -24,8 +24,8 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
             return Result.fail<GetBlogServiceResponseDto>( resultBlog.Error, resultBlog.StatusCode, resultBlog.Message )
         }
         const blog = resultBlog.Value
-        const { limit = 10, offset = 0 } = data.commentPagination
-        const resultComments = await this.blogRepository.findBlogComments( blog.Id, { limit, offset } )
+        const { perPage = 10, page = 0 } = data.commentPagination
+        const resultComments = await this.blogRepository.findBlogComments( blog.Id, { perPage, page } )
         if ( !resultComments.isSuccess() )
         {
             return Result.fail<GetBlogServiceResponseDto>( resultComments.Error, resultComments.StatusCode, resultComments.Message )

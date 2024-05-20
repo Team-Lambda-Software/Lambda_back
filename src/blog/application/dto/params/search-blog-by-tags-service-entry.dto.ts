@@ -3,7 +3,7 @@ import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagi
 
 
 
-export interface SearchCourseByTagsServiceEntryDto extends ApplicationServiceEntryDto{
+export interface SearchBlogByTagsServiceEntryDto extends ApplicationServiceEntryDto{
     tags: string[]
     pagination: PaginationDto
 }

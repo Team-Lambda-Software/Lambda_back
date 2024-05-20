@@ -2,15 +2,15 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Course } from "src/course/domain/course"
 import { Result } from "src/common/Application/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
-import { SearchAllServiceEntryDto } from "../dto/param/search-all-service-entry.dto"
-import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service-response.dto"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Blog } from "src/blog/domain/blog"
+import { SearchAllByTagsServiceEntryDto } from "../dto/param/search-all-by-tags-service-entry.dto"
+import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service-response.dto"
 
 
 
 
-export class SearchAllApplicationService implements IApplicationService<SearchAllServiceEntryDto, SearchAllServiceResponseDto>
+export class SearchAllByTagsApplicationService implements IApplicationService<SearchAllByTagsServiceEntryDto, SearchAllServiceResponseDto>
 {
 
     private readonly courseRepository: ICourseRepository
@@ -24,17 +24,17 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
     }
 
     // TODO: Search the progress if exists one for that user
-    async execute ( data: SearchAllServiceEntryDto ): Promise<Result<SearchAllServiceResponseDto>>
+    async execute ( data: SearchAllByTagsServiceEntryDto ): Promise<Result<SearchAllServiceResponseDto>>
     {
         const { page = 0, perPage = 10 } = data.pagination
-        let resultCourses = await this.courseRepository.findCoursesByName( data.name, { page, perPage } )
+        let resultCourses = await this.courseRepository.findCoursesByTags( data.tags, { page, perPage } )
         if ( !resultCourses.isSuccess() )
         {
             if ( resultCourses.StatusCode != 404 )
                 return Result.fail<SearchAllServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message )
             resultCourses = Result.success<Course[]>( [], 200 )
         }
-        let resultBlogs = await this.blogRepository.findBlogsByTitle( data.name, { page, perPage } )
+        let resultBlogs = await this.blogRepository.findBlogsByTags( data.tags, { page, perPage } )
         if ( !resultBlogs.isSuccess() ){
             if ( resultBlogs.StatusCode != 404 )
                 return Result.fail<SearchAllServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )

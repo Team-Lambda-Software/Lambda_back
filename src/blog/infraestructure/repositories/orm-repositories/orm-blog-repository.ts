@@ -29,6 +29,36 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
     }
 
+    async findBlogsByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.find()
+            let filteredBlogs = blogs.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
+            
+            if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
+                return Result.fail<Blog[]>( new Error( 'page execedes lenght of blogs' ), 404, 'page execedes lenght of blogs' )
+
+            filteredBlogs = filteredBlogs.slice( pagination.page, pagination.perPage)
+
+            if ( filteredBlogs.length > 0 )
+            {
+
+                for ( const blog of filteredBlogs )
+                {
+                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                    blog.images = blogImages
+
+                }
+                return Result.success<Blog[]>( await Promise.all( filteredBlogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
+        }
+    }
+
     async findBlogById ( id: string ): Promise<Result<Blog>>
     {
         try
@@ -44,7 +74,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog>( new Error( 'Blog not found' ), 404, 'Blog not found' )
         } catch ( error )
         {
-            return Result.fail<Blog>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -52,7 +82,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.limit ).skip( pagination.offset ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.perPage ).skip( pagination.page ).getMany()
 
             if ( blogs.length > 0 )
             {
@@ -67,7 +97,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -75,7 +105,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.offset, take: pagination.limit } )
+            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
 
             if ( blogs.length > 0 )
             {
@@ -90,7 +120,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -98,12 +128,12 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId }, skip: pagination.offset, take: pagination.limit } )
+            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId }, skip: pagination.page, take: pagination.perPage } )
             return Result.success<BlogComment[]>( await Promise.all( comments.map( async comment => await this.ormBlogCommentMapper.fromPersistenceToDomain( comment ) ) ), 200 )
         } catch ( error )
         {
 
-            return Result.fail<BlogComment[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<BlogComment[]>( new Error( error.message ), error.code, error.message )
 
         }
     }
@@ -117,7 +147,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.success<BlogComment>( await this.ormBlogCommentMapper.fromPersistenceToDomain( newComment ), 200 )
         } catch ( error )
         {
-            return Result.fail<BlogComment>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<BlogComment>( new Error( error.message ), error.code, error.message )
         }
     }
 
@@ -125,7 +155,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.offset, take: pagination.limit } )
+            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
             if ( blogs.length > 0 )
             {
 
@@ -139,7 +169,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
             return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
         } catch ( error )
         {
-            return Result.fail<Blog[]>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
