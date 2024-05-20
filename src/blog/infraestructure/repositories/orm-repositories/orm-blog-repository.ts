@@ -28,12 +28,34 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         this.ormBlogCommentRepository = dataSource.getRepository( OrmBlogComment )
         this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
     }
+    async findBlogsByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.find( { where: { trainer_id: trainerId }, order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
+
+            if ( blogs.length > 0 )
+            {
+
+                for ( const blog of blogs )
+                {
+                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                    blog.images = blogImages
+                }
+                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            }
+            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
+        }
+    }
 
     async findBlogsByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
         try
         {
-            const blogs = await this.find()
+            const blogs = await this.find({order: {publication_date: 'DESC'}})
             let filteredBlogs = blogs.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
             
             if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
@@ -82,7 +104,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).take( pagination.perPage ).skip( pagination.page ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy({publication_date: 'DESC'}).take( pagination.perPage ).skip( pagination.page ).getMany()
 
             if ( blogs.length > 0 )
             {
@@ -105,7 +127,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
+            const blogs = await this.find( { where: { category_id: categoryId },order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
 
             if ( blogs.length > 0 )
             {
@@ -155,7 +177,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
+            const blogs = await this.find( { where: { trainer_id: trainerId },order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
             if ( blogs.length > 0 )
             {
 
