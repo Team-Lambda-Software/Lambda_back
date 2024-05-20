@@ -16,15 +16,8 @@ export class GetCategorieSwaggerResponseDto
     name: string
 
     @ApiProperty({
-        example: 'Aprende yoga',
+        example: 'https://www.google.com'
     })
-    description: string
-
-    @ApiProperty({
-        example: {
-            url: 'https://www.google.com', 
-            id: '24117a35-07b0-4890-a70f-a082c948b3d4'},
-    })
-    icon: CategoryIcon
+    icon: string
 
 }
