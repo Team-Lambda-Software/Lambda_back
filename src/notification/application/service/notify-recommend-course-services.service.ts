@@ -34,7 +34,7 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
         if ( !findResultTokens.isSuccess() )
             return Result.fail( new Error('Sin tokens registrados'), 500, 'Sin tokens registrados' )
         
-        const findResultCourses = await this.courseRepository.findCoursesByName(' ', { limit: 10, offset: 0 })
+        const findResultCourses = await this.courseRepository.findCoursesByName(' ', { perPage: 10, page: 0 })
         if ( !findResultCourses.isSuccess() )
             return Result.fail( new Error('Sin cursos registrados'), 500, 'Sin cursos registrados' )
 

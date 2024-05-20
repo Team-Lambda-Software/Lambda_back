@@ -18,6 +18,7 @@ export class OrmCourse
     @Column( 'int' ) level: number
     @Column( 'int' ) weeks_duration: number
     @Column( 'int' ) minutes_per_section: number
+    @Column( 'timestamp', { default: () => 'CURRENT_TIMESTAMP' } ) date: Date
 
     @OneToMany(()=> OrmSection, section => section.course)
     sections: OrmSection[]

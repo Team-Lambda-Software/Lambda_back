@@ -26,7 +26,7 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
     
     async execute ( data: GetUserProfileServiceEntryDto ): Promise<Result<GetUserProfileServiceResponseDto>>
     {
-        const {limit = 10, offset = 0} = data.pagination
+        const {perPage = 10, page = 0} = data.pagination
         const resultUser = await this.userRepository.findUserById(data.userId)
         //TODO: Add the search for the user active courses
         if (!resultUser.isSuccess()){
@@ -34,7 +34,7 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
         }
         const user = resultUser.Value
 
-        const resultProgressCourses = await this.progressCourseRepository.findAllStartedCourses(user.Id, {limit, offset})
+        const resultProgressCourses = await this.progressCourseRepository.findAllStartedCourses(user.Id, {perPage, page})
         if (!resultProgressCourses.isSuccess()){
             return Result.fail<GetUserProfileServiceResponseDto>(resultProgressCourses.Error, resultProgressCourses.StatusCode, resultProgressCourses.Message)
         }
