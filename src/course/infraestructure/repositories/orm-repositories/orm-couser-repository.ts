@@ -71,7 +71,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         try
         {
             const courses = await this.find({order: {date: 'DESC'}})
-            let filteredCourses = courses.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
+            let filteredCourses = courses.filter( course => tags.every( tag => course.tags.some( courseTag => courseTag.name === tag ) ) )
             
             if ( filteredCourses.length <= pagination.page && filteredCourses.length > 0 )
                 return Result.fail<Course[]>( new Error( 'page execedes lenght of courses' ), 404, 'page execedes lenght of courses' )
@@ -113,7 +113,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).orderBy({date: 'DESC'}).skip( pagination.page ).take( pagination.perPage ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).orderBy('course.date', 'DESC').skip( pagination.page ).take( pagination.perPage ).getMany()
             
             if ( courses.length > 0 )
             {
@@ -232,8 +232,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).orderBy({date: 'DESC'}).skip( pagination.page ).take( pagination.perPage ).getMany()
-
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).orderBy('course.date', 'DESC').skip( pagination.page ).take( pagination.perPage ).getMany()
             if ( courses.length > 0 )
             {
 
