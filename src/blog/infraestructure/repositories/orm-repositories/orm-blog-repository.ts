@@ -69,7 +69,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         try
         {
             const blogs = await this.find({order: {publication_date: 'DESC'}})
-            let filteredBlogs = blogs.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
+            let filteredBlogs = blogs.filter( blog => tags.every( tag => blog.tags.some( blogTag => blogTag.name === tag ) ) )
             
             if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
                 return Result.fail<Blog[]>( new Error( 'page execedes lenght of blogs' ), 404, 'page execedes lenght of blogs' )
@@ -117,7 +117,7 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy({publication_date: 'DESC'}).take( pagination.perPage ).skip( pagination.page ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy('blog.publication_date', 'DESC').take( pagination.perPage ).skip( pagination.page ).getMany()
 
             if ( blogs.length > 0 )
             {
