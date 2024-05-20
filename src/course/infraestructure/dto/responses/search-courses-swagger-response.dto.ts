@@ -22,7 +22,7 @@ export class SearchCoursesSwaggerResponseDto
     image: string
     
     @ApiProperty({
-        example: Date.now(),
+        example: new Date(),
     })
     date: Date
 

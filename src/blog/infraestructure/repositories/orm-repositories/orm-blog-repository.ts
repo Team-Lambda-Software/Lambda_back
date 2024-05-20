@@ -28,6 +28,19 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         this.ormBlogCommentRepository = dataSource.getRepository( OrmBlogComment )
         this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
     }
+    async findBlogCommentCount ( blogId: string ): Promise<Result<number>>
+    {
+        try
+        {
+            const comments = await this.ormBlogCommentRepository.find( { where: { blog_id: blogId } } )
+            return Result.success<number>( comments.length, 200 )
+        } catch ( error )
+        {
+
+            return Result.fail<number>( new Error( error.message ), error.code, error.message )
+
+        }
+    }
     async findBlogsByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
         try
