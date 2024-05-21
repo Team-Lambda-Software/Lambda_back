@@ -5,7 +5,7 @@ export class SignUpUserQueryParameterDto {
     
     @ApiProperty( { required: true, default: 'RECENT' })
     @IsString()
-    @IsIn(['CLIENTE', 'ADMIN'])
+    @IsIn(['CLIENT', 'ADMIN'])
     @IsOptional()
     type: string;
 

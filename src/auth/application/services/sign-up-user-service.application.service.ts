@@ -43,20 +43,15 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 signUpDto.email,
                 plainToHash,
                 signUpDto.phone,
+                signUpDto.type
             )
         )
         if ( !userResult.isSuccess() ) 
             return Result.fail( userResult.Error, 500, 'Error al registrar usuario' )
-        
-        const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
+         
         this.emailSender.setVariables( { firstname: signUpDto.name } )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.name )
-        const answer = {
-            token: token,
-            email: signUpDto.email,
-            name: signUpDto.name,
-            phone: signUpDto.phone
-        }
+        const answer = { id: userResult.Value.Id }
         return Result.success(answer, 200)
     }
    

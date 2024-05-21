@@ -15,7 +15,8 @@ export class OrmUser
     @Column( 'varchar', { unique: true } ) email: string
     @Column( 'varchar' ) password: string
     @Column( 'varchar' ) name: string
-    @Column( 'varchar' ) image: string
+    @Column( 'varchar', { nullable: true } ) image: string
+    @Column( 'varchar' ) type: string
     @Column( 'varchar', {unique: true, nullable:true}) phone: string
     @ManyToMany(() => OrmTrainer)
     @JoinTable({
@@ -41,11 +42,13 @@ export class OrmUser
 
     //TODO all relations and fields for the stadistics, courses made, etc.
 
-    static create ( id: string,
+    static create ( 
+        id: string,
         email: string,
         password: string,
         phone: string,
         name: string,
+        type: string,
         image?: string,
         trainers?: OrmTrainer[],
         progressCourse?: OrmProgressCourse[],
@@ -57,6 +60,7 @@ export class OrmUser
         user.email = email
         user.password = password
         user.phone = phone
+        user.type = type
         user.name = name
         user.image = image
         user.trainers = trainers
