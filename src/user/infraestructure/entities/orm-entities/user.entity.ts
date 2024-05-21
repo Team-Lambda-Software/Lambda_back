@@ -14,7 +14,7 @@ export class OrmUser
     @PrimaryColumn( { type: "uuid" } ) id: string
     @Column( 'varchar', { unique: true } ) email: string
     @Column( 'varchar' ) password: string
-    @Column( 'varchar' ) name: string
+    @Column( 'varchar', { default: 'name-default' } ) name: string
     @Column( 'varchar', { nullable: true } ) image: string
     @Column( 'varchar' ) type: string
     @Column( 'varchar', {unique: true, nullable:true}) phone: string
