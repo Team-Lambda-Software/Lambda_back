@@ -39,9 +39,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
         const userResult = await this.userRepository.saveUserAggregate(
             User.create(
                 await this.uuidGenerator.generateId(),
-                signUpDto.firstName,
-                signUpDto.firstLastName,
-                signUpDto.secondLastName,
+                signUpDto.name,
                 signUpDto.email,
                 plainToHash,
                 signUpDto.phone,
@@ -51,14 +49,12 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
             return Result.fail( userResult.Error, 500, 'Error al registrar usuario' )
         
         const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
-        this.emailSender.setVariables( { firstname: signUpDto.firstName } )
-        this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
+        this.emailSender.setVariables( { firstname: signUpDto.name } )
+        this.emailSender.sendEmail( signUpDto.email, signUpDto.name )
         const answer = {
             token: token,
             email: signUpDto.email,
-            firstLastName: signUpDto.firstLastName,
-            firstName: signUpDto.firstName,
-            secondLastName: signUpDto.secondLastName,
+            name: signUpDto.name,
             phone: signUpDto.phone
         }
         return Result.success(answer, 200)
