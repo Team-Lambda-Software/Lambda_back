@@ -7,5 +7,4 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 export interface GetBlogServiceEntryDto extends ApplicationServiceEntryDto 
 {
     blogId: string
-    commentPagination: PaginationDto
 }

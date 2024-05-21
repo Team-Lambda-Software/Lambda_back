@@ -7,10 +7,25 @@ import { ProgressSection } from "src/progress/domain/entities/progress-section"
 
 export interface GetCourseServiceResponseDto {
 
-    course: Course
-
-    courseProgress: {progress: ProgressCourse, completionPercent: number}
-
-    sectionsProgress: {progress: ProgressSection, completionPercent: number}[]
+    title: string
+    description: string
+    category: string
+    image: string
+    trainer: {
+        id: string
+        name: string
+    }
+    level: string
+    durationWeeks: number
+    durationMinutes: number
+    tags: string[]
+    date: Date
+    lessons: {
+        id: string
+        title: string
+        content: string
+        video?: string
+        image?: string
+    }[]
 
 }
