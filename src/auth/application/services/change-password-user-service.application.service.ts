@@ -2,9 +2,9 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
-import { UpdatePasswordEntryApplicationDto } from "../dto/update-password-entry.application.dto";
+import { ChangePasswordEntryApplicationDto } from "../dto/change-password-entry.application.dto";
 
-export class UpdatePasswordUserApplicationService implements IApplicationService<UpdatePasswordEntryApplicationDto, any> {
+export class ChangePasswordUserApplicationService implements IApplicationService<ChangePasswordEntryApplicationDto, any> {
     
     private readonly userRepository: IUserRepository
     private readonly encryptor: IEncryptor; 
@@ -17,7 +17,7 @@ export class UpdatePasswordUserApplicationService implements IApplicationService
         this.encryptor = encryptor
     }
     
-    async execute(updateDto: UpdatePasswordEntryApplicationDto): Promise<Result<any>> {
+    async execute(updateDto: ChangePasswordEntryApplicationDto): Promise<Result<any>> {
         const result = await this.userRepository.updateUserPassword(
             updateDto.email,
             await this.encryptor.hashPassword( updateDto.password )

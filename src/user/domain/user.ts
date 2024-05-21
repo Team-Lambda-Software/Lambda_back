@@ -9,9 +9,7 @@ import { Trainer } from "src/trainer/domain/trainer"
 export class User extends Entity<string>
 {
 
-    private firstName: string
-    private firstLastName: string
-    private secondLastName: string
+    private name: string
     private email: string
     private password: string
     private phone: string
@@ -19,14 +17,14 @@ export class User extends Entity<string>
     private progressVideo:ProgressVideo[]
     private progressCourse: ProgressCourse[]
     private progressSection: ProgressSection[]
+    private image: string
+    private type: string
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
+    private constructor ( id: string, name: string, email: string, password: string, phone: string, type: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[], image?: string)
     {
         super( id )
-        this.firstName = firstName
-        this.firstLastName = firstLastname
-        this.secondLastName = secondLastName
+        this.name = name
         this.email = email
         this.password = password
         this.phone = phone
@@ -34,26 +32,28 @@ export class User extends Entity<string>
         this.progressCourse = progressCourse
         this.progressSection = progressSection
         this.progressVideo = progressVideo
+        this.image = image
+        this.type = type
     }
 
-    get FirstName (): string
+    get Name (): string
     {
-        return this.firstName
+        return this.name
     }
 
-    get FirstLastName (): string
+    get Image (): string
     {
-        return this.firstLastName
-    }
-
-    get SecondLastName (): string
-    {
-        return this.secondLastName
+        return this.image
     }
 
     get Email (): string
     {
         return this.email
+    }
+
+    get Type (): string
+    {
+        return this.type
     }
 
     get Password (): string
@@ -86,29 +86,29 @@ export class User extends Entity<string>
         return this.progressVideo
     }
 
-    static create ( id: string, firstName: string, firstLastname: string, secondLastName: string, email: string, password: string, phone: string ): User
+    static create ( id: string, name: string, email: string, password: string, phone: string, type: string ): User
     {
-        return new User( id, firstName, firstLastname, secondLastName, email, password, phone )
+        return new User( id, name, email, password, phone, type )
     }
 
-    public updateFirstName ( firstName: string ): void
+    public updateName ( name: string ): void
     {
-        this.firstName = firstName
+        this.name = name
     }
 
-    public updateFirstLastName ( firstLastName: string ): void
+    public updateImage ( image: string ): void
     {
-        this.firstLastName = firstLastName
-    }
-
-    public updateSecondLastName ( secondLastName: string ): void
-    {
-        this.secondLastName = secondLastName
+        this.image = image
     }
 
     public updateEmail ( email: string ): void
     {
         this.email = email
+    }
+
+    public updateType ( type: string ): void
+    {
+        this.type = type
     }
 
     public updatePassword ( password: string ): void

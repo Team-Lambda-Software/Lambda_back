@@ -14,9 +14,9 @@ export class OrmUser
     @PrimaryColumn( { type: "uuid" } ) id: string
     @Column( 'varchar', { unique: true } ) email: string
     @Column( 'varchar' ) password: string
-    @Column( 'varchar' ) first_name: string
-    @Column( 'varchar' ) first_last_name: string
-    @Column( 'varchar' ) second_last_name: string
+    @Column( 'varchar' ) name: string
+    @Column( 'varchar', { nullable: true } ) image: string
+    @Column( 'varchar' ) type: string
     @Column( 'varchar', {unique: true, nullable:true}) phone: string
     @ManyToMany(() => OrmTrainer)
     @JoinTable({
@@ -42,13 +42,14 @@ export class OrmUser
 
     //TODO all relations and fields for the stadistics, courses made, etc.
 
-    static create ( id: string,
+    static create ( 
+        id: string,
         email: string,
         password: string,
         phone: string,
-        first_name: string,
-        first_last_name: string,
-        second_last_name: string,
+        name: string,
+        type: string,
+        image?: string,
         trainers?: OrmTrainer[],
         progressCourse?: OrmProgressCourse[],
         progressSection?: OrmProgressSection[],
@@ -59,9 +60,9 @@ export class OrmUser
         user.email = email
         user.password = password
         user.phone = phone
-        user.first_name = first_name
-        user.first_last_name = first_last_name
-        user.second_last_name = second_last_name
+        user.type = type
+        user.name = name
+        user.image = image
         user.trainers = trainers
         user.progressCourse = progressCourse
         user.progressSection = progressSection
