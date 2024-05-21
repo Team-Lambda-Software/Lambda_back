@@ -16,7 +16,7 @@ export class OrmUser
     @Column( 'varchar' ) password: string
     @Column( 'varchar', { default: 'name-default' } ) name: string
     @Column( 'varchar', { nullable: true } ) image: string
-    @Column( 'varchar' ) type: string
+    @Column( 'varchar', { default: 'CLIENT' } ) type: string
     @Column( 'varchar', {unique: true, nullable:true}) phone: string
     @ManyToMany(() => OrmTrainer)
     @JoinTable({
