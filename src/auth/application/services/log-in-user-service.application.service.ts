@@ -33,9 +33,7 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
         const answer = {
             token: token,
             email: userResult.Email,
-            firstLastName: userResult.FirstLastName,
-            firstName: userResult.FirstName,
-            secondLastName: userResult.SecondLastName,
+            name: userResult.Name,
             phone: userResult.Phone
         }
         return Result.success(answer, 200)

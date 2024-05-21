@@ -4,11 +4,10 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 export class userUpdateEntryDtoService implements ApplicationServiceEntryDto{
     
     userId: string;
-    firstName?: string;
-    firstLastName?: string;
-    secondLastName?: string;
+    name?: string;
     email? :string; 
     password?: string;
     phone?: string;
+    image?: string
 
 }

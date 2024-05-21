@@ -62,8 +62,14 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ description: 'Obtener usuario actual', type: CurrentUserSwaggerResponseDto })
     @ApiBearerAuth()
-    async currentUser( @GetUser() user ) {
-        return { user, image: 'image.jpg' } 
+    async currentUser( @GetUser() user ) {        
+        return {
+            id: user.Id,
+            email: user.Email,
+            name: user.Name,
+            phone: user.Phone,
+            image: user.Image
+        } 
     }
 
     @Post('login')

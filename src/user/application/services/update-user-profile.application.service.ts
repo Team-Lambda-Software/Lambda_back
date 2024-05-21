@@ -24,9 +24,8 @@ export class UpdateUserProfileAplicationService implements IApplicationService<u
         
         const userUpdate: User = user.Value
 
-        if(data.firstName) userUpdate.updateFirstName(data.firstName)
-        if(data.firstLastName) userUpdate.updateFirstLastName(data.firstLastName)
-        if(data.secondLastName) userUpdate.updateSecondLastName(data.secondLastName)
+        if(data.name) userUpdate.updateName(data.name)
+        if(data.image) userUpdate.updateImage(data.image)
         if(data.email) userUpdate.updateEmail(data.email)
         if(data.password) userUpdate.updatePassword(data.password)
         if(data.phone) userUpdate.updatePhone(data.phone)

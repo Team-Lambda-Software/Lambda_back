@@ -45,7 +45,7 @@ export class SaveTokenAddressApplicationService implements IApplicationService<S
         if ( !saveResult.isSuccess() ) 
             return Result.fail( new Error('Error al registrar token'), 500, 'Error al registrar token' )
     
-        this.welcomeNotifier.setVariable( findResult.Value.FirstName )
+        this.welcomeNotifier.setVariable( findResult.Value.Name )
         const resultNotifier = await this.welcomeNotifier.sendNotification( { token: saveTokenDto.token } )
         
         if ( resultNotifier.isSuccess() ) 
@@ -54,7 +54,7 @@ export class SaveTokenAddressApplicationService implements IApplicationService<S
                     await this.uuidGenerator.generateId(),
                     findResult.Value.Id,
                     "Welcome",
-                    'be Welcome my dear ' + findResult.Value.FirstName
+                    'be Welcome my dear ' + findResult.Value.Name
                 )
             )
         const answer = {
