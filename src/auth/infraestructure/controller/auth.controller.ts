@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Query } from "@nestjs/common"
+import { Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -29,13 +29,13 @@ import { LogInUserSwaggerResponseDto } from "../dto/response/log-in-user-swagger
 import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagger-response.dto";
 import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
 import { GetUser } from "../jwt/decorator/get-user.param.decorator";
-import { SignUpUserQueryParameterDto } from "../dto/query-parameter/sign-up-user-query-parameter.dto";
-import { LogInUserQueryParameterDto } from "../dto/query-parameter/log-in-user-query-parameter.dto";
-import { CodeValidateQueryParameterDto } from "../dto/query-parameter/code-validate-query-parameter.dto";
-import { ChangePasswordQueryParameterDto } from "../dto/query-parameter/change-password-parameter.dto";
-import { ForgetPasswordQueryParameterDto } from "../dto/query-parameter/forget-password-query-parameter.dto";
+import { SignUpUserEntryInfraDto } from "../dto/entry/sign-up-user-entry.dto";
+import { LogInUserEntryInfraDto } from "../dto/entry/log-in-user-entry.dto";
+import { CodeValidateEntryInfraDto } from "../dto/entry/code-validate-entry.dto";
+import { ForgetPasswordEntryInfraDto } from "../dto/entry/forget-password-entry.dto";
 import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swagger-response.dto";
 import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
+import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -74,7 +74,7 @@ export class AuthController {
 
     @Post('login/:params')
     @ApiOkResponse({ description: 'Iniciar sesion de usuario', type: LogInUserSwaggerResponseDto })
-    async logInUser(@Query() logInDto: LogInUserQueryParameterDto) {
+    async logInUser(@Body() logInDto: LogInUserEntryInfraDto) {
         const data = { userId: 'none', ...logInDto }
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -91,7 +91,7 @@ export class AuthController {
     
     @Post('register/:params')
     @ApiOkResponse({ description: 'Registrar un nuevo usuario en el sistema', type: SignUpUserSwaggerResponseDto })
-    async signUpUser(@Query() signUpDto: SignUpUserQueryParameterDto) {
+    async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
         if ( data.type == null ) data = { type: 'CLIENT', ...data }
         const signUpApplicationService = new ExceptionDecorator( 
@@ -111,7 +111,7 @@ export class AuthController {
     
     @Post('forget/password/:params')
     @ApiOkResponse({ description: 'Obtener codigo temporal para confirmar usuario', type: ForgetPasswordSwaggerResponseDto })
-    async getCodeForUpdatePasswordUser(@Query() getCodeUpdateDto: ForgetPasswordQueryParameterDto ) {
+    async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: ForgetPasswordEntryInfraDto ) {
         const data = { userId: 'none', ...getCodeUpdateDto, }
         const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -133,7 +133,7 @@ export class AuthController {
 
     @Put('change/password/:params')
     //@ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: UpdatePasswordUserSwaggerResponseDto })
-    async changePasswordUser(@Query() updatePasswordDto: ChangePasswordQueryParameterDto ) {     
+    async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
         if ( !result ) return { message: 'code invalid', code: updatePasswordDto.code }
         const data = { userId: 'none',  ...updatePasswordDto }
@@ -151,7 +151,7 @@ export class AuthController {
     
     @Post('code/validate/:params')
     //@ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: NewTokenSwaggerResponseDto })
-    async validateCode( @Query() codeValDto: CodeValidateQueryParameterDto ) {  
+    async validateCode( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
         return { ok: true } 
     }
 

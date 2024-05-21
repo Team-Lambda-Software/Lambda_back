@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsIn, IsOptional, IsString } from 'class-validator';
 
-export class SignUpUserQueryParameterDto {
+export class SignUpUserEntryInfraDto {
     
     @ApiProperty( { required: true, default: 'RECENT' })
     @IsString()
