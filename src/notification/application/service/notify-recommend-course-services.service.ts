@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";

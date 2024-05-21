@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { LogInEntryApplicationDto } from "../dto/log-in-entry.application.dto";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IJwtGenerator } from "../interface/jwt-generator.interface";

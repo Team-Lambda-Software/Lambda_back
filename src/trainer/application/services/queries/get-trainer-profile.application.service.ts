@@ -1,7 +1,7 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { GetTrainerProfileServiceEntryDto } from "../../dto/parameters/get-trainer-profile-service-entry.dto";
 import { GetTrainerProfileServiceResponseDto } from "../../dto/responses/get-trainer-profile-service-response.dto";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 import { Trainer } from "src/trainer/domain/trainer";
 //Couple service to Course,Blog repositories

@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert"
 import { NotificationAlert } from "src/notification/domain/entities/notification-alert"

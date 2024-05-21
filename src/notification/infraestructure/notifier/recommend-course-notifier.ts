@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { TokenNotification } from 'src/common/Application/notifier/dto/token-notification.dto';
 import { INotifier } from 'src/common/Application/notifier/notifier.application';
-import { Result } from 'src/common/Application/result-handler/Result';
+import { Result } from 'src/common/Domain/result-handler/Result';
 import { Course } from 'src/course/domain/course';
 
 export class RecommendCourseNotifier implements INotifier<Course> {

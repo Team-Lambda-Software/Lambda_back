@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { GetCodeUpdatePasswordEntryApplicationDto } from "../dto/get-code-update-password-entry.application";
 import { ICodeGenerator } from "../interface/code-generator.interface";

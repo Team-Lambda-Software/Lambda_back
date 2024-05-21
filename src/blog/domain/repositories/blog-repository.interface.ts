@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { Blog } from "../blog"
 import { BlogComment } from "../entities/blog-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"

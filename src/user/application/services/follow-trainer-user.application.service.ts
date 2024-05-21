@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 import { Trainer } from "src/trainer/domain/trainer";
 import { FollowUnfollowEntryDtoService } from "src/user/dto/follow-unfollow-entry-Service";

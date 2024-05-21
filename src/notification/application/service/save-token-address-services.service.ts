@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { SaveTokenAddressEntryApplicationDto } from "../dto/save-token-address-entry.application";
 import { WelcomeNotifier } from "src/notification/infraestructure/notifier/welcome-notifier";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";

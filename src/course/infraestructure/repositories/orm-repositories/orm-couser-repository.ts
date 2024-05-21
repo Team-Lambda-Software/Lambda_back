@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { Course } from "src/course/domain/course"
 import { Section } from "src/course/domain/entities/section"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"

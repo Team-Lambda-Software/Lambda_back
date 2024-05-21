@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { ProgressSection } from "src/progress/domain/entities/progress-section";
 import { SaveSectionProgressServiceEntryDto } from "../../dto/parameters/save-progress-section-entry.dto";

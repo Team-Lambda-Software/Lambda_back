@@ -1,4 +1,4 @@
-import { Result } from "../result-handler/Result";
+import { Result } from "../../Domain/result-handler/Result";
 import { TokenNotification } from "./dto/token-notification.dto";
 
 export interface INotifier<T> {

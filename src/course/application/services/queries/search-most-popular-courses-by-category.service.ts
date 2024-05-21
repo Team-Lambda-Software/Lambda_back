@@ -3,7 +3,7 @@ import { ICourseRepository } from 'src/course/domain/repositories/course-reposit
 import { IProgressCourseRepository } from 'src/progress/domain/repositories/progress-course-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
 import { SearchCoursesByCategoryServiceEntryDto } from '../../dto/param/search-courses-by-category-service-entry.dto'
-import { Result } from 'src/common/Application/result-handler/Result'
+import { Result } from 'src/common/Domain/result-handler/Result'
 import { randomInt } from 'crypto'
 import { SearchCourseServiceResponseDto } from '../../dto/responses/search-course-service-response.dto'
 import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'

@@ -1,7 +1,7 @@
 import { Blog } from "src/blog/domain/blog"
 import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { OrmBlogCommentMapper } from "../../mappers/orm-mappers/orm-blog-comment-mapper"
 import { Repository, DataSource } from 'typeorm'
 import { OrmBlog } from "../../entities/orm-entities/orm-blog"

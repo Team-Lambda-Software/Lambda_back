@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Result } from 'src/common/Application/result-handler/Result'
+import { Result } from 'src/common/Domain/result-handler/Result'
 import { User } from '../user'
 
 export interface IUserRepository {
