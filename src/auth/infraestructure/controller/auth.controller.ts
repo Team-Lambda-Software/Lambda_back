@@ -72,7 +72,7 @@ export class AuthController {
         } 
     }
 
-    @Post('login/:params')
+    @Post('login')
     @ApiOkResponse({ description: 'Iniciar sesion de usuario', type: LogInUserSwaggerResponseDto })
     async logInUser(@Body() logInDto: LogInUserEntryInfraDto) {
         const data = { userId: 'none', ...logInDto }
@@ -89,7 +89,7 @@ export class AuthController {
         return (await logInUserService.execute(data)).Value
     }
     
-    @Post('register/:params')
+    @Post('register')
     @ApiOkResponse({ description: 'Registrar un nuevo usuario en el sistema', type: SignUpUserSwaggerResponseDto })
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
@@ -109,7 +109,7 @@ export class AuthController {
         return (await signUpApplicationService.execute(data)).Value
     }
     
-    @Post('forget/password/:params')
+    @Post('forget/password')
     @ApiOkResponse({ description: 'Obtener codigo temporal para confirmar usuario', type: ForgetPasswordSwaggerResponseDto })
     async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: ForgetPasswordEntryInfraDto ) {
         const data = { userId: 'none', ...getCodeUpdateDto, }
@@ -131,7 +131,7 @@ export class AuthController {
         return result.Value
     }
 
-    @Put('change/password/:params')
+    @Put('change/password')
     //@ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: UpdatePasswordUserSwaggerResponseDto })
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
@@ -149,7 +149,7 @@ export class AuthController {
         return (await changePasswordApplicationService.execute(data)).Value
     }
     
-    @Post('code/validate/:params')
+    @Post('code/validate')
     //@ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: NewTokenSwaggerResponseDto })
     async validateCode( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
         return { ok: true } 
