@@ -8,6 +8,7 @@ import { SectionImage } from '../../../domain/entities/compose-fields/section-im
 import { GetCourseServiceResponseDto } from "../../dto/responses/get-course-service-response.dto"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
+import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
 
 
 
@@ -17,14 +18,16 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
     private readonly courseRepository: ICourseRepository
     private readonly trainerRepository: ITrainerRepository
     private readonly categoryRepository: ICategoryRepository
+    private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.trainerRepository = trainerRepository
         this.categoryRepository = categoryRepository
+        this.fileUploader = fileUploader
     }
 
     // TODO: Search the progress if exists one for that user
@@ -35,7 +38,12 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         {
             return Result.fail<GetCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
-        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, SectionImage.create( data.imageUrl, await this.idGenerator.generateId() ), data.tags, new Date() )
+        if ( !['png','jpg','jpeg'].includes(data.image.originalname.split('.').pop())){
+            return Result.fail<GetCourseServiceResponseDto>( new Error("Invalid image format"), 400, "Invalid image format" )
+        }
+        const imageId = await this.idGenerator.generateId()
+        const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
+        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, SectionImage.create( imageUrl, imageId ), data.tags, new Date() )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
@@ -50,7 +58,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             title: course.Name,
             description: course.Description,
             category: category.Value.Name,
-            image: data.imageUrl,
+            image: imageUrl,
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName

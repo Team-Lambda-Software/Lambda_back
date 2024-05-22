@@ -7,8 +7,7 @@ export interface AddSectionToCourseServiceEntryDto extends ApplicationServiceEnt
     name: string
     description: string
     duration: number
-    video?: string
-    image?: string
+    file?: Express.Multer.File
     paragraph?: string
     courseId: string
 }

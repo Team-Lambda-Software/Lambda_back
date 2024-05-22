@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -7,7 +7,7 @@ import { OrmBlogRepository } from "../repositories/orm-repositories/orm-blog-rep
 import { OrmBlogMapper } from "../mappers/orm-mappers/orm-blog-mapper"
 import { OrmBlogCommentMapper } from "../mappers/orm-mappers/orm-blog-comment-mapper"
 import { GetBlogApplicationService } from "src/blog/application/services/queries/get-blog.service"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
 import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
@@ -30,6 +30,9 @@ import { CreateBlogApplicationService } from "src/blog/application/services/comm
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
+import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
+import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -39,8 +42,9 @@ export class BlogController
     private readonly blogRepository: OrmBlogRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
-    private readonly trainerRepository: OrmTrainerRepository    
+    private readonly trainerRepository: OrmTrainerRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: AzureFileUploader
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
@@ -63,6 +67,7 @@ export class BlogController
             dataSource
         )
         this.idGenerator = new UuidGenerator()
+        this.fileUploader = new AzureFileUploader()
     }
 
 
@@ -70,7 +75,28 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Crea un blog', type: GetBlogSwaggerResponseDto } )
-    async createBlog ( @GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
+    @ApiConsumes( 'multipart/form-data' )
+    @ApiBody( {
+        schema: {
+            type: 'object',
+            properties: {
+                trainerId: { type: 'integer' },
+                title: { type: 'string' },
+                body: { type: 'integer' },
+                categoryId: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                images: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        format: "binary"
+                    }
+                }
+            },
+        },
+    } )
+    @UseInterceptors( FilesInterceptor( 'images', 5 ) )
+    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
     {
         const service =
             new ExceptionDecorator(
@@ -81,6 +107,7 @@ export class BlogController
                             this.idGenerator,
                             this.trainerRepository,
                             this.categoryRepository,
+                            this.fileUploader
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -88,7 +115,7 @@ export class BlogController
                     this.idGenerator
                 )
             )
-        const result = await service.execute( { ...createBlogParams, userId: user.Id } )
+        const result = await service.execute( { images: images, ...createBlogParams, userId: user.Id } )
         return result.Value
     }
 

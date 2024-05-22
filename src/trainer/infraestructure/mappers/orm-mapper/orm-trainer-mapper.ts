@@ -12,7 +12,6 @@ export class OrmTrainerMapper implements IMapper<Trainer, OrmTrainer>
         let followersID:Array<string> = new Array<string>();
         let coursesID:Array<string> = new Array<string>();
         let blogsID:Array<string> = new Array<string>();
-        console.log(persistence);
         if (persistence.followers)
         {
             for (let user of persistence.followers)

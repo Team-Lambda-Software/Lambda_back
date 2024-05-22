@@ -6,6 +6,7 @@ import { SectionImage } from '../../../domain/entities/compose-fields/section-im
 import { Section } from "src/course/domain/entities/section"
 import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video"
 import { AddSectionToCourseServiceEntryDto } from "../../dto/param/add-section-to-course-service-entry.dto"
+import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
 
 
 
@@ -14,11 +15,13 @@ export class AddSectionToCourseApplicationService implements IApplicationService
 
     private readonly courseRepository: ICourseRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: IFileUploader
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
+        this.fileUploader = fileUploader
     }
 
     // TODO: Search the progress if exists one for that user
@@ -29,9 +32,25 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         {
             return Result.fail<Section>( course.Error, course.StatusCode, course.Message )
         }
+        let imageId = null
+        let imageUrl = null
+        let videoId = null
+        let videoUrl = null
+        if ( data.file && !data.paragraph ){
+            if ( ['png','jpg','jpeg'].includes(data.file.originalname.split('.').pop())){
+                imageId = await this.idGenerator.generateId()
+                imageUrl = await this.fileUploader.UploadFile( data.file, imageId )
+            } else if ( ['mp4'].includes(data.file.originalname.split('.').pop())){
+                videoId = await this.idGenerator.generateId()
+                videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
+                
+            } else {
+                return Result.fail<Section>( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
+            }
+        }
         let section
         try{
-            section = Section.create( await this.idGenerator.generateId(), data.name, data.description, data.duration, data.video ? SectionVideo.create( data.video, await this.idGenerator.generateId() ) : null, data.image ? SectionImage.create( data.image, await this.idGenerator.generateId() ) : null, data.paragraph ? data.paragraph : null )
+            section = Section.create( await this.idGenerator.generateId(), data.name, data.description, data.duration, videoId ? SectionVideo.create( videoUrl, videoId ) : null, imageId ? SectionImage.create( imageUrl, imageId ) : null, data.paragraph ? data.paragraph : null )
         }catch(e){
             return Result.fail<Section>( e.message, 500 , e.message )
         }

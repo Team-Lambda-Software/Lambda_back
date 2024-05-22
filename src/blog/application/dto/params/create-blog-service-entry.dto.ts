@@ -7,7 +7,7 @@ export interface CreateBlogServiceEntryDto extends ApplicationServiceEntryDto
     trainerId: string
     title: string
     body: string
-    images: string[]
+    images: Express.Multer.File[]
     categoryId: string
     tags: string[]
 }

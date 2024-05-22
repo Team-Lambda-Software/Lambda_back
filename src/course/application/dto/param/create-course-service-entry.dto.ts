@@ -12,5 +12,5 @@ export interface CreateCourseServiceEntryDto extends ApplicationServiceEntryDto
     level: number
     categoryId: string
     tags: string[]
-    imageUrl: string
+    image: Express.Multer.File
 }

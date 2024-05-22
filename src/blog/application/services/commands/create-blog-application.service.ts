@@ -8,6 +8,7 @@ import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.in
 import { Blog } from "src/blog/domain/blog"
 import { BlogImage } from "src/blog/domain/entities/blog-image"
 import { CreateBlogServiceEntryDto } from "../../dto/params/create-blog-service-entry.dto"
+import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
 
 
 
@@ -19,13 +20,15 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
     private readonly trainerRepository: ITrainerRepository
     private readonly categoryRepository: ICategoryRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: IFileUploader
 
-    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository)
+    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
     {
         this.idGenerator = idGenerator
         this.trainerRepository = trainerRepository
         this.categoryRepository = categoryRepository
         this.blogRepository = blogRepository
+        this.fileUploader = fileUploader
     }
 
     // TODO: Search the progress if exists one for that user
@@ -37,8 +40,14 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             return Result.fail<GetBlogServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
         const images: BlogImage[] = []
-        for ( const image of data.images )
-            images.push( BlogImage.create( image, await this.idGenerator.generateId() ) )
+        for ( const image of data.images ){
+            if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
+                return Result.fail<GetBlogServiceResponseDto>( new Error("Invalid image format"), 400, "Invalid image format" )
+            }
+            const imageId = await this.idGenerator.generateId()
+            const imageUrl = await this.fileUploader.UploadFile( image, imageId )
+            images.push( BlogImage.create( imageUrl, imageId ) )
+        }
         const blog = Blog.create( await this.idGenerator.generateId(), data.title, data.body, images, new Date(), trainer.Value, data.categoryId, data.tags )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
