@@ -3,6 +3,8 @@ import { IMapper } from "src/common/Application/mapper/mapper.interface"
 import { OrmBlog } from "../../entities/orm-entities/orm-blog"
 import { BlogImage } from "src/blog/domain/entities/blog-image"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
+import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
+import { OrmBlogTags } from "../../entities/orm-entities/orm-blog-tags"
 
 export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
 {
@@ -14,9 +16,18 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
         this.ormTrainerMapper = ormTrainerMapper
     }
 
-    fromDomainToPersistence ( domain: Blog ): Promise<OrmBlog>
+    async fromDomainToPersistence ( domain: Blog ): Promise<OrmBlog>
     {
-        throw new Error( "Method not implemented." )
+        const images: OrmBlogImage[] = []
+        domain.Images.forEach( image => {
+            images.push( OrmBlogImage.create( image.Id, image.Url ) )
+        })
+        const tags: OrmBlogTags[] = []
+        domain.Tags.forEach( tag => {
+            tags.push( OrmBlogTags.create( tag ) )
+        })
+        const blog = OrmBlog.create( domain.Id, domain.Title, domain.Body, domain.PublicationDate, domain.Trainer.Id, domain.CategoryId, images, tags)
+        return blog
     }
     async fromPersistenceToDomain ( persistence: OrmBlog ): Promise<Blog>
     {

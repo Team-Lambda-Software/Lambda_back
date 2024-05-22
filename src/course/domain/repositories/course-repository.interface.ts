@@ -3,6 +3,7 @@ import { Course } from "../course"
 import { Section } from "../entities/section"
 import { SectionComment } from "../entities/section-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { SectionImage } from "../entities/compose-fields/section-image"
 
 
 
@@ -21,6 +22,7 @@ export interface ICourseRepository
     findAllTrainerCourses ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     findCoursesByLevels ( levels: number[], pagination: PaginationDto ): Promise<Result<Course[]>>
     saveCourseAggregate ( course: Course ): Promise<Result<Course>>
+    addSectionToCourse ( courseId: string, section: Section ): Promise<Result<Section>>
     findCoursesByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Course[]>>
 
 }

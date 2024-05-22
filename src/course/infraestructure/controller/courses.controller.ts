@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { GetCourseApplicationService } from "src/course/application/services/queries/get-course.service"
@@ -8,7 +8,7 @@ import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmSectionMapper } from "../mappers/orm-mappers/orm-section-mapper"
 import { OrmSectionCommentMapper } from "../mappers/orm-mappers/orm-section-comment-mapper"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
@@ -30,6 +30,16 @@ import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-m
 import { SearchCoursesByTrainerServiceEntryDto } from "src/course/application/dto/param/search-courses-by-trainer-service-entry.dto"
 import { SearchMostPopularCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-recent-courses-by-trainer.service"
+import { CreateCourseApplicationService } from "src/course/application/services/commands/create-course-application.service"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
+import { CreateCourseEntryDto } from "../dto/entry/create-course-entry.dto"
+import { AddSectionToCourseApplicationService } from "src/course/application/services/commands/add-section-to-course-application.service"
+import { AddSectionToCourseEntryDto } from "../dto/entry/add-section-to-course-entry.dto"
+import { AzureFileUploader } from '../../../common/Infraestructure/azure-file-uploader/azure-file-uploader'
+import { FileInterceptor } from "@nestjs/platform-express"
+import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 
 
 @ApiTags( 'Course' )
@@ -42,6 +52,8 @@ export class CourseController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: AzureFileUploader
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
@@ -73,6 +85,103 @@ export class CourseController
             dataSource
         )
 
+        this.idGenerator = new UuidGenerator()
+
+        this.fileUploader = new AzureFileUploader()
+
+    }
+
+    @Post( 'create' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Crea un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiConsumes( 'multipart/form-data' )
+    @ApiBody( {
+        schema: {
+            type: 'object',
+            properties: {
+                trainerId: { type: 'string' },
+                name: { type: 'integer' },
+                description: { type: 'string' },
+                weeksDuration: { type: 'integer' },
+                minutesDuration: { type: 'integer' },
+                level: { type: 'integer' },
+                categoryId: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                image: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    } )
+    @UseInterceptors( FileExtender )
+    @UseInterceptors( FileInterceptor( 'image' ) )
+    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new CreateCourseApplicationService(
+                            this.courseRepository,
+                            this.idGenerator,
+                            this.trainerRepository,
+                            this.categoryRepository,
+                            this.fileUploader
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        const result = await service.execute( { image: image, ...createCourseServiceEntryDto, userId: user.Id } )
+        return result.Value
+    }
+
+    @Post( 'add-section/:courseId' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiConsumes( 'multipart/form-data' )
+    @ApiBody( {
+        schema: {
+            type: 'object',
+            properties: {
+                name: { type: 'integer' },
+                description: { type: 'string' },
+                duration: { type: 'integer' },
+                paragraph: { type: 'string' },
+                
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                }
+            },
+        },
+    } )
+    @UseInterceptors( FileExtender )
+    @UseInterceptors( FileInterceptor( 'file' ) )
+    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File,@Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new AddSectionToCourseApplicationService(
+                            this.courseRepository,
+                            this.idGenerator,
+                            this.fileUploader
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        const result = await service.execute( { file: file ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        return result.Value
     }
 
     @Get( 'one/:id' )
