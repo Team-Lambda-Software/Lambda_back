@@ -25,6 +25,11 @@ import { SearchBlogsByTrainerServiceEntryDto } from "src/blog/application/dto/pa
 import { SearchMostPopularBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-most-popular-blogs-by-trainer.service"
 import { SearchRecentBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-recent-blogs-by-trainer.service"
 import { SearchBlogQueryParametersDto } from "../dto/queryParameters/search-blog-query-parameters.dto"
+import { CreateBlogEntryDto } from "../dto/entry/create-blog-entry.dto"
+import { CreateBlogApplicationService } from "src/blog/application/services/commands/create-blog-application.service"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -34,7 +39,8 @@ export class BlogController
     private readonly blogRepository: OrmBlogRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
-    private readonly trainerRepository: OrmTrainerRepository
+    private readonly trainerRepository: OrmTrainerRepository    
+    private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
@@ -56,7 +62,36 @@ export class BlogController
             new OrmTrainerMapper(),
             dataSource
         )
+        this.idGenerator = new UuidGenerator()
     }
+
+
+    @Post( 'create' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Crea un blog', type: GetBlogSwaggerResponseDto } )
+    async createBlog ( @GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new CreateBlogApplicationService(
+                            this.blogRepository,
+                            this.idGenerator,
+                            this.trainerRepository,
+                            this.categoryRepository,
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        const result = await service.execute( { ...createBlogParams, userId: user.Id } )
+        return result.Value
+    }
+
 
     @Get( 'one/:id' )
     @UseGuards( JwtAuthGuard )
