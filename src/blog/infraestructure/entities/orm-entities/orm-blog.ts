@@ -20,7 +20,7 @@ export class OrmBlog
     @ManyToOne( () => OrmTrainer, trainer => trainer.blogs, {eager: true}) @JoinColumn( {name: 'trainer_id'} ) trainer: OrmTrainer
     
     @Column( { type: "uuid" } ) category_id: string
-    @ManyToOne( () => OrmCategory, category => category.blogs ) category: OrmCategory
+    @ManyToOne( () => OrmCategory, category => category.blogs ) @JoinColumn( {name: 'category_id'}) category: OrmCategory
 
     @OneToMany( () => OrmBlogImage, image => image.blog ) images: OrmBlogImage[]
 
