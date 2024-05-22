@@ -38,9 +38,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         {
             return Result.fail<GetCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
-        if ( !['png','jpg','jpeg'].includes(data.image.originalname.split('.').pop())){
-            return Result.fail<GetCourseServiceResponseDto>( new Error("Invalid image format"), 400, "Invalid image format" )
-        }
+        
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
         const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, SectionImage.create( imageUrl, imageId ), data.tags, new Date() )

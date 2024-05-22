@@ -36,18 +36,15 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         let imageUrl = null
         let videoId = null
         let videoUrl = null
-        if ( data.file && !data.paragraph ){
-            if ( ['png','jpg','jpeg'].includes(data.file.originalname.split('.').pop())){
-                imageId = await this.idGenerator.generateId()
-                imageUrl = await this.fileUploader.UploadFile( data.file, imageId )
-            } else if ( ['mp4'].includes(data.file.originalname.split('.').pop())){
-                videoId = await this.idGenerator.generateId()
-                videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
-                
-            } else {
-                return Result.fail<Section>( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
-            }
-        }
+        
+        if ( data.fileType === 'IMAGE'){
+            imageId = await this.idGenerator.generateId()
+            imageUrl = await this.fileUploader.UploadFile( data.file, imageId )
+        } else {
+            videoId = await this.idGenerator.generateId()
+            videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
+        } 
+        
         let section
         try{
             section = Section.create( await this.idGenerator.generateId(), data.name, data.description, data.duration, videoId ? SectionVideo.create( videoUrl, videoId ) : null, imageId ? SectionImage.create( imageUrl, imageId ) : null, data.paragraph ? data.paragraph : null )

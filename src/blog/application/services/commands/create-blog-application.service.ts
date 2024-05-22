@@ -41,9 +41,6 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
         }
         const images: BlogImage[] = []
         for ( const image of data.images ){
-            if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
-                return Result.fail<GetBlogServiceResponseDto>( new Error("Invalid image format"), 400, "Invalid image format" )
-            }
             const imageId = await this.idGenerator.generateId()
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
             images.push( BlogImage.create( imageUrl, imageId ) )
