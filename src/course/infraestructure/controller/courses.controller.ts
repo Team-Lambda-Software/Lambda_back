@@ -30,6 +30,13 @@ import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-m
 import { SearchCoursesByTrainerServiceEntryDto } from "src/course/application/dto/param/search-courses-by-trainer-service-entry.dto"
 import { SearchMostPopularCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-recent-courses-by-trainer.service"
+import { CreateCourseApplicationService } from "src/course/application/services/commands/create-course-application.service"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
+import { CreateCourseEntryDto } from "../dto/entry/create-course-entry.dto"
+import { AddSectionToCourseApplicationService } from "src/course/application/services/commands/add-section-to-course-application.service"
+import { AddSectionToCourseEntryDto } from "../dto/entry/add-section-to-course-entry.dto"
 
 
 @ApiTags( 'Course' )
@@ -42,6 +49,7 @@ export class CourseController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly idGenerator: IdGenerator<string>
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
@@ -73,6 +81,58 @@ export class CourseController
             dataSource
         )
 
+        this.idGenerator = new UuidGenerator()
+
+    }
+
+    @Post( 'create' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Crea un curso', type: GetCourseSwaggerResponseDto } )
+    async createCourse ( @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new CreateCourseApplicationService(
+                            this.courseRepository,
+                            this.idGenerator,
+                            this.trainerRepository,
+                            this.categoryRepository
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        const result = await service.execute( { ...createCourseServiceEntryDto, userId: user.Id } )
+        return result.Value
+    }
+
+    @Post( 'add-section/:courseId' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: GetCourseSwaggerResponseDto } )
+    async addSectionToCourse ( @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new AddSectionToCourseApplicationService(
+                            this.courseRepository,
+                            this.idGenerator
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        const result = await service.execute( { ...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        return result.Value
     }
 
     @Get( 'one/:id' )
