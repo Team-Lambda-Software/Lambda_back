@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsInt, IsString, IsUUID, Min, MinLength } from "class-validator"
+import { ArrayMinSize, IsArray, IsString, IsUUID, MinLength } from "class-validator"
 
 
 
@@ -37,8 +37,10 @@ export class CreateBlogEntryDto {
             example: ['https://www.image.com/image1', 'https://www.image.com/image2'],
         }
     )
-    @IsArray()
-    @IsString( { each: true } )
+    @IsArray( )
+    @ArrayMinSize( 1 )
+    @IsString( { each: true} )
+    @MinLength( 1, { each: true } )
     images: string[]
 
     @ApiProperty(
@@ -55,6 +57,7 @@ export class CreateBlogEntryDto {
         }
     )
     @IsArray()
+    @ArrayMinSize( 1 )
     @IsString( { each: true } )
     tags: string[]
 }

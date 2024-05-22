@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsInt, IsString, IsUUID, Min, MinLength } from "class-validator"
+import { ArrayMinSize, IsArray, IsInt, IsString, IsUUID, Min, MinLength } from "class-validator"
 
 
 
@@ -73,6 +73,7 @@ export class CreateCourseEntryDto {
         }
     )
     @IsArray()
+    @ArrayMinSize( 1 )
     @IsString( { each: true } )
     tags: string[]
 
