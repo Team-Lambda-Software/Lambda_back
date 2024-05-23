@@ -13,6 +13,7 @@ import { NotificationController } from './notification/infraestructure/controlle
 import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 import { SearchController } from './search/infraestructure/controller/search.controller'
 import { ProgressController } from './progress/infraestructure/controller/progress.controller'
+import { CommentController } from './comment/infraestructure/controller/comment.controller'
 
 @Module( {
   imports: [
@@ -36,7 +37,8 @@ import { ProgressController } from './progress/infraestructure/controller/progre
     CategoryController,
     SearchController,
     TrainerController,
-    ProgressController
+    ProgressController,
+    CommentController
   ],
   providers: [     
     ormDatabaseProvider

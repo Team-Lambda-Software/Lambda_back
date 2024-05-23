@@ -6,6 +6,8 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 import { GetCourseServiceResponseDto } from "../../dto/responses/get-course-service-response.dto"
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface"
 import { ProgressSection } from "src/progress/domain/entities/progress-section"
+import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
+import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 
 
 
@@ -15,11 +17,17 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
 
     private readonly courseRepository: ICourseRepository
     private readonly progressRepository: IProgressCourseRepository
+    private readonly categoryRepository: ICategoryRepository
+    private readonly trainerRepository: ITrainerRepository
 
-    constructor ( courseRepository: ICourseRepository, progressRepository: IProgressCourseRepository)
+
+    constructor ( courseRepository: ICourseRepository, progressRepository: IProgressCourseRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository )
     {
+
         this.courseRepository = courseRepository
         this.progressRepository = progressRepository
+        this.categoryRepository = categoryRepository
+        this.trainerRepository = trainerRepository
 
     }
 
@@ -54,14 +62,24 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         //         sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
         //     }
         // }
+        const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+        if ( !category.isSuccess() )
+        {
+            return Result.fail<GetCourseServiceResponseDto>( category.Error, category.StatusCode, category.Message )
+        }
+        const trainer = await this.trainerRepository.findTrainerById( course.Trainer.Id )
+        if ( !trainer.isSuccess() )
+        {
+            return Result.fail<GetCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
+        }
         let responseCourse: GetCourseServiceResponseDto = {
             title: course.Name,
             description: course.Description,
-            category: course.CategoryId,
+            category: category.Value.Name,
             image: course.Image.Url,
             trainer: {
-                id: course.Trainer.Id,
-                name: course.Trainer.FirstName + " " + course.Trainer.FirstLastName + " " + course.Trainer.SecondLastName
+                id: trainer.Value.Id,
+                name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
             },
             level: course.Level.toString(),
             durationWeeks: course.WeeksDuration,
@@ -72,16 +90,16 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
         for ( const section of course.Sections )
         {
-            responseCourse.lessons.push({
+            responseCourse.lessons.push( {
                 id: section.Id,
                 title: section.Name,
                 content: section.Paragraph,
                 video: section.Video ? section.Video.Url : null,
                 image: section.Image ? section.Image.Url : null
-            })
+            } )
         }
 
-        return Result.success<GetCourseServiceResponseDto>( responseCourse , 200)
+        return Result.success<GetCourseServiceResponseDto>( responseCourse, 200 )
     }
 
     get name (): string
