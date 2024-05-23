@@ -64,7 +64,7 @@ export class SearchAllSwaggerResponseDto
                             "description": "primera seccion de este tremendo curso",
                             "videos": [],
                             "images": [],
-                            "paragraph": "En el corazón del frenesí moderno, el yoga emerge como un oasis de paz y armonía. Una práctica milenaria que invita a conectar con nuestro cuerpo, mente y espíritu, trascendiendo las limitaciones físicas y explorando las infinitas posibilidades que residen en nuestro interior.\n\nMás allá de simples posturas o ejercicios físicos, el yoga se presenta como un viaje de autodescubrimiento. Un camino que nos guía hacia la consciencia plena, permitiéndonos observar nuestros pensamientos y emociones sin juicio, abrazando la quietud y la serenidad que habitan en nuestro ser."
+                            "paragraph": "En el corazón del frenesí moderno, el yoga emerge como un oasis de paz y armonía. Una práctica milenaria que invita a conectar con nuestro cuerpo, mente y espíritu, trascendiendo las perPageaciones físicas y explorando las infinitas posibilidades que residen en nuestro interior.\n\nMás allá de simples posturas o ejercicios físicos, el yoga se presenta como un viaje de autodescubrimiento. Un camino que nos guía hacia la consciencia plena, permitiéndonos observar nuestros pensamientos y emociones sin juicio, abrazando la quietud y la serenidad que habitan en nuestro ser."
                         }
                     ],
                     "categoryId": "f8caeedb-6bb8-44bf-bdde-04a532bbf261",

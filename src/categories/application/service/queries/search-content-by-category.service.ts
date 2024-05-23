@@ -19,11 +19,11 @@ export class SearchContentByCategoryApplicationService implements IApplicationSe
     
     async execute(data: SearchContentByCategoryServiceEntryDto): Promise<Result<SearchContentByCategoryServiceResponseDto>> {
         const { categoryId, pagination } = data;
-        const { offset = 0, limit = 10 } = pagination;
+        const { page = 0, perPage = 10 } = pagination;
         
         let courses: Course[] = [];
         let blogs: Blog[] = [];
-        const resultCourses = await this.courseRepository.findCoursesByCategory(categoryId, { offset, limit });
+        const resultCourses = await this.courseRepository.findCoursesByCategory(categoryId, { page, perPage });
         if (!resultCourses.isSuccess()) {
             if (resultCourses.StatusCode != 404) {
                 return Result.fail<SearchContentByCategoryServiceResponseDto>(resultCourses.Error, resultCourses.StatusCode, resultCourses.Message);
@@ -31,7 +31,7 @@ export class SearchContentByCategoryApplicationService implements IApplicationSe
         } else {
             courses = resultCourses.Value;
         }
-        const resultBlogs = await this.blogRepository.findBlogsByCategory(categoryId, { offset, limit });
+        const resultBlogs = await this.blogRepository.findBlogsByCategory(categoryId, { page, perPage });
         if (!resultBlogs.isSuccess()) {
             if (resultBlogs.StatusCode != 404) {
                 return Result.fail<SearchContentByCategoryServiceResponseDto>(resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message);

@@ -56,7 +56,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressVideo>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -86,25 +86,24 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             const section = sectionResult.Value;
             
             //Fetch associated video progress' entities from section's videos
-            for (let video of section.Videos)
+            
+            let target = await this.getVideoProgressById(userId, section.Video.Id);
+            if (target.isSuccess()) //Progress found or created from scratch
             {
-                let target = await this.getVideoProgressById(userId, video.Id);
-                if (target.isSuccess()) //Progress found or created from scratch
-                {
-                    domainProgress.saveVideo(target.Value);
-                }
-                else //Some error found
-                {
-                    return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
-                }
+                domainProgress.saveVideo(target.Value);
             }
+            else //Some error found
+            {
+                return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
+            }
+        
 
             const progress = domainProgress;
             return Result.success<ProgressSection>( progress, 200 );
         }
         catch (error)
         {
-            return Result.fail<ProgressSection>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressSection>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -126,7 +125,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             }
             
             //Fetch associated course's sections
-            const sectionsResult = await this.ormCourseRepository.findCourseSections(courseId, {limit:100000, offset:0});
+            const sectionsResult = await this.ormCourseRepository.findCourseSections(courseId);
             if (!sectionsResult.isSuccess())
             {
                 return Result.fail<ProgressCourse>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
@@ -152,7 +151,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressCourse>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressCourse>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -167,7 +166,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressVideo>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -182,7 +181,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressSection>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressSection>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -197,7 +196,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch ( error )
         {
-            return Result.fail<ProgressCourse>(new Error(error.detail), error.code, error.detail);
+            return Result.fail<ProgressCourse>(new Error(error.message), error.code, error.message);
         }
     }
 
@@ -217,7 +216,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<number>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<number>( new Error(error.message), error.code, error.message );
         }
     }
 
@@ -227,8 +226,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         {
             const courses = await this.createQueryBuilder().select()
                                 .where('user_id = :target', {target: userId})
-                                .skip(pagination.offset)
-                                .take(pagination.limit)
+                                .skip(pagination.page)
+                                .take(pagination.perPage)
                                 .getMany();
             if (courses.length > 0)
             {
@@ -236,7 +235,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 for (let course of domainCourses)
                 {
                     //Fetch associated course's sections
-                    const sectionsResult = await this.ormCourseRepository.findCourseSections(course.CourseId, {limit:100000, offset:0});
+                    const sectionsResult = await this.ormCourseRepository.findCourseSections(course.CourseId);
                     if (!sectionsResult.isSuccess())
                     {
                         return Result.fail<ProgressCourse[]>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
@@ -262,7 +261,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressCourse[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<ProgressCourse[]>( new Error(error.message), error.code, error.message );
         }
     }
     
@@ -280,7 +279,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
 
             //Load all sections' progress
             let progressArray:Array<ProgressSection> = new Array<ProgressSection>();
-            let skipCount:number = pagination.offset;
+            let skipCount:number = pagination.page;
             for (let section of course.Sections)
             {
                 let progressResult:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
@@ -300,7 +299,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                         progressArray.push(progress);
                     }
                 }
-                if ( progressArray.length >= pagination.limit )
+                if ( progressArray.length >= pagination.perPage )
                 {
                     break;
                 }
@@ -315,7 +314,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
         catch (error)
         {
-            return Result.fail<ProgressSection[]>( new Error(error.detail), error.code, error.detail );
+            return Result.fail<ProgressSection[]>( new Error(error.message), error.code, error.message );
         }
     }
 }

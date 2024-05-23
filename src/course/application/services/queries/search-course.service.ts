@@ -20,8 +20,9 @@ export class SearchCourseApplicationService implements IApplicationService<Searc
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchCourseServiceEntryDto ): Promise<Result<Course[]>>
     {
-        const { offset = 0, limit = 10 } = data.pagination
-        return await this.courseRepository.findCoursesByName( data.name, { offset, limit } )
+        const { page = 0, perPage = 10 } = data.pagination
+        const result=  await this.courseRepository.findCoursesByName( data.name, { page, perPage } )
+        return result
     }
 
     get name (): string

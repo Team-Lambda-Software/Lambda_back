@@ -33,31 +33,55 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
 
         const course = resultCourse.Value
-        const {offset = 0, limit = 10} = data.sectionPagination
-        const resultSections = await this.courseRepository.findCourseSections( course.Id, {offset, limit})
+        const resultSections = await this.courseRepository.findCourseSections( course.Id )
         if ( !resultSections.isSuccess() )
         {
             return Result.fail<GetCourseServiceResponseDto>( resultSections.Error, resultSections.StatusCode, resultSections.Message )
         }
         course.changeSections( resultSections.Value )
 
-        const resultProgress = await this.progressRepository.getCourseProgressById( data.userId, data.courseId )
+        // let resultProgress = await this.progressRepository.getCourseProgressById( data.userId, data.courseId )
 
-        const courseProgress = resultProgress.Value
-        const completePercent = courseProgress.CompletionPercent
-        const resultCourseProgress = {progress: courseProgress, completionPercent: completePercent}
-        let sectionsProgress: {progress: ProgressSection, completionPercent: number}[] = []
+        // const courseProgress = resultProgress.Value
+        // const completePercent = courseProgress.CompletionPercent
+        // const resultCourseProgress = {progress: courseProgress, completionPercent: completePercent}
+        //let sectionsProgress: {progress: ProgressSection, completionPercent: number}[] = []
+        // for ( const section of course.Sections )
+        // {
+        //     const resultSectionProgress = await this.progressRepository.getSectionProgressById( data.userId, section.Id )
+        //     if ( resultSectionProgress.isSuccess() )
+        //     {
+        //         sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
+        //     }
+        // }
+        let responseCourse: GetCourseServiceResponseDto = {
+            title: course.Name,
+            description: course.Description,
+            category: course.CategoryId,
+            image: course.Image.Url,
+            trainer: {
+                id: course.Trainer.Id,
+                name: course.Trainer.FirstName + " " + course.Trainer.FirstLastName + " " + course.Trainer.SecondLastName
+            },
+            level: course.Level.toString(),
+            durationWeeks: course.WeeksDuration,
+            durationMinutes: course.MinutesDuration,
+            tags: course.Tags,
+            date: course.Date,
+            lessons: []
+        }
         for ( const section of course.Sections )
         {
-            const resultSectionProgress = await this.progressRepository.getSectionProgressById( data.userId, section.Id )
-            if ( resultSectionProgress.isSuccess() )
-            {
-                sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
-            }
+            responseCourse.lessons.push({
+                id: section.Id,
+                title: section.Name,
+                content: section.Paragraph,
+                video: section.Video ? section.Video.Url : null,
+                image: section.Image ? section.Image.Url : null
+            })
         }
-        
 
-        return Result.success<GetCourseServiceResponseDto>( {course, courseProgress:resultCourseProgress, sectionsProgress} , 200)
+        return Result.success<GetCourseServiceResponseDto>( responseCourse , 200)
     }
 
     get name (): string

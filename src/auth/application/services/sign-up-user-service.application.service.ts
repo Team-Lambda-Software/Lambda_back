@@ -6,7 +6,7 @@ import { User } from "src/user/domain/user";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IJwtGenerator } from "../interface/jwt-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
-import { EmailSender } from "src/common/Application/email-sender/email-sender.application";
+import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
 
 export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
     
@@ -14,14 +14,14 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
-    private readonly emailSender: EmailSender; 
+    private readonly emailSender: IEmailSender; 
 
     constructor(
         userRepository: IUserRepository,
         uuidGenerator: IdGenerator<string>,
         tokenGenerator: IJwtGenerator<string>,
         encryptor: IEncryptor,
-        emailSender: EmailSender
+        emailSender: IEmailSender
     ){
         this.userRepository = userRepository
         this.uuidGenerator = uuidGenerator
@@ -32,13 +32,8 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     
     async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail( signUpDto.email )
-        if ( findResult.isSuccess() ) {
-            return Result.fail(
-                new Error('Correo electrónico ya registrado'),
-                500,
-                'Correo electrónico ya registrado'
-            )
-        }
+        if ( findResult.isSuccess() ) 
+            return Result.fail( new Error('Correo electrónico ya registrado'), 500, 'Correo electrónico ya registrado')
 
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
         const userResult = await this.userRepository.saveUserAggregate(
@@ -52,15 +47,11 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 signUpDto.phone,
             )
         )
-        if ( !userResult.isSuccess() ) {
-            return Result.fail(
-                userResult.Error,
-                500,
-                'Error al registrar usuario'
-            )
-        }
+        if ( !userResult.isSuccess() ) 
+            return Result.fail( userResult.Error, 500, 'Error al registrar usuario' )
+        
         const token = this.tokenGenerator.generateJwt( userResult.Value.Id )  
-        this.emailSender.setVariable( signUpDto.firstName )
+        this.emailSender.setVariables( { firstname: signUpDto.firstName } )
         this.emailSender.sendEmail( signUpDto.email, signUpDto.firstName )
         const answer = {
             token: token,

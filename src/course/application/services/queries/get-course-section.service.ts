@@ -31,8 +31,8 @@ export class GetCourseSectionApplicationService implements IApplicationService<G
         }
 
         const section = resultSection.Value
-        const {offset = 0, limit = 10} = data.commentPagination
-        const resultComments = await this.courseRepository.findSectionComments( section.Id, {offset, limit})
+        const {page = 0, perPage = 10} = data.commentPagination
+        const resultComments = await this.courseRepository.findSectionComments( section.Id, {page, perPage})
         if ( !resultComments.isSuccess() )
         {
             return Result.fail<GetCourseSectionServiceResponseDto>( resultComments.Error, resultComments.StatusCode, resultComments.Message )
@@ -40,17 +40,15 @@ export class GetCourseSectionApplicationService implements IApplicationService<G
         
         const comments = resultComments.Value
 
-        const videosProgress: ProgressVideo[] = []
-        for ( const video of section.Videos )
+        let videoProgress: ProgressVideo = null
+        const resultVideoProgress = await this.progressRepository.getVideoProgressById( data.userId, section.Video.Id )
+        if ( resultVideoProgress.isSuccess() )
         {
-            const resultVideoProgress = await this.progressRepository.getVideoProgressById( data.userId, video.Id )
-            if ( resultVideoProgress.isSuccess() )
-            {
-                videosProgress.push( resultVideoProgress.Value )
-            }
+            videoProgress = resultVideoProgress.Value
         }
+        
 
-        return Result.success<GetCourseSectionServiceResponseDto>( {section, comments, videoProgress: videosProgress} , 200)
+        return Result.success<GetCourseSectionServiceResponseDto>( {section, comments, videoProgress: videoProgress} , 200)
     }
 
     get name (): string

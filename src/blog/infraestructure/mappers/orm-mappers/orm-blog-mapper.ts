@@ -24,8 +24,13 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
         if (persistence.images)
             for ( const image of persistence.images)
                 images.push (BlogImage.create(image.url, image.id))
+        
+        let tags: string[] = []
+        if (persistence.tags)
+            for ( const tag of persistence.tags )
+                tags.push(tag.name)
 
-        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, images, persistence.publication_date, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.category_id )
+        const blog: Blog = Blog.create( persistence.id, persistence.title, persistence.body, images, persistence.publication_date, await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), persistence.category_id, tags)
         return blog
     }
 

@@ -9,7 +9,7 @@ export class SearchCourseByTagsEntryDto{
     @IsArray()
     @IsString({each: true})
     @MinLength( 1, {each: true} )
-    @ArrayMinSize(1)
+    @ArrayMinSize(0)
     tags: string[]
     
 }

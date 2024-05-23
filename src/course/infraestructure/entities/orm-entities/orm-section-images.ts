@@ -14,10 +14,10 @@ export class OrmSectionImage
     //plantear esto como un many to many o un one to many? por ahora lo dejo como que una imagen solo puede estar en 1 seccion
     //en caso de colocar otro igual en otra seccion, se duplica la imagen en la base de datos(?
     @Column( { type: "uuid", nullable: true } ) section_id: string
-    @ManyToOne( () => OrmSection, { eager: true } ) @JoinColumn( { name: 'section_id' } ) section: OrmSection
+    @ManyToOne( () => OrmSection ) @JoinColumn( { name: 'section_id' } ) section: OrmSection
 
     @Column( { type: "uuid", nullable: true } ) course_id: string
-    @OneToOne( () => OrmCourse, { eager: true } ) @JoinColumn( { name: 'course_id' } ) course: OrmCourse
+    @OneToOne( () => OrmCourse ) @JoinColumn( { name: 'course_id' } ) course: OrmCourse
 
     //TODO buscar la seccion dado el id para asignarselo a la entity
     //TODO buscar el curso dado el id para asignarselo a la entity

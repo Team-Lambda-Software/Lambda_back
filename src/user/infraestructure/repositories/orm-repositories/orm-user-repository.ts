@@ -51,7 +51,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
             return Result.success<User>( user, 200 )
         } catch ( error )
         {
-            return Result.fail<User>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<User>( new Error( error.message ), error.code, error.message )
         }
     }
 

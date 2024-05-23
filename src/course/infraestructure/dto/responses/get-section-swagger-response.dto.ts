@@ -13,14 +13,14 @@ export class GetSectionSwaggerResponseDto
             id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
             name: 'Introduccion a yoga',
             description: 'En esta seccion aprenderas lo basico de yoga',
-            videos: [ {
+            video: {
                 id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
                 url: 'https://www.google.com'
-            } ],
-            images: [ {
+            },
+            image:  {
                 id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
                 url: 'https://www.google.com'
-            } ],
+            } ,
             paragraph: 'En la postura del sol naciente vas a poder alcanzar',
         },
     } )

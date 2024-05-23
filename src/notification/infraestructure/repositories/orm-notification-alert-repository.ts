@@ -1,10 +1,9 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
-import { NotificationAddress } from "src/notification/domain/entities/notification-address"
-import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface"
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert"
 import { NotificationAlert } from "src/notification/domain/entities/notification-alert"
 import { OrmNotificationAlertMapper } from "../mappers/orm-mappers/orm-notification-alert-mapper"
+import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface"
 
 export class OrmNotificationAlertRepository extends Repository<OrmNotificationAlert> implements INotificationAlertRepository {
 
@@ -25,7 +24,6 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
             return Result.success<NotificationAlert[]>(list_address,200);
         }
         return Result.fail<NotificationAlert[]>( new Error( 'Non-existing user' ), 404, 'Non-existing user')
-    
     }
     
     async saveNotificationAlert(noti_alert: NotificationAlert): Promise<Result<NotificationAlert>> {
@@ -34,10 +32,8 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
             await this.save( ormNoti )
             return Result.success<NotificationAlert>( noti_alert, 200 )
         } catch ( error ) {
-            console.log(error)
-            return Result.fail<NotificationAlert>( new Error( error.detail ), error.code, error.detail )
+            return Result.fail<NotificationAlert>( new Error( error.message ), error.code, error.message )
         }
-    
     }
 
 }

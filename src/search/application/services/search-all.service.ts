@@ -26,15 +26,15 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchAllServiceEntryDto ): Promise<Result<SearchAllServiceResponseDto>>
     {
-        const { offset = 0, limit = 10 } = data.pagination
-        let resultCourses = await this.courseRepository.findCoursesByName( data.name, { offset, limit } )
+        const { page = 0, perPage = 10 } = data.pagination
+        let resultCourses = await this.courseRepository.findCoursesByName( data.name, { page, perPage } )
         if ( !resultCourses.isSuccess() )
         {
             if ( resultCourses.StatusCode != 404 )
                 return Result.fail<SearchAllServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message )
             resultCourses = Result.success<Course[]>( [], 200 )
         }
-        let resultBlogs = await this.blogRepository.findBlogsByTitle( data.name, { offset, limit } )
+        let resultBlogs = await this.blogRepository.findBlogsByTitle( data.name, { page, perPage } )
         if ( !resultBlogs.isSuccess() ){
             if ( resultBlogs.StatusCode != 404 )
                 return Result.fail<SearchAllServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )

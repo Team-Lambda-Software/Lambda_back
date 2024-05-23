@@ -22,13 +22,9 @@ export class UpdatePasswordUserApplicationService implements IApplicationService
             updateDto.email,
             await this.encryptor.hashPassword( updateDto.password )
         )
-        if ( !result.isSuccess() ) {
-            return Result.fail(
-                new Error('Ocurrio un error al cambiar la contraseña'),
-                500,
-                'Ocurrio un error al cambiar la contraseña'
-            )
-        }
+        if ( !result.isSuccess() ) 
+            return Result.fail( new Error('Ocurrio un error al cambiar la contraseña'), 500, 'Ocurrio un error al cambiar la contraseña' )
+        
         const answer = {
             email: updateDto.email,
             newPassword: updateDto.password
