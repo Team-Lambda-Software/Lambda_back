@@ -33,6 +33,7 @@ import { AuditingDecorator } from "src/common/Application/application-services/d
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
+import { Result } from "src/common/Application/result-handler/Result"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -115,6 +116,11 @@ export class BlogController
                     this.idGenerator
                 )
             )
+        for ( const image of images ){
+            if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
+                return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
+            }
+        }
         const result = await service.execute( { images: images, ...createBlogParams, userId: user.Id } )
         return result.Value
     }

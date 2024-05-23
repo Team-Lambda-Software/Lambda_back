@@ -40,6 +40,7 @@ import { AddSectionToCourseEntryDto } from "../dto/entry/add-section-to-course-e
 import { AzureFileUploader } from '../../../common/Infraestructure/azure-file-uploader/azure-file-uploader'
 import { FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
+import { Result } from "src/common/Application/result-handler/Result"
 
 
 @ApiTags( 'Course' )
@@ -136,6 +137,9 @@ export class CourseController
                     this.idGenerator
                 )
             )
+        if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
+            return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
+        }
         const result = await service.execute( { image: image, ...createCourseServiceEntryDto, userId: user.Id } )
         return result.Value
     }
@@ -180,7 +184,17 @@ export class CourseController
                     this.idGenerator
                 )
             )
-        const result = await service.execute( { file: file ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        let fileType = null
+        if ( file && !addSectionToCourseEntryDto.paragraph ){
+            if ( ['png','jpg','jpeg'].includes(file.originalname.split('.').pop())){
+                fileType = 'IMAGE'
+            } else if ( ['mp4'].includes(file.originalname.split('.').pop())){
+                fileType = 'VIDEO'
+            } else {
+                return Result.fail( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
+            }
+        }
+        const result = await service.execute( {fileType ,file: file ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
         return result.Value
     }
 
