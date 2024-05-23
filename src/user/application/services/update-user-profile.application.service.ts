@@ -4,7 +4,7 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { User } from "src/user/domain/user";
-import { userUpdateEntryDtoService } from "src/user/dto/user-update-entry-Service";
+import { userUpdateEntryDtoService } from "src/user/infraestructure/dto/entry/user-update-entry-Service";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<userUpdateEntryDtoService,User>{
     

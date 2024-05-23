@@ -3,7 +3,7 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 import { Trainer } from "src/trainer/domain/trainer";
-import { FollowUnfollowEntryDtoService } from "src/user/dto/follow-unfollow-entry-Service";
+import { FollowUnfollowEntryDtoService } from "src/user/dto/entry/follow-unfollow-entry-Service";
 
 export class FollowTrainerUserApplicationService implements IApplicationService<FollowUnfollowEntryDtoService,Trainer>{
     
