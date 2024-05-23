@@ -30,6 +30,8 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { INotificationAddressRepository } from "src/notification/domain/repositories/notification-address-repository.interface";
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
+import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
+import { INotifier } from "src/common/Application/notifier/notifier.application";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -41,7 +43,8 @@ export class NotificationController {
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly logger: Logger
-    
+    private readonly pushNotifier: INotifier
+
     constructor(
         @Inject('DataSource') private readonly dataSource: DataSource,
     ) {
@@ -50,29 +53,13 @@ export class NotificationController {
         this.uuidGenerator = new UuidGenerator()
         this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
         this.notiAlertRepository = new OrmNotificationAlertRepository( dataSource )
+        this.pushNotifier = FirebaseNotifier.getInstance()
         this.courseRepository = new OrmCourseRepository( 
             new OrmCourseMapper( new OrmSectionMapper(), new OrmTrainerMapper() ),
             new OrmSectionMapper(),
             new OrmSectionCommentMapper(),
             dataSource
         )
-        
-        const credentials:object = {
-            type: process.env.FB_TYPE,
-            project_id: process.env.FB_PROJECT_ID,
-            private_key_id: process.env.FB_PRIVATE_KEY_ID,
-            private_key: process.env.FB_PRIVATE_KEY.replace(/\\n/gm, "\n"),            
-            client_email: process.env.FB_CLIENT_EMAIL,
-            client_id: process.env.FB_CLIENT_ID,
-            auth_uri: process.env.FB_AUTH_URI,
-            token_uri: process.env.FB_TOKEN_URI,
-            auth_provider_x509_cert_url: process.env.FB_AUTH_PROVIDER,
-            client_x509_cert_url: process.env.FB_CLIENT,
-            universe_domain: process.env.FB_DOMAIN
-        }
-        
-        admin.initializeApp({ credential: admin.credential.cert(credentials) })
-
     }
 
     // AUTH GET
@@ -87,7 +74,6 @@ export class NotificationController {
     // many
     // Page number, PerPage number, Query string
 
-
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)
     @Get('goodday')  
     async goodDayNotification() {
@@ -96,7 +82,8 @@ export class NotificationController {
                 new NotifyGoodDayApplicationService(
                     this.notiAlertRepository,
                     this.notiAddressRepository,
-                    this.uuidGenerator
+                    this.uuidGenerator,
+                    this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
             )    
@@ -113,7 +100,8 @@ export class NotificationController {
                     this.notiAlertRepository,
                     this.notiAddressRepository,
                     this.courseRepository,
-                    this.uuidGenerator
+                    this.uuidGenerator,
+                    this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
             )    
@@ -136,7 +124,8 @@ export class NotificationController {
                     this.userRepository,
                     this.notiAlertRepository,
                     this.notiAddressRepository,
-                    this.uuidGenerator
+                    this.uuidGenerator,
+                    this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
             )    
