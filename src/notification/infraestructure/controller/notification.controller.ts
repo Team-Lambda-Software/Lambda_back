@@ -1,7 +1,6 @@
-import { Body, Controller, Inject, Logger, UseGuards } from "@nestjs/common";
+import { Body, Controller, Inject, Logger, Query, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
-import * as admin from 'firebase-admin';
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { OrmNotificationAddressRepository } from "../repositories/orm-notification-repository";
 import { DataSource } from "typeorm";
@@ -14,11 +13,9 @@ import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { GetNotificationsUserDto } from "../dto/entry/get-notifications-user.infraestructure.dto";
 import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { GetNotificationsUserByEmailApplicationService } from "src/notification/application/service/get-notifications-user-by-email.service";
 import { SaveTokenAddressApplicationService } from "src/notification/application/service/save-token-address-services.service";
 import { NotifyGoodDayApplicationService } from "src/notification/application/service/notify-good-day-services.service";
 import { NotifyRecommendCourseApplicationService } from "src/notification/application/service/notify-recommend-course-services.service";
@@ -32,6 +29,7 @@ import { INotificationAddressRepository } from "src/notification/domain/reposito
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -62,17 +60,23 @@ export class NotificationController {
         )
     }
 
-    // AUTH GET
-    // count/not-readed
-    // not-entry
-
-    // AUTH GET
-    // one/:id
-    // not-entry
+    @Get('count/not-readed')
+    @UseGuards(JwtAuthGuard)
+    async getUserNotificationsNotReaded( @GetUser() user ) {
     
-    // AUTH GET
-    // many
-    // Page number, PerPage number, Query string
+    }
+    
+    @Get('one/:id')
+    @UseGuards(JwtAuthGuard)
+    async getNotificationById( @GetUser() user ) {
+    
+    }
+    
+    @Get('many')
+    @UseGuards(JwtAuthGuard)
+    async getNotificationsByUser( @Query() notReadedDto, @GetUser() user ) {
+    
+    }
 
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)
     @Get('goodday')  
@@ -130,27 +134,6 @@ export class NotificationController {
                 new NativeLogger(this.logger)
             )    
         )
-        return (await service.execute( data )).Value
-    }
-
-    @Post('getnotificationsuser')
-    //@UseGuards(JwtAuthGuard)
-    @ApiOkResponse({ 
-        description: 'Obtener notificaciones recibidas por un usuario', 
-        type: GetNotificationsUserSwaggerResponseDto 
-    })
-    ///@ApiBearerAuth()
-    async getNotificationsUser(@Body() getNotiDto: GetNotificationsUserDto) {
-        const data = { userId: 'none', ...getNotiDto }
-        const service = new ExceptionDecorator( 
-            new LoggingDecorator(
-                new GetNotificationsUserByEmailApplicationService(
-                    this.userRepository,
-                    this.notiAlertRepository
-                ),
-                new NativeLogger(this.logger)
-            )    
-        )    
         return (await service.execute( data )).Value
     }
 

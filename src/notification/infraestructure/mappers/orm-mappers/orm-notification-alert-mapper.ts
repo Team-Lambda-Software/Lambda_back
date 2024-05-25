@@ -5,10 +5,10 @@ import { OrmNotificationAlert } from "../../entities/orm-entities/orm-notificati
 export class OrmNotificationAlertMapper implements IMapper<NotificationAlert, OrmNotificationAlert> {
     
     async fromDomainToPersistence ( domain: NotificationAlert ): Promise<OrmNotificationAlert> {
-        return OrmNotificationAlert.create( domain.Id, domain.UserId, domain.Title, domain.Message )
+        return OrmNotificationAlert.create( domain.Id, domain.UserId, domain.Title, domain.Body, domain.UserReaded, domain.Date )
     }
     async fromPersistenceToDomain ( persistence: OrmNotificationAlert ): Promise<NotificationAlert> {
-        return NotificationAlert.create( persistence.id, persistence.user_id, persistence.title, persistence.message )
+        return NotificationAlert.create( persistence.id, persistence.user_id, persistence.title, persistence.body, persistence.userReaded, persistence.date )
     }
 
 }

@@ -4,7 +4,7 @@ import { GetNotificationsUserEntryApplicationDto } from "../dto/get-notification
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
 
-export class GetNotificationsUserByEmailApplicationService 
+export class GetNotificationsByUserApplicationService 
     implements IApplicationService<GetNotificationsUserEntryApplicationDto, any> {
     
     private readonly userRepository: IUserRepository
@@ -23,14 +23,14 @@ export class GetNotificationsUserByEmailApplicationService
         if ( !findResult.isSuccess() ) 
             return Result.fail( new Error('Email no registrado'), 500, 'Email no registrado' )
         
-        const alertResult = await this.notiAlertRepository.findAllByIdUser(findResult.Value.Id)
+        /*const alertResult = await this.notiAlertRepository.findAllByIdUser(findResult.Value.Id)
         if ( !alertResult.isSuccess() ) 
             return Result.fail( new Error('Sin alertas registradas'), 500, 'Sin alertas registradas' )
         const answer = {
             email: getDto.email,
             notifications: alertResult.Value
-        }           
-        return Result.success(answer, 200)
+        }           */
+        return Result.success('kiwi', 200)
     }
    
     get name(): string { return this.constructor.name }

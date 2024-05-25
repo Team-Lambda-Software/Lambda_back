@@ -1,7 +1,10 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { NotificationAlert } from "../entities/notification-alert"
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 
 export interface INotificationAlertRepository {
-    findAllByIdUser ( userId: string ): Promise<Result<NotificationAlert[]>>
+    findManyNotificationsByIdUser ( userId: string, pagDto: PaginationDto ): Promise<Result<NotificationAlert[]>>
     saveNotificationAlert ( noti_alert: NotificationAlert ): Promise<Result<NotificationAlert>>
+    findNotificationById(user_id: string, comment_id: string): Promise<Result<NotificationAlert>>
+    findAllByIdUserNotReaded(user_id: string): Promise<Result<NotificationAlert[]>>
 }

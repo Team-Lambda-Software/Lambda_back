@@ -30,12 +30,12 @@ export class FirebaseNotifier implements INotifier {
     }
 
     async sendNotification(message: PushNotificationDto): Promise<Result<string>> {
-        let err = false
-        try { const res = await admin.messaging().send(message)
-        } catch(e) { err = true } 
-        if ( !err ) return Result.success<string>('mensaje enviado', 200)
-        return Result.fail<string>(new Error('error enviando token'), 500, 'error enviando push')
-        
+        try { 
+            const res = await admin.messaging().send(message)
+            return Result.success<string>('push_sended', 200)
+        } catch(e) { 
+            return Result.fail<string>(new Error('error enviando token'), 500, 'error enviando push')
+        } 
     }
 
 }
