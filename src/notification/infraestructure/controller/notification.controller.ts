@@ -21,7 +21,6 @@ import { NotifyGoodDayApplicationService } from "src/notification/application/se
 import { NotifyRecommendCourseApplicationService } from "src/notification/application/service/notify-recommend-course-services.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { SaveTokenSwaggerResponseDto } from "../dto/response/save-token-address-swagger-response.dto";
-import { GetNotificationsUserSwaggerResponseDto } from "../dto/response/get-notifications-user-swagger-response.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -30,6 +29,12 @@ import { INotificationAlertRepository } from "src/notification/domain/repositori
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
+import { GetNotificationsUserDto } from "../dto/entry/get-notifications-by-user.entry.dto";
+import { GetManyNotificationByUserApplicationService } from "src/notification/application/service/get-notifications-by-user.service";
+import { GetNumberNotificationNotSeenByUserApplicationService } from "src/notification/application/service/get-notifications-count-not-readed.service";
+import { GetNotificationsUserSwaggerResponse } from "../dto/response/get-notifications-by-user.response.dto";
+import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not-readed.response.dto";
+import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -62,20 +67,47 @@ export class NotificationController {
 
     @Get('count/not-readed')
     @UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ 
+        description: 'Obtener la cantidad de notificaciones no vistas por el usuario', 
+        type: GetNotReadedNotificationSwaggerResponse
+    })
     async getUserNotificationsNotReaded( @GetUser() user ) {
-    
+        const service=new GetNumberNotificationNotSeenByUserApplicationService(
+            this.notiAlertRepository
+        )
+        return (await service.execute(user.userId)).Value    
     }
     
     @Get('one/:id')
     @UseGuards(JwtAuthGuard)
-    async getNotificationById( @GetUser() user ) {
-    
+    @ApiOkResponse({ 
+        description: 'Obtener la notificacion dada el id de la notificacion', 
+        type: GetNotReadedNotificationSwaggerResponse
+    })
+    async getNotificationById( @Query() getNotification:GetNotificationsUserDto,  @GetUser() user ) {
+        const service=new GetManyNotificationByUserApplicationService(
+            this.notiAlertRepository
+        )
+        let dataentry={...getNotification,
+            userId:user.userId
+        }
+        return (await service.execute(dataentry)).Value   
     }
     
     @Get('many')
+    @ApiOkResponse({ 
+        description: 'Obtener notificaciones de un usuario', 
+        type: GetNotificationsUserSwaggerResponse
+    })
     @UseGuards(JwtAuthGuard)
-    async getNotificationsByUser( @Query() notReadedDto, @GetUser() user ) {
-    
+    async getNotificationsByUser( @Query() getNotifications:GetNotificationsUserDto, @GetUser() user ) {
+        const service=new GetManyNotificationByUserApplicationService(
+            this.notiAlertRepository,
+        )
+        let dataentry={...getNotifications,
+            userId:user.userId
+        }
+        return (await service.execute(dataentry)).Value    
     }
 
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)
