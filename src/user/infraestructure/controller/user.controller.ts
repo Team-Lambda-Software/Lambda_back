@@ -3,23 +3,23 @@ import { Body, Controller, Delete, Get, Inject, Logger, Param, Patch, Post, Quer
 import { OrmUserRepository } from "../repositories/orm-repositories/orm-user-repository"
 import { DataSource} from "typeorm"
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from "src/user/application/services/get-user-profile.application.service"
+import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service"; 
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
-import { userUpdateEntryDtoService } from "src/user/infraestructure/dto/entry/user-update-entry-Service";
-import { UpdateUserProfileAplicationService } from "src/user/application/services/update-user-profile.application.service";
+import { userUpdateEntryInfraestructureDto } from "../dto/entry/user-update-entry-infraestructure"; 
+import { UpdateUserProfileAplicationService } from "src/user/application/services/command/update-user-profile.application.service";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { User } from "src/user/domain/user";
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
-import { FollowTrainerUserApplicationService } from "src/user/application/services/follow-trainer-user.application.service";
-import { UnfollowTrainerUserApplicationService } from "src/user/application/services/unfollow-trainer-user.application.service";
+import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"; 
+import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
-import { FolloUnfollowSwaggerResponseDto } from "src/user/dto/response/follow-unfollow-entry-swagger-response.dto";
-import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto"
+import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto"; 
+import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
@@ -99,7 +99,7 @@ export class UserController {
         description: 'Modificar dato/s de registro de un usuario, dado el id del usuario',
         type: UpdateUserProfileSwaggerResponseDto
     })
-    async updateUser(@Body() updateEntryDTO: userUpdateEntryDtoService){
+    async updateUser(@Body() updateEntryDTO: userUpdateEntryInfraestructureDto){
         const userUpdateDto = {...updateEntryDTO};
 
         const updateUserProfileService = new ExceptionDecorator(
@@ -116,7 +116,7 @@ export class UserController {
         }
 
         const Respuesta: UpdateUserProfileSwaggerResponseDto = {
-            Id: resultUpdate.Value.Id
+            Id: resultUpdate.Value.userId
         }
 
         return Respuesta

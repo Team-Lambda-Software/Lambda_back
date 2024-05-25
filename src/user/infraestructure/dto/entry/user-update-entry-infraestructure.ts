@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 
-export class userUpdateEntryDtoService implements ApplicationServiceEntryDto{
+export class userUpdateEntryInfraestructureDto implements ApplicationServiceEntryDto{
     
     @ApiProperty({
         required: true,
