@@ -5,7 +5,7 @@ import { INotificationAlertRepository } from "src/notification/domain/repositori
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 import { GetNotificationUserEntryAplicationDto } from "../dto/get-notification-by-notification-id.aplication"
 
-export class GetManyNotificationByUserApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
+export class GetNotificationByIdApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
     private readonly notiAlertRepository: INotificationAlertRepository
 
     constructor(

@@ -1,6 +1,6 @@
 import { IsNumber, IsString } from "class-validator"
 
-export class GetNotificationUserDto {
+export class GetNotificationByIdDto {
     @IsString()
     notificationId: string
 }

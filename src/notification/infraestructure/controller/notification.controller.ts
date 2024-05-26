@@ -34,6 +34,8 @@ import { GetManyNotificationByUserApplicationService } from "src/notification/ap
 import { GetNumberNotificationNotSeenByUserApplicationService } from "src/notification/application/service/get-notifications-count-not-readed.service";
 import { GetNotificationsUserSwaggerResponse } from "../dto/response/get-notifications-by-user.response.dto";
 import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not-readed.response.dto";
+import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
+import { GetNotificationByIdDto } from "../dto/entry/get-notification-by-notification-id.entry";
 import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
 
 @ApiTags('Notification')
@@ -82,13 +84,14 @@ export class NotificationController {
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ 
         description: 'Obtener la notificacion dada el id de la notificacion', 
-        type: GetNotReadedNotificationSwaggerResponse
+        type: GetNotificationByNotificationIdSwaggerResponse
     })
-    async getNotificationById( @Query() getNotification:GetNotificationsUserDto,  @GetUser() user ) {
-        const service=new GetManyNotificationByUserApplicationService(
+    async getNotificationById( @Query() getNotification:GetNotificationByIdDto,  @GetUser() user ) {
+        const service=new GetNotificationByIdApplicationService(
             this.notiAlertRepository
         )
-        let dataentry={...getNotification,
+        let dataentry={
+            ...getNotification,
             userId:user.userId
         }
         return (await service.execute(dataentry)).Value   

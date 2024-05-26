@@ -31,8 +31,6 @@ export class OrmSection
     @OneToMany(()=> OrmProgressSection, progressSection => progressSection.section_id)
     progress: OrmProgressSection[]
 
-    
-
     //TODO buscar el curso dado el id para asignarselo a la entity
     static create ( id: string, name: string, description: string, text?: string): OrmSection
     {
