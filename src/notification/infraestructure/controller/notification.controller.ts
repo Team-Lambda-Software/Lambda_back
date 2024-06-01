@@ -32,6 +32,7 @@ import { INotificationAddressRepository } from "src/notification/domain/reposito
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -86,7 +87,8 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()
         )
         return (await service.execute( { userId: 'none' } )).Value    
     }
@@ -104,7 +106,8 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()    
         )
         return (await service.execute( { userId: 'none' } )).Value
     }
@@ -128,7 +131,8 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()   
         )
         return (await service.execute( data )).Value
     }
@@ -149,7 +153,8 @@ export class NotificationController {
                     this.notiAlertRepository
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()    
         )    
         return (await service.execute( data )).Value
     }

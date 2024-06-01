@@ -4,10 +4,11 @@ import {
     InternalServerErrorException,
     ForbiddenException,
   } from '@nestjs/common';
+import { IExceptionHandler } from 'src/common/exception-handler/exception-handler.interface'
   
-  export class HttpExceptionHandler {
+  export class HttpExceptionHandler implements IExceptionHandler {
   
-    static HandleException(status: number, msg: string, error?: any) {
+    HandleException(status: number, msg: string, error?: any) {
       switch (status) {
         case 400:
           return this.BadRequest(msg, error);
@@ -22,19 +23,19 @@ import {
       }
     }
   
-    private static BadRequest(msg: string, error?: any): void {
+    private BadRequest(msg: string, error?: any): void {
       throw new BadRequestException(msg, error);
     }
   
-    private static NotFound(msg: string, error?: any): void {
+    private NotFound(msg: string, error?: any): void {
       throw new NotFoundException(msg, error);
     }
   
-    public static Forbidden(msg: string, error?: any): void {
+    public Forbidden(msg: string, error?: any): void {
       throw new ForbiddenException(msg, error);
     }
   
-    private static InternalServerError(msg: string, error?: any): void {
+    private InternalServerError(msg: string, error?: any): void {
       throw new InternalServerErrorException(msg, error);
     }
   }
