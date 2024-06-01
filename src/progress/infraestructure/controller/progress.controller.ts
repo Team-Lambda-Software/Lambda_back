@@ -30,6 +30,7 @@ import { SaveCourseProgressSwaggerResponseDto } from "../dto/response/save-cours
 import { SaveCourseProgressEntryDto } from "../dto/entry/save-course-progress-entry.dto";
 import { SaveCourseProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-course-entry.dto";
 import { SaveCourseProgressApplicationService } from "src/progress/application/services/commands/save-progress-course.application.service";
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags('Progress')
 @Controller('Progress')
@@ -70,7 +71,8 @@ export class ProgressController {
             new LoggingDecorator(
                 new SaveVideoProgressApplicationService(this.progressRepository),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const updateResult = await saveVideoProgressService.execute(saveVideoProgressDto);
@@ -93,7 +95,8 @@ export class ProgressController {
             new LoggingDecorator(
                 new SaveSectionProgressApplicationService(this.progressRepository, saveVideoProgressService),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const updateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
@@ -117,7 +120,8 @@ export class ProgressController {
             new LoggingDecorator(
                 new SaveCourseProgressApplicationService(this.progressRepository, saveSectionProgressService),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const updateResult = await saveCourseProgressService.execute(saveCourseProgressDto);

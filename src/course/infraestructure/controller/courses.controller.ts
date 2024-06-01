@@ -41,6 +41,7 @@ import { AzureFileUploader } from '../../../common/Infraestructure/azure-file-up
 import { FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 import { Result } from "src/common/Application/result-handler/Result"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 
 @ApiTags( 'Course' )
@@ -135,7 +136,8 @@ export class CourseController
                     ),
                     this.auditingRepository,
                     this.idGenerator
-                )
+                ),
+                new HttpExceptionHandler()
             )
         if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
             return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
@@ -182,7 +184,8 @@ export class CourseController
                     ),
                     this.auditingRepository,
                     this.idGenerator
-                )
+                ),
+                new HttpExceptionHandler()
             )
         let fileType = null
         if ( file && !addSectionToCourseEntryDto.paragraph ){
@@ -214,7 +217,8 @@ export class CourseController
                         this.trainerRepository
                     ),
                     new NativeLogger( this.logger )
-                )
+                ),
+                new HttpExceptionHandler()
             )
         const result = await service.execute( { courseId: id, userId: user.Id } )
         return result.Value
@@ -243,7 +247,8 @@ export class CourseController
                                 this.trainerRepository
                             ),
                             new NativeLogger( this.logger )
-                        )
+                        ),
+                        new HttpExceptionHandler()
                     )
                 const result = await service.execute( searchCourseServiceEntry )
 
@@ -259,7 +264,8 @@ export class CourseController
                                 this.trainerRepository
                             ),
                             new NativeLogger( this.logger )
-                        )
+                        ),
+                        new HttpExceptionHandler()
                     )
                 const result = await service.execute( searchCourseServiceEntry )
 
@@ -282,7 +288,8 @@ export class CourseController
                             this.trainerRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( searchCourseServiceEntry )
 
@@ -298,7 +305,8 @@ export class CourseController
                             this.trainerRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( searchCourseServiceEntry )
 
