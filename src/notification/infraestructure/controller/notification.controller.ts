@@ -36,6 +36,7 @@ import { GetNotificationsUserSwaggerResponse } from "../dto/response/get-notific
 import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not-readed.response.dto";
 import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
 import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -121,7 +122,8 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()
         )
         return (await service.execute( { userId: 'none' } )).Value    
     }
@@ -139,7 +141,8 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()    
         )
         return (await service.execute( { userId: 'none' } )).Value
     }
@@ -163,9 +166,9 @@ export class NotificationController {
                     this.pushNotifier
                 ),
                 new NativeLogger(this.logger)
-            )    
+            ),
+            new HttpExceptionHandler()   
         )
         return (await service.execute( data )).Value
     }
-
 }

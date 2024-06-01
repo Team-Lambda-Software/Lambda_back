@@ -36,6 +36,7 @@ import { ForgetPasswordEntryInfraDto } from "../dto/entry/forget-password-entry.
 import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swagger-response.dto";
 import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
 import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -84,7 +85,8 @@ export class AuthController {
                     this.encryptor
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         return (await logInUserService.execute(data)).Value
     }
@@ -104,7 +106,8 @@ export class AuthController {
                     new WelcomeSender()
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         return (await signUpApplicationService.execute(data)).Value
     }
@@ -121,7 +124,8 @@ export class AuthController {
                     new SecretCodeGenerator(),
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
         if ( result.isSuccess() ) {
@@ -144,7 +148,8 @@ export class AuthController {
                     this.encryptor
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         return (await changePasswordApplicationService.execute(data)).Value
     }

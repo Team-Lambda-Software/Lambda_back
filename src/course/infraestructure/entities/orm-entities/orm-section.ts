@@ -32,13 +32,14 @@ export class OrmSection
     progress: OrmProgressSection[]
 
     //TODO buscar el curso dado el id para asignarselo a la entity
-    static create ( id: string, name: string, description: string, text?: string): OrmSection
+    static create ( id: string, name: string, description: string, duration:number ,text?: string): OrmSection
     {
         const section = new OrmSection()
         section.id = id
         section.name = name
         section.description = description
         section.text = text
+        section.duration = duration
         return section
     }
 
