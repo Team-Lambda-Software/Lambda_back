@@ -38,7 +38,7 @@ export class GetBlogCommentsApplicationService implements IApplicationService<Ge
             }
             response.push( {
                 id: comment.Id,
-                user: user.Value.FirstName + " " + user.Value.FirstLastName + " " + user.Value.SecondLastName,
+                user: user.Value.Name,
                 body: comment.Text,
                 date: comment.Date
             } )

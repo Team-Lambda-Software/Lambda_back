@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -7,7 +7,7 @@ import { OrmBlogRepository } from "../repositories/orm-repositories/orm-blog-rep
 import { OrmBlogMapper } from "../mappers/orm-mappers/orm-blog-mapper"
 import { OrmBlogCommentMapper } from "../mappers/orm-mappers/orm-blog-comment-mapper"
 import { GetBlogApplicationService } from "src/blog/application/services/queries/get-blog.service"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
 import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
@@ -25,6 +25,15 @@ import { SearchBlogsByTrainerServiceEntryDto } from "src/blog/application/dto/pa
 import { SearchMostPopularBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-most-popular-blogs-by-trainer.service"
 import { SearchRecentBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-recent-blogs-by-trainer.service"
 import { SearchBlogQueryParametersDto } from "../dto/queryParameters/search-blog-query-parameters.dto"
+import { CreateBlogEntryDto } from "../dto/entry/create-blog-entry.dto"
+import { CreateBlogApplicationService } from "src/blog/application/services/commands/create-blog-application.service"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
+import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
+import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
+import { Result } from "src/common/Application/result-handler/Result"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -35,6 +44,8 @@ export class BlogController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: AzureFileUploader
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
     {
@@ -56,7 +67,64 @@ export class BlogController
             new OrmTrainerMapper(),
             dataSource
         )
+        this.idGenerator = new UuidGenerator()
+        this.fileUploader = new AzureFileUploader()
     }
+
+
+    @Post( 'create' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Crea un blog', type: GetBlogSwaggerResponseDto } )
+    @ApiConsumes( 'multipart/form-data' )
+    @ApiBody( {
+        schema: {
+            type: 'object',
+            properties: {
+                trainerId: { type: 'integer' },
+                title: { type: 'string' },
+                body: { type: 'integer' },
+                categoryId: { type: 'string' },
+                tags: { type: 'array', items: { type: 'string' } },
+                images: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        format: "binary"
+                    }
+                }
+            },
+        },
+    } )
+    @UseInterceptors( FilesInterceptor( 'images', 5 ) )
+    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
+    {
+        const service =
+            new ExceptionDecorator(
+                new AuditingDecorator(
+                    new LoggingDecorator(
+                        new CreateBlogApplicationService(
+                            this.blogRepository,
+                            this.idGenerator,
+                            this.trainerRepository,
+                            this.categoryRepository,
+                            this.fileUploader
+                        ),
+                        new NativeLogger( this.logger )
+                    ),
+                    this.auditingRepository,
+                    this.idGenerator
+                )
+            )
+        for ( const image of images ){
+            if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
+                return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
+            }
+        }
+        const result = await service.execute( { images: images, ...createBlogParams, userId: user.Id } )
+        return result.Value
+    }
+
 
     @Get( 'one/:id' )
     @UseGuards( JwtAuthGuard )

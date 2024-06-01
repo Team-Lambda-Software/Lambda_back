@@ -32,7 +32,7 @@ import { INotificationAddressRepository } from "src/notification/domain/reposito
 import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
 
 @ApiTags('Notification')
-@Controller('notification')
+@Controller('notifications')
 export class NotificationController {
  
     private readonly notiAddressRepository: INotificationAddressRepository
@@ -61,7 +61,6 @@ export class NotificationController {
             type: process.env.FB_TYPE,
             project_id: process.env.FB_PROJECT_ID,
             private_key_id: process.env.FB_PRIVATE_KEY_ID,
-            //private_key: process.env.FB_PRIVATE_KEY,
             private_key: process.env.FB_PRIVATE_KEY.replace(/\\n/gm, "\n"),            
             client_email: process.env.FB_CLIENT_EMAIL,
             client_id: process.env.FB_CLIENT_ID,
@@ -75,7 +74,20 @@ export class NotificationController {
         admin.initializeApp({ credential: admin.credential.cert(credentials) })
 
     }
+
+    // AUTH GET
+    // count/not-readed
+    // not-entry
+
+    // AUTH GET
+    // one/:id
+    // not-entry
     
+    // AUTH GET
+    // many
+    // Page number, PerPage number, Query string
+
+
     //@Cron(CronExpression.EVERY_DAY_AT_10AM)
     @Get('goodday')  
     async goodDayNotification() {

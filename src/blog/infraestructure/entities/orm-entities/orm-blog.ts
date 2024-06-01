@@ -40,7 +40,7 @@ export class OrmBlog
     })
     tags: OrmBlogTags[]
 
-    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, images: OrmBlogImage[]): OrmBlog
+    static create ( id: string, title: string, body: string, publicationDate: Date, trainerId: string, categoryId: string, images: OrmBlogImage[], tags: OrmBlogTags[]): OrmBlog
     {
         const blog = new OrmBlog()
         blog.id = id
@@ -50,6 +50,7 @@ export class OrmBlog
         blog.trainer_id = trainerId
         blog.category_id = categoryId
         blog.images = images
+        blog.tags = tags
         return blog
     }
 

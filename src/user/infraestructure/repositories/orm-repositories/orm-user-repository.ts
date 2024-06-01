@@ -45,9 +45,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         try
         {
             const ormUser = await this.ormUserMapper.fromDomainToPersistence( user )
-
             await this.save( ormUser )
-
             return Result.success<User>( user, 200 )
         } catch ( error )
         {

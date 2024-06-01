@@ -9,6 +9,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 export interface IBlogRepository 
 {
 
+    saveBlogAggregate ( blog: Blog ): Promise<Result<Blog>>
     findBlogById ( id: string ): Promise<Result<Blog>>
     findBlogsByTitle ( title: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     findBlogsByCategory( categoryId: string, pagination: PaginationDto ): Promise<Result<Blog[]>>

@@ -32,11 +32,13 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
         const token = this.tokenGenerator.generateJwt( userResult.Id )   
         const answer = {
             token: token,
-            email: userResult.Email,
-            firstLastName: userResult.FirstLastName,
-            firstName: userResult.FirstName,
-            secondLastName: userResult.SecondLastName,
-            phone: userResult.Phone
+            type: userResult.Type,
+            user: {
+                id: userResult.Id,
+                email: userResult.Email,
+                name: userResult.Name,
+                phone: userResult.Phone,
+            }               
         }
         return Result.success(answer, 200)
     }

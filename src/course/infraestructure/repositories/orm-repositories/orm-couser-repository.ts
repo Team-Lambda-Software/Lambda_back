@@ -13,6 +13,8 @@ import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
+import { OrmCourseTags } from "../../entities/orm-entities/orm-course-tags"
 
 
 
@@ -29,6 +31,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     private readonly ormSectionRepository: Repository<OrmSection>
     private readonly ormImageRepository: Repository<OrmSectionImage>
     private readonly ormVideoRepository: Repository<OrmSectionVideo>
+    private readonly ormTagRepistory: Repository<OrmCourseTags>
     private readonly ormCommentRepository: Repository<OrmSectionComment>
     constructor ( ormCourseMapper: OrmCourseMapper, ormSectionMapper: OrmSectionMapper, ormSectionCommentMapper: OrmSectionCommentMapper, dataSource: DataSource )
     {
@@ -40,6 +43,35 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormImageRepository = dataSource.getRepository( OrmSectionImage )
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
+        this.ormTagRepistory = dataSource.getRepository( OrmCourseTags )
+
+    }
+    
+    async addSectionToCourse ( courseId: string, section: Section ): Promise<Result<Section>>
+    {
+        try
+        {
+            const newSection = await this.ormSectionMapper.fromDomainToPersistence( section )
+            newSection.course_id = courseId
+            const savedSection = await this.ormSectionRepository.save( newSection )
+            if ( section.Image )
+            {
+                const image = OrmSectionImage.create( section.Image.Id, section.Image.Url )
+                image.section_id = savedSection.id
+                await this.ormImageRepository.save( image )
+            }
+            if ( section.Video )
+            {
+                const video = OrmSectionVideo.create( section.Video.Id, section.Video.Url )
+                video.section_id = savedSection.id
+                await this.ormVideoRepository.save( video )
+            }
+            return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( savedSection ), 200 )
+            
+        } catch ( error )
+        {
+            return Result.fail<Section>( error, error.code, error.message )
+        }
     }
     async findCoursesByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
@@ -101,8 +133,10 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try {
             const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
+            await this.ormTagRepistory.save( course.Tags.map( tag => OrmCourseTags.create( tag ) ) )
+            await this.ormImageRepository.save( newCourse.image )
             const savedCourse = await this.save( newCourse )
-            return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( savedCourse ), 200 )
+            return Result.success<Course>( course, 200 )
         } catch ( error )
         {
             return Result.fail<Course>( new Error( error.message ), error.code, error.message )
