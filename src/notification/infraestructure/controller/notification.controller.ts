@@ -74,7 +74,15 @@ export class NotificationController {
         type: GetNotReadedNotificationSwaggerResponse
     })
     async getUserNotificationsNotReaded( @GetUser() user ) {
-        const service = new GetNumberNotificationNotSeenByUserApplicationService( this.notiAlertRepository )
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new GetNumberNotificationNotSeenByUserApplicationService(
+                    this.notiAlertRepository
+                ),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()
+        )
         let entry = { userId: user.userId }
         return (await service.execute(entry)).Value    
     }
@@ -86,11 +94,16 @@ export class NotificationController {
         type: GetNotificationByNotificationIdSwaggerResponse
     })
     async getNotificationById( @Param('id', ParseUUIDPipe) id: string,  @GetUser() user ) {
-        const service = new GetNotificationByIdApplicationService( this.notiAlertRepository )
-        let dataentry = {
-            notificationId: id,
-            userId: user.userId
-        }
+        let dataentry = { notificationId: id, userId: user.userId }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new GetNotificationByIdApplicationService(
+                    this.notiAlertRepository
+                ),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()
+        )
         return (await service.execute(dataentry)).Value   
     }
     
@@ -101,12 +114,16 @@ export class NotificationController {
     })
     @UseGuards(JwtAuthGuard)
     async getNotificationsByUser( @Query() getNotifications:GetNotificationsUserDto, @GetUser() user ) {
-        const service=new GetManyNotificationByUserApplicationService(
-            this.notiAlertRepository,
+        let dataentry={ ...getNotifications, userId:user.userId }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new GetManyNotificationByUserApplicationService(
+                    this.notiAlertRepository
+                ),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()
         )
-        let dataentry={...getNotifications,
-            userId:user.userId
-        }
         return (await service.execute(dataentry)).Value    
     }
 
