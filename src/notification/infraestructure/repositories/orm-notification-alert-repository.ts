@@ -29,8 +29,8 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
         return Result.fail<NotificationAlert[]>( new Error( 'Non-existing user' ), 404, 'Non-existing user')    
     }
    
-    async findNotificationById(user_id: string, comment_id: string): Promise<Result<NotificationAlert>> {
-        const OrmAlerts = await this.findOneBy( { user_id: user_id, id: comment_id } )
+    async findNotificationById(user_id: string, notification_id: string): Promise<Result<NotificationAlert>> {
+        const OrmAlerts = await this.findOneBy( { user_id: user_id, id: notification_id } )
         if ( OrmAlerts ) {
             const notiDomain = await this.ormNotificationAlertMapper.fromPersistenceToDomain( OrmAlerts )
             return Result.success<NotificationAlert>(notiDomain, 200);

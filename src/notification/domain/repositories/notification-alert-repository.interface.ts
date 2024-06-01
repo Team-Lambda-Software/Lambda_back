@@ -5,6 +5,6 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 export interface INotificationAlertRepository {
     findManyNotificationsByIdUser ( userId: string, pagDto: PaginationDto ): Promise<Result<NotificationAlert[]>>
     saveNotificationAlert ( noti_alert: NotificationAlert ): Promise<Result<NotificationAlert>>
-    findNotificationById(user_id: string, comment_id: string): Promise<Result<NotificationAlert>>
+    findNotificationById(user_id: string, notification_id: string): Promise<Result<NotificationAlert>>
     findAllByIdUserNotReaded(user_id: string): Promise<Result<NotificationAlert[]>>
 }

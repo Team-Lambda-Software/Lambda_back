@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Logger, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
@@ -35,7 +35,6 @@ import { GetNumberNotificationNotSeenByUserApplicationService } from "src/notifi
 import { GetNotificationsUserSwaggerResponse } from "../dto/response/get-notifications-by-user.response.dto";
 import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not-readed.response.dto";
 import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
-import { GetNotificationByIdDto } from "../dto/entry/get-notification-by-notification-id.entry";
 import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
 
 @ApiTags('Notification')
@@ -74,10 +73,9 @@ export class NotificationController {
         type: GetNotReadedNotificationSwaggerResponse
     })
     async getUserNotificationsNotReaded( @GetUser() user ) {
-        const service=new GetNumberNotificationNotSeenByUserApplicationService(
-            this.notiAlertRepository
-        )
-        return (await service.execute(user.userId)).Value    
+        const service = new GetNumberNotificationNotSeenByUserApplicationService( this.notiAlertRepository )
+        let entry = { userId: user.userId }
+        return (await service.execute(entry)).Value    
     }
     
     @Get('one/:id')
@@ -86,13 +84,11 @@ export class NotificationController {
         description: 'Obtener la notificacion dada el id de la notificacion', 
         type: GetNotificationByNotificationIdSwaggerResponse
     })
-    async getNotificationById( @Query() getNotification:GetNotificationByIdDto,  @GetUser() user ) {
-        const service=new GetNotificationByIdApplicationService(
-            this.notiAlertRepository
-        )
-        let dataentry={
-            ...getNotification,
-            userId:user.userId
+    async getNotificationById( @Param('id', ParseUUIDPipe) id: string,  @GetUser() user ) {
+        const service = new GetNotificationByIdApplicationService( this.notiAlertRepository )
+        let dataentry = {
+            notificationId: id,
+            userId: user.userId
         }
         return (await service.execute(dataentry)).Value   
     }
