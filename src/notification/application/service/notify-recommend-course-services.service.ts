@@ -4,10 +4,11 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";
 import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
-import { RecommendCourseNotifier } from "src/notification/infraestructure/notifier/recommend-course-notifier";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { randomInt } from "crypto";
 import { NotificationAlert } from "../../domain/entities/notification-alert";
+import { INotifier } from "src/common/Application/notifier/notifier.application";
+import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
 
 export class NotifyRecommendCourseApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
     
@@ -15,18 +16,20 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: UuidGenerator
-    private recommendCourse = new RecommendCourseNotifier()
-
+    private pushNotifier: INotifier
+    
     constructor(
         notiAlertRepository: INotificationAlertRepository,
         notiAddressRepository: INotificationAddressRepository,     
         courseRepository: ICourseRepository,
-        uuidGenerator: UuidGenerator
+        uuidGenerator: UuidGenerator,
+        pushNotifier: INotifier
     ){
         this.notiAddressRepository = notiAddressRepository
         this.notiAlertRepository = notiAlertRepository
         this.uuidGenerator = uuidGenerator
-        this.courseRepository = courseRepository    
+        this.courseRepository = courseRepository 
+        this.pushNotifier = pushNotifier   
     }
     
     async execute(notifyDto: ApplicationServiceEntryDto): Promise<Result<any>> {
@@ -42,12 +45,19 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
         const listCourses = findResultCourses.Value
         var ran = randomInt(0, listCourses.length)
         const course = listCourses[ran]
-        
-        this.recommendCourse.setVariable(course)
 
         listTokens.forEach( async e => {
             try {
-                const result = await this.recommendCourse.sendNotification( { token: e.Token } )
+
+                const pushMessage:PushNotificationDto = {
+                    token: e.Token,
+                    notification: {
+                        title: 'Recomendación del día!',
+                        body: 'Te recomendamos personalmente el curso de ' + course.Name 
+                    }
+                }
+
+                const result = await this.pushNotifier.sendNotification( pushMessage )
                 if ( result.isSuccess() ) {
                     this.notiAlertRepository.saveNotificationAlert(
                         NotificationAlert.create(
