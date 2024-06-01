@@ -64,7 +64,9 @@ export class SaveTokenAddressApplicationService implements IApplicationService<S
                     await this.uuidGenerator.generateId(),
                     findResult.Value.Id,
                     "Welcome",
-                    'be Welcome my dear ' + findResult.Value.Name
+                    'be Welcome my dear ' + findResult.Value.Name,
+                    false,
+                    new Date()
                 )
             )
         const answer = {
