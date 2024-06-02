@@ -4,9 +4,10 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { User } from "src/user/domain/user";
-import { userUpdateEntryDtoService } from "src/user/dto/user-update-entry-Service";
+import { UpdateUserProfileServiceEntryDto } from "../../dto/params/update-user-profile-service-entry.dto";
+import { UpdateUserProfileServiceResponseDto } from "../../dto/responses/update-user-profile-service-response.dto";
 
-export class UpdateUserProfileAplicationService implements IApplicationService<userUpdateEntryDtoService,User>{
+export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
     private readonly userRepository: IUserRepository
 
@@ -14,12 +15,12 @@ export class UpdateUserProfileAplicationService implements IApplicationService<u
         this.userRepository = userRepository
     }
 
-    async execute(data: userUpdateEntryDtoService): Promise<Result<User>> {
+    async execute(data: UpdateUserProfileServiceEntryDto): Promise<Result<UpdateUserProfileServiceResponseDto>> {
         
         const user = await this.userRepository.findUserById(data.userId)
 
         if(!user.isSuccess){
-           return Result.fail<User>(user.Error,user.StatusCode,user.Message);
+           return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message);
         }
         
         const userUpdate: User = user.Value
@@ -33,10 +34,14 @@ export class UpdateUserProfileAplicationService implements IApplicationService<u
         const updateResult = await this.userRepository.saveUserAggregate(userUpdate);
 
         if(!updateResult.isSuccess){
-            return Result.fail<User>(user.Error,user.StatusCode,user.Message)
+            return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
         }
 
-        return updateResult
+        const respuesta: UpdateUserProfileServiceResponseDto = {
+            userId: updateResult.Value.Id
+        }
+
+        return Result.success<UpdateUserProfileServiceResponseDto>(respuesta,200)
 
     }
 

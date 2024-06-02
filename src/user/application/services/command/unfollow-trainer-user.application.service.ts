@@ -3,13 +3,12 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 import { Trainer } from "src/trainer/domain/trainer";
-import { FollowUnfollowEntryDtoService } from "src/user/dto/follow-unfollow-entry-Service";
-
-export class FollowTrainerUserApplicationService implements IApplicationService<FollowUnfollowEntryDtoService,Trainer>{
+import { FollowUnfollowEntryDtoService } from "../../dto/params/follow-unfollow-entry-Service";
+export class UnfollowTrainerUserApplicationService implements IApplicationService<FollowUnfollowEntryDtoService,Trainer>{
     
-    private readonly trainerRepository: ITrainerRepository
+    private readonly trainerRepository: ITrainerRepository;
 
-    constructor (trainerRepository: ITrainerRepository)
+    constructor ( trainerRepository: ITrainerRepository)
     {
         this.trainerRepository = trainerRepository
     }
@@ -23,19 +22,15 @@ export class FollowTrainerUserApplicationService implements IApplicationService<
             return Result.fail<Trainer>(trainer.Error,trainer.StatusCode,trainer.Message);
         } 
 
-        const resultado = await this.trainerRepository.followTrainer(data.trainerId,data.userId);
-
-        if(!resultado.isSuccess){
-            return Result.fail<Trainer>(resultado.Error,resultado.StatusCode,resultado.Message);
-        }
+        const resultado = await this.trainerRepository.unfollowTrainer(data.trainerId,data.userId)
 
         return resultado;
     }
-    
+
     get name(): string 
     {
         return this.constructor.name;
     }
 
-    
+
 }
