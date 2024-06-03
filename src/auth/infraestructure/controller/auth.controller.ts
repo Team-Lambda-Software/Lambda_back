@@ -7,7 +7,6 @@ import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-rep
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
@@ -37,12 +36,14 @@ import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swag
 import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
 import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
-    private readonly userRepository: IUserRepository
+    private readonly infraUserRepository: IInfraUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
@@ -53,7 +54,7 @@ export class AuthController {
         private jwtAuthService: JwtService
     ) {
         this.logger = new Logger('AuthController')
-        this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
+        this.infraUserRepository = new OrmInfraUserRepository(dataSource)
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
@@ -80,7 +81,7 @@ export class AuthController {
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new LogInUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.tokenGenerator,
                     this.encryptor
                 ), 
@@ -99,9 +100,8 @@ export class AuthController {
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.uuidGenerator,
-                    this.tokenGenerator,
                     this.encryptor,
                     new WelcomeSender()
                 ), 
@@ -119,7 +119,7 @@ export class AuthController {
         const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetCodeUpdatePasswordUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     new UpdatePasswordSender(),
                     new SecretCodeGenerator(),
                 ), 
@@ -144,7 +144,7 @@ export class AuthController {
         const changePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new ChangePasswordUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.encryptor
                 ), 
                 new NativeLogger(this.logger)

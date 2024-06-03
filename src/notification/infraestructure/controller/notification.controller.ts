@@ -5,9 +5,6 @@ import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-gene
 import { OrmNotificationAddressRepository } from "../repositories/orm-notification-repository";
 import { DataSource } from "typeorm";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
-import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
-import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
@@ -24,8 +21,8 @@ import { SaveTokenSwaggerResponseDto } from "../dto/response/save-token-address-
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { INotificationAddressRepository } from "src/notification/domain/repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interfaces/notification-address-repository.interface";
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interfaces/notification-alert-repository.interface";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
@@ -37,13 +34,15 @@ import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not
 import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
 import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 
 @ApiTags('Notification')
 @Controller('notifications')
 export class NotificationController {
  
     private readonly notiAddressRepository: INotificationAddressRepository
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IInfraUserRepository
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
@@ -56,7 +55,7 @@ export class NotificationController {
         this.logger = new Logger('NotificationController')
         this.notiAddressRepository = new OrmNotificationAddressRepository( dataSource )
         this.uuidGenerator = new UuidGenerator()
-        this.userRepository = new OrmUserRepository( new OrmUserMapper() , dataSource )
+        this.userRepository = new OrmInfraUserRepository( dataSource )
         this.notiAlertRepository = new OrmNotificationAlertRepository( dataSource )
         this.pushNotifier = FirebaseNotifier.getInstance()
         this.courseRepository = new OrmCourseRepository( 
