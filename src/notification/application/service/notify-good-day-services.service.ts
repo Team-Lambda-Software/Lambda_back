@@ -49,7 +49,9 @@ export class NotifyGoodDayApplicationService implements IApplicationService<Appl
                                 await this.uuidGenerator.generateId(),
                                 e.UserId,
                                 "Good new Day!",
-                                'be Happy, my budy'
+                                'be Happy, my budy',
+                                false,
+                                new Date()
                             )
                         )
                     }

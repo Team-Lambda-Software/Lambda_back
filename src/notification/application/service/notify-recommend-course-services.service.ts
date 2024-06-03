@@ -64,7 +64,9 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
                             await this.uuidGenerator.generateId(),
                             e.UserId,
                             "Recomendación del día!",
-                            'Te recomendamos personalmente el curso de ' + course.Name
+                            'Te recomendamos personalmente el curso de ' + course.Name,
+                            false,
+                            new Date()
                         )
                     )
                 }

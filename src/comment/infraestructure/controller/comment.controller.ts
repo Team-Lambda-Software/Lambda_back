@@ -32,6 +32,7 @@ import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-u
 import { GetSectionCommentsApplicationService } from "src/course/application/services/queries/get-section-comments.service"
 import { GetSectionCommentsServiceEntryDto } from "src/course/application/dto/param/get-section-comments-service-entry.dto"
 import { GetAllCommentsSwaggerResponseDto } from "../dto/response/get-all-comments-swagger-response.dto"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 
 
@@ -97,7 +98,8 @@ export class CommentController
                             this.userRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( data )
             return result.Value
@@ -115,7 +117,8 @@ export class CommentController
                             this.userRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( data )
             return result.Value
@@ -145,7 +148,8 @@ export class CommentController
                         ),
                         this.auditingRepository,
                         this.idGenerator
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
 
             const data: AddCommentToSectionServiceEntryDto = {
@@ -168,7 +172,8 @@ export class CommentController
                         ),
                         this.auditingRepository,
                         this.idGenerator
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
 
             const data: AddCommentToBlogServiceEntryDto = {

@@ -29,6 +29,7 @@ import { OrmProgressCourseRepository } from "src/progress/infraestructure/reposi
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 
 @ApiTags('User')
@@ -78,7 +79,8 @@ export class UserController {
             new LoggingDecorator(
                 new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         
         const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
@@ -106,7 +108,8 @@ export class UserController {
             new LoggingDecorator(
                 new UpdateUserProfileAplicationService(this.userRepository), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
@@ -139,7 +142,8 @@ export class UserController {
             new LoggingDecorator(
                 new FollowTrainerUserApplicationService(this.trainerRepository),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultado = await followService.execute(userTrainerFollowDTO)
@@ -167,7 +171,8 @@ export class UserController {
             new LoggingDecorator(
                 new UnfollowTrainerUserApplicationService(this.trainerRepository),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
