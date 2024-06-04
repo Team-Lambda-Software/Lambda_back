@@ -17,6 +17,7 @@ import { Course } from "src/course/domain/course";
 import { Section } from "src/course/domain/entities/section";
 import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video";
 import { skip } from "node:test";
+import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 
 export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> implements IProgressCourseRepository
 {
@@ -28,9 +29,9 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
     private readonly ormProgressVideoRepository: Repository<OrmProgressVideo>;
 
     //? Couple with OrmCourseRepository?
-    private readonly ormCourseRepository: OrmCourseRepository;
+    private readonly ormCourseRepository: ICourseRepository;
 
-    constructor (ormProgressCourseMapper:OrmProgressCourseMapper, ormProgressSectionMapper:OrmProgressSectionMapper, ormProgressVideoMapper:OrmProgressVideoMapper, ormCourseRepository:OrmCourseRepository, dataSource:DataSource)
+    constructor (ormProgressCourseMapper:OrmProgressCourseMapper, ormProgressSectionMapper:OrmProgressSectionMapper, ormProgressVideoMapper:OrmProgressVideoMapper, ormCourseRepository:ICourseRepository, dataSource:DataSource)
     {
         super( OrmProgressCourse, dataSource.createEntityManager() );
         this.ormProgressCourseMapper = ormProgressCourseMapper;

@@ -1,13 +1,10 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Application/result-handler/Result"
-import { INotificationAlertRepository } from "src/notification/domain/repositories/notification-alert-repository.interface"
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interfaces/notification-alert-repository.interface"
 import { GetNotificationsUserDtoEntryAplicationDto } from "../dto/get-notifications-by-user.aplication.dto"
-import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 
 export class GetManyNotificationByUserApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
-    private readonly userRespository: IUserRepository
     private readonly notiAlertRepository: INotificationAlertRepository
 
     constructor(
