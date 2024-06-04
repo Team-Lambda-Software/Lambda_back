@@ -12,6 +12,7 @@ import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.d
 import { User } from "src/user/domain/user"
 import { PaginationDto } from '../../../common/Infraestructure/dto/entry/pagination.dto';
 import { GetAllCategoriesApplicationService } from "src/categories/application/service/queries/get-all-category-application.service"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags( 'Category' )
 @Controller( 'category' )
@@ -35,7 +36,16 @@ export class CategoryController
     @ApiOkResponse( { description: 'obtener todas las categorias',type: GetCategorieSwaggerResponseDto, isArray: true } )
     async getAllCategories ( @GetUser() user: User, @Query() pagination: PaginationDto)
     {
-        const getAllCategoriesService = new ExceptionDecorator( new LoggingDecorator( new GetAllCategoriesApplicationService( this.categoryRepository ), new NativeLogger( this.logger ) ) )
+        const getAllCategoriesService = 
+        new ExceptionDecorator( 
+            new LoggingDecorator( 
+                new GetAllCategoriesApplicationService( 
+                    this.categoryRepository 
+                ), 
+                new NativeLogger( this.logger ) 
+            ),
+            new HttpExceptionHandler() 
+        )
         return ( await getAllCategoriesService.execute( { userId: user.Id , pagination} ) ).Value
     }
 

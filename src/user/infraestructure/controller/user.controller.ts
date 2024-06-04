@@ -3,23 +3,23 @@ import { Body, Controller, Delete, Get, Inject, Logger, Param, Patch, Post, Quer
 import { OrmUserRepository } from "../repositories/orm-repositories/orm-user-repository"
 import { DataSource} from "typeorm"
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from "src/user/application/services/get-user-profile.application.service"
+import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service"; 
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
-import { userUpdateEntryDtoService } from "src/user/dto/user-update-entry-Service";
-import { UpdateUserProfileAplicationService } from "src/user/application/services/update-user-profile.application.service";
+import { userUpdateEntryInfraestructureDto } from "../dto/entry/user-update-entry-infraestructure"; 
+import { UpdateUserProfileAplicationService } from "src/user/application/services/command/update-user-profile.application.service";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { User } from "src/user/domain/user";
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
-import { FollowTrainerUserApplicationService } from "src/user/application/services/follow-trainer-user.application.service";
-import { UnfollowTrainerUserApplicationService } from "src/user/application/services/unfollow-trainer-user.application.service";
+import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"; 
+import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
-import { UpdateUserProfileSwaggerResponseDto } from "src/user/dto/response/update-user-profile-swagger-response.dto";
-import { FolloUnfollowSwaggerResponseDto } from "src/user/dto/response/follow-unfollow-entry-swagger-response.dto";
-import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto"
+import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
+import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto"; 
+import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
@@ -29,22 +29,30 @@ import { OrmProgressCourseRepository } from "src/progress/infraestructure/reposi
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { IInfraUserRepository } from "../repositories/interfaces/orm-infra-user-repository.interface";
+import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
+import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
+import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
+import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
+import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
 
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
 
-    private readonly userRepository: OrmUserRepository
-    private readonly trainerRepository: OrmTrainerRepository
-    private readonly courseRepository: OrmCourseRepository
-    private readonly progressRepository: OrmProgressCourseRepository
+    private readonly infraUserRepository: IInfraUserRepository
+    private readonly userRepository: IUserRepository
+    private readonly trainerRepository: ITrainerRepository
+    private readonly courseRepository: ICourseRepository
+    private readonly progressRepository: IProgressCourseRepository
     private readonly logger: Logger = new Logger( "UserController" )
     
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
-        
+        this.infraUserRepository = new OrmInfraUserRepository( dataSource )
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
-        this. trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
+        this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -78,34 +86,50 @@ export class UserController {
             new LoggingDecorator(
                 new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
-        return (await getUserProfileService.execute({userId: user.Id, pagination})).Value
+        
+        const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
+
+        if(!resultado.isSuccess){
+          return resultado.Error
+        }
+        
+        return resultado.Value
         
     }
 
     
-    @Patch(':id')
+    @Patch('/update')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({
-        description: ', dado el id del usuario',
+        description: 'Modificar dato/s de registro de un usuario, dado el id del usuario',
         type: UpdateUserProfileSwaggerResponseDto
     })
-    async updateUser(@Param('id') id: string, @Body() userDTO: userUpdateEntryDtoService){
+    async updateUser(@Body() updateEntryDTO: userUpdateEntryInfraestructureDto){
+        const userUpdateDto = {...updateEntryDTO};
 
-        const userUpdateDto = {userId: id,...userDTO};
-        
         const updateUserProfileService = new ExceptionDecorator(
             new LoggingDecorator(
-                new UpdateUserProfileAplicationService(this.userRepository), 
+                new UpdateUserProfileAplicationService(this.infraUserRepository), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
 
-        return resultUpdate
+        if(!resultUpdate.isSuccess){
+          return resultUpdate.Error
+        }
+
+        const Respuesta: UpdateUserProfileSwaggerResponseDto = {
+            Id: resultUpdate.Value.userId
+        }
+
+        return Respuesta
 
     }
 
@@ -125,7 +149,8 @@ export class UserController {
             new LoggingDecorator(
                 new FollowTrainerUserApplicationService(this.trainerRepository),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultado = await followService.execute(userTrainerFollowDTO)
@@ -153,7 +178,8 @@ export class UserController {
             new LoggingDecorator(
                 new UnfollowTrainerUserApplicationService(this.trainerRepository),
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
 
         const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
