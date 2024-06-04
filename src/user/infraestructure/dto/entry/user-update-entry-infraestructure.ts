@@ -3,16 +3,8 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 
-export class userUpdateEntryInfraestructureDto implements ApplicationServiceEntryDto{
+export class userUpdateEntryInfraestructureDto{
     
-    @ApiProperty({
-        required: true,
-        example:"425169e1-e2ce-43f0-ab60-864500b32da9"
-    })
-    @IsString()
-    @IsOptional()
-    userId: string;
-
     @ApiProperty({
         required: false,
         example: "bastidas@gmail.com"
@@ -32,30 +24,6 @@ export class userUpdateEntryInfraestructureDto implements ApplicationServiceEntr
 
     @ApiProperty({
         required: false,
-        example: "Luigi Alessandro Bastidas Di Ruscio"
-    })
-    @IsString()
-    @IsOptional()
-    FirstName?: string;
-
-    @ApiProperty({
-        required: false,
-        example: "Bastidas"
-    })
-    @IsString()
-    @IsOptional()
-    firstLastName?: string;
-
-    @ApiProperty({
-        required: false,
-        example: "Di Ruscio"
-    })
-    @IsString()
-    @IsOptional()
-    secondLastName?: string;
-
-    @ApiProperty({
-        required: false,
         example: "password"
     })
     @IsString()
@@ -72,5 +40,14 @@ export class userUpdateEntryInfraestructureDto implements ApplicationServiceEntr
     @MinLength(11)
     @MaxLength(11)
     phone?: string;
+
+    @ApiProperty({
+        required: false,
+        example: "base64 string"
+    })
+    @IsOptional()
+    @IsString()
+    @MinLength(5)
+    image?: string
 
 }

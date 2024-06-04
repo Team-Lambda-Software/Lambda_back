@@ -6,13 +6,19 @@ import { IUserRepository } from "src/user/domain/repositories/user-repository.in
 import { User } from "src/user/domain/user";
 import { UpdateUserProfileServiceEntryDto } from "../../dto/params/update-user-profile-service-entry.dto";
 import { UpdateUserProfileServiceResponseDto } from "../../dto/responses/update-user-profile-service-response.dto";
+import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
     private readonly userRepository: IUserRepository
+    private readonly fileUploader: IFileUploader
+    private readonly idGenerator: IdGenerator<string>
 
-    constructor ( userRepository: IUserRepository){
+    constructor ( userRepository: IUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>){
         this.userRepository = userRepository
+        this.fileUploader = fileUploader
+        this.idGenerator = idGenerator
     }
 
     async execute(data: UpdateUserProfileServiceEntryDto): Promise<Result<UpdateUserProfileServiceResponseDto>> {
@@ -26,7 +32,11 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
         const userUpdate: User = user.Value
 
         if(data.name) userUpdate.updateName(data.name)
-        if(data.image) userUpdate.updateImage(data.image)
+        if(data.image){
+            const imageId = await this.idGenerator.generateId()
+            const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
+            userUpdate.updateImage(imageUrl)
+        } 
         if(data.email) userUpdate.updateEmail(data.email)
         if(data.password) userUpdate.updatePassword(data.password)
         if(data.phone) userUpdate.updatePhone(data.phone)

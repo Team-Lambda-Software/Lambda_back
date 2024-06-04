@@ -21,7 +21,7 @@ export class User extends Entity<string>
     private type: string
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, name: string, email: string, password: string, phone: string, type: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[], image?: string)
+    private constructor ( id: string, name: string, email: string, password: string, phone: string, type: string, image?: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
     {
         super( id )
         this.name = name
@@ -86,9 +86,9 @@ export class User extends Entity<string>
         return this.progressVideo
     }
 
-    static create ( id: string, name: string, email: string, password: string, phone: string, type: string ): User
+    static create ( id: string, name: string, email: string, password: string, phone: string, type: string, image?: string): User
     {
-        return new User( id, name, email, password, phone, type )
+        return new User( id, name, email, password, phone, type, image)
     }
 
     public updateName ( name: string ): void
