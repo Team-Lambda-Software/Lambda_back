@@ -21,19 +21,19 @@ export class SecurityServiceDecorator<L extends ApplicationServiceEntryDto, R> e
     }
 
     async execute ( data: L ): Promise<Result<R>> {
-        const userResult = await this.userRepository.findUserById(data.userId);
+        /*const userResult = await this.userRepository.findUserById(data.userId);
         if ( !userResult.isSuccess() ) return Result.fail(new Error('Usuario no registrado'), 500, 'Usuario no existe')
         
         const checkResult = await this.checkAuthorization( userResult.Value )
         if ( !checkResult ) return Result.fail(new Error('Sin permisos suficientes'), 403, 'Usuario no posee permisos suficientes' );
-
+        */
         const result = await super.execute( data )
         return result
     }
 
     private async checkAuthorization( user: User ) {
-        if ( !this.allowedRoles.includes( user.Type ) ) return false        
-        return true
+        /*if ( !this.allowedRoles.includes( user.Type ) ) return false        
+        return true*/
     }
 
 }
