@@ -2,9 +2,7 @@ import { Column, Entity, PrimaryColumn } from "typeorm"
 
 @Entity( { name: 'notification_alert' } )
 export class OrmNotificationAlert {
-
-    @Column( 'varchar', { default: 'CLIENT' } ) type: string
-    
+   
     @PrimaryColumn( { type: "uuid" } ) id: string
     @Column( { type: "uuid" } ) user_id: string
     @Column( 'varchar', { default: 'title-default' } ) title: string

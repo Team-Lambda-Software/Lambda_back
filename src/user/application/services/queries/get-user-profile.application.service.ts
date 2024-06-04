@@ -3,9 +3,9 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 import { User } from "src/user/domain/user"
-import { GetUserProfileServiceResponseDto } from "../dto/responses/get-user-profile-service-response.gto"
+import { GetUserProfileServiceResponseDto } from "../../dto/responses/get-user-profile-service-response.gto"
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface"
-import { GetUserProfileServiceEntryDto } from "../dto/params/get-user-profile-service-entry.dto"
+import { GetUserProfileServiceEntryDto } from "../../dto/params/get-user-profile-service-entry.dto"
 import { Course } from "src/course/domain/course"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { ProgressCourse } from "src/progress/domain/entities/progress-course"
@@ -39,8 +39,8 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
             return Result.fail<GetUserProfileServiceResponseDto>(resultProgressCourses.Error, resultProgressCourses.StatusCode, resultProgressCourses.Message)
         }
         const progressCourses = resultProgressCourses.Value
-        let courses: Course[] = []
-        let resultProgressCourse: {progress: ProgressCourse, completionPercent: number}[] = []
+        const courses: Course[] = []
+        const resultProgressCourse: {progress: ProgressCourse, completionPercent: number}[] = []
         for (const progressCourse of progressCourses){
             const resultCourse = await this.courseRespository.findCourseById(progressCourse.CourseId)
             if (!resultCourse.isSuccess()){
@@ -52,14 +52,6 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
 
         return Result.success<GetUserProfileServiceResponseDto>({user, courses, coursesProgress: resultProgressCourse}, 200)
     }
-
-    async executeByEmail( email : string ) : Promise<Result<User>>
-    {
-        const user = await this.userRepository.findUserByEmail(email);
-
-        return user
-    }
-
 
     get name (): string
     {

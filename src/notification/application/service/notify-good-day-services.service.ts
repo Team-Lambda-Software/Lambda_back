@@ -1,12 +1,12 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Application/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { INotificationAddressRepository } from "../../domain/repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../../domain/repositories/notification-alert-repository.interface";
-import { NotificationAlert } from "../../domain/entities/notification-alert";
+import { INotificationAddressRepository } from "../../infraestructure/repositories/interfaces/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../infraestructure/repositories/interfaces/notification-alert-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
+import { OrmNotificationAlert } from "src/notification/infraestructure/entities/orm-entities/orm-notification-alert";
 
 export class NotifyGoodDayApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
     private readonly notiAddressRepository: INotificationAddressRepository
@@ -35,7 +35,7 @@ export class NotifyGoodDayApplicationService implements IApplicationService<Appl
                 try {
 
                     const pushMessage:PushNotificationDto = {
-                        token: e.Token,
+                        token: e.token,
                         notification: {
                             title: 'Good ney day!',
                             body: 'be Happy, my budy'
@@ -45,9 +45,9 @@ export class NotifyGoodDayApplicationService implements IApplicationService<Appl
                     const result = await this.pushNotifier.sendNotification( pushMessage )
                     if ( result.isSuccess() ) {
                         this.notiAlertRepository.saveNotificationAlert(
-                            NotificationAlert.create(
+                            OrmNotificationAlert.create(
                                 await this.uuidGenerator.generateId(),
-                                e.UserId,
+                                e.user_id,
                                 "Good new Day!",
                                 'be Happy, my budy',
                                 false,
