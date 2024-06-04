@@ -53,14 +53,6 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
         return Result.success<GetUserProfileServiceResponseDto>({user, courses, coursesProgress: resultProgressCourse}, 200)
     }
 
-    async executeByEmail( email : string ) : Promise<Result<User>>
-    {
-        const user = await this.userRepository.findUserByEmail(email);
-
-        return user
-    }
-
-
     get name (): string
     {
         return this.constructor.name
