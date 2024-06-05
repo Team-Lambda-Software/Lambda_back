@@ -159,8 +159,8 @@ export class AuthController {
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) return { code: codeValDto.code, validate: false }
-        return { code: codeValDto.code, validate: true } 
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) return { message: 'code invalid', code: codeValDto.code }
+        return {} 
     }
 
     private validateCode( code: string, email: string ) {
