@@ -26,8 +26,10 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
         const code = this.codeGenerator.generateCode(4)
         this.emailSender.setVariables( { firstname: result.Value.name, secretcode: code } )
         this.emailSender.sendEmail( forgetDto.email, forgetDto.email )
-        const answer = {
-            date: new Date().getTime()
+        const answer = { 
+            email: forgetDto.email,
+            code: code,
+            date: new Date().getTime() 
         }
         return Result.success(answer, 200)
     }
