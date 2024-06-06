@@ -12,10 +12,10 @@ export class OrmUserMapper implements IMapper<User, OrmUser>
     {
         const persistanceUser = OrmUser.create(
             domain.Id,
-            domain.Email,
-            domain.Password,
             domain.Phone,
             domain.Name,
+            domain.Email,
+            domain.Password,
             domain.Type,
             domain.Image
         )

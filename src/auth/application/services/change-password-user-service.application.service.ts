@@ -23,11 +23,7 @@ export class ChangePasswordUserApplicationService implements IApplicationService
             await this.encryptor.hashPassword( updateDto.password )
         )
         if ( !result.isSuccess() ) return Result.fail( new Error('Error al cambiar la contraseña'), 500, 'Error al cambiar la contraseña' )
-        const answer = {
-            email: updateDto.email,
-            newPassword: updateDto.password
-        }
-        return Result.success(answer, 200)
+        return Result.success({}, 200)
     }
    
     get name(): string { return this.constructor.name }
