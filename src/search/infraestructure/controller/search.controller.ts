@@ -25,6 +25,7 @@ import { OrmCategoryRepository } from "src/categories/infraesctructure/repositor
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { SearchQueryParametersDto } from "../dto/queryParameters/search-query-parameters.dto"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags( 'Search' )
 @Controller( 'search' )
@@ -90,7 +91,8 @@ export class SearchController
                             this.trainerRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( searchAllByTagsServiceEntry )
 
@@ -113,7 +115,8 @@ export class SearchController
                             this.trainerRepository
                         ),
                         new NativeLogger( this.logger )
-                    )
+                    ),
+                    new HttpExceptionHandler()
                 )
             const result = await service.execute( searchAllServiceEntry )
 
