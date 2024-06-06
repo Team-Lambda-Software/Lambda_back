@@ -134,7 +134,7 @@ export class AuthController {
             this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
             this.secretCodes.push( result.Value )
         }
-        return result.Value
+        return result.Value.date
     }
 
     @Put('change/password')
@@ -153,14 +153,13 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        return (await changePasswordApplicationService.execute(data)).Value
+        return (await changePasswordApplicationService.execute(data))
     }
     
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
         if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) return { message: 'code invalid', code: codeValDto.code }
-        return {} 
     }
 
     private validateCode( code: string, email: string ) {
