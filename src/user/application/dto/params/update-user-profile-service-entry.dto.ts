@@ -8,6 +8,6 @@ export interface UpdateUserProfileServiceEntryDto extends ApplicationServiceEntr
     email? :string; 
     password?: string;
     phone?: string;
-    image?: string
+    image?: File
 
 }

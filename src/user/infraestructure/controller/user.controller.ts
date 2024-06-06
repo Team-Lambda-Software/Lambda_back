@@ -30,29 +30,30 @@ import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/or
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { IInfraUserRepository } from "../repositories/interfaces/orm-infra-user-repository.interface";
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
-import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
-import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
+import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
+import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
 
-    private readonly infraUserRepository: IInfraUserRepository
-    private readonly userRepository: IUserRepository
-    private readonly trainerRepository: ITrainerRepository
-    private readonly courseRepository: ICourseRepository
-    private readonly progressRepository: IProgressCourseRepository
+    private readonly userRepository: OrmUserRepository
+    private readonly trainerRepository: OrmTrainerRepository
+    private readonly courseRepository: OrmCourseRepository
+    private readonly progressRepository: OrmProgressCourseRepository
     private readonly logger: Logger = new Logger( "UserController" )
+    private readonly imageTransformer: ImageTransformer 
+    private readonly idGenerator: IdGenerator<string>
+    private readonly fileUploader: AzureFileUploader
     
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
-        this.infraUserRepository = new OrmInfraUserRepository( dataSource )
+        
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
-        this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
+        this. trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -70,6 +71,9 @@ export class UserController {
             new OrmProgressVideoMapper(),
             this.courseRepository, 
             dataSource)    
+        this.imageTransformer = new ImageTransformer()
+        this.idGenerator = new UuidGenerator()
+        this.fileUploader = new AzureFileUploader()
 
     }
 
@@ -108,12 +112,20 @@ export class UserController {
         description: 'Modificar dato/s de registro de un usuario, dado el id del usuario',
         type: UpdateUserProfileSwaggerResponseDto
     })
-    async updateUser(@Body() updateEntryDTO: userUpdateEntryInfraestructureDto){
-        const userUpdateDto = {...updateEntryDTO};
+    async updateUser(@GetUser()user: User, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto){
+        let image: File = null
+        if (updateEntryDTO.image){
+            image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
+        }
+        const userUpdateDto: UpdateUserProfileServiceEntryDto = {...updateEntryDTO, image, userId: user.Id}
 
         const updateUserProfileService = new ExceptionDecorator(
             new LoggingDecorator(
-                new UpdateUserProfileAplicationService(this.infraUserRepository), 
+                new UpdateUserProfileAplicationService(
+                    this.userRepository,
+                    this.fileUploader,
+                    this.idGenerator
+                    ), 
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()

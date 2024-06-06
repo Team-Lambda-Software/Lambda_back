@@ -142,7 +142,8 @@ export class CourseController
         if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
             return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
         }
-        const result = await service.execute( { image: image, ...createCourseServiceEntryDto, userId: user.Id } )
+        const newImage = new File( [image.buffer], image.originalname, {type: image.mimetype})
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id } )
         return result.Value
     }
 
@@ -188,7 +189,9 @@ export class CourseController
                 new HttpExceptionHandler()
             )
         let fileType = null
+        let newFile = null
         if ( file && !addSectionToCourseEntryDto.paragraph ){
+            newFile = new File( [file.buffer], file.originalname, {type: file.mimetype})
             if ( ['png','jpg','jpeg'].includes(file.originalname.split('.').pop())){
                 fileType = 'IMAGE'
             } else if ( ['mp4'].includes(file.originalname.split('.').pop())){
@@ -197,7 +200,8 @@ export class CourseController
                 return Result.fail( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
             }
         }
-        const result = await service.execute( {fileType ,file: file ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        
+        const result = await service.execute( {fileType ,file: newFile ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
         return result.Value
     }
 
