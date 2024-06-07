@@ -24,5 +24,6 @@ export interface ICourseRepository
     saveCourseAggregate ( course: Course ): Promise<Result<Course>>
     addSectionToCourse ( courseId: string, section: Section ): Promise<Result<Section>>
     findCoursesByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Course[]>>
+    findCoursesByTagsAndName ( tags: string[], name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
 
 }

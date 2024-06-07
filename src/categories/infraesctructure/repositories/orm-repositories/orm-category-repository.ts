@@ -34,7 +34,6 @@ export class OrmCategoryRepository extends Repository<OrmCategory> implements IC
             {
                 return Result.success<Category>( await this.ormCategoryMapper.fromPersistenceToDomain( category ), 200 )
             }
-            return Result.fail<Category>( new Error( 'Categorie not found' ), 404, 'Categorie not found' )
         }catch (error) {
             return Result.fail<Category>( error, error.code, error.message )
         }

@@ -19,8 +19,6 @@ import { ExceptionDecorator } from "src/common/Application/application-services/
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { SearchAllApplicationService } from "src/search/application/services/search-all.service"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
-import { SearchAllByTagsServiceEntryDto } from "src/search/application/dto/param/search-all-by-tags-service-entry.dto"
-import { SearchAllByTagsApplicationService } from "src/search/application/services/search-all-by-tags.service"
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
@@ -77,52 +75,32 @@ export class SearchController
     async searchCourse ( @GetUser() user: User, @Query() searchQueryParametersDto: SearchQueryParametersDto )
     {
         const pagination: PaginationDto = { page: searchQueryParametersDto.page, perPage: searchQueryParametersDto.perPage }
-
-        if ( searchQueryParametersDto.tag )
-        {
-            const searchAllByTagsServiceEntry: SearchAllByTagsServiceEntryDto = { userId: user.Id, pagination: pagination, tags: searchQueryParametersDto.tag }
-            const service =
-                new ExceptionDecorator(
-                    new LoggingDecorator(
-                        new SearchAllByTagsApplicationService(
-                            this.courseRepository,
-                            this.blogRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
-                        ),
-                        new NativeLogger( this.logger )
-                    ),
-                    new HttpExceptionHandler()
-                )
-            const result = await service.execute( searchAllByTagsServiceEntry )
-
-            return result.Value
-
+        
+        if ( !searchQueryParametersDto.term ){
+            searchQueryParametersDto.term = ''
         }
-        else
-        {
-            if ( !searchQueryParametersDto.term ){
-                searchQueryParametersDto.term = ''
-            }
-            const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.Id, pagination: pagination, name: searchQueryParametersDto.term}
-            const service =
-                new ExceptionDecorator(
-                    new LoggingDecorator(
-                        new SearchAllApplicationService(
-                            this.courseRepository,
-                            this.blogRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
-                        ),
-                        new NativeLogger( this.logger )
-                    ),
-                    new HttpExceptionHandler()
-                )
-            const result = await service.execute( searchAllServiceEntry )
-
-            return result.Value
-
+        if ( !searchQueryParametersDto.tag ){
+            searchQueryParametersDto.tag = []
         }
+        const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.Id, pagination: pagination, name: searchQueryParametersDto.term, tags: searchQueryParametersDto.tag }
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchAllApplicationService(
+                        this.courseRepository,
+                        this.blogRepository,
+                        this.categoryRepository,
+                        this.trainerRepository
+                    ),
+                    new NativeLogger( this.logger )
+                ),
+                new HttpExceptionHandler()
+            )
+        const result = await service.execute( searchAllServiceEntry )
+
+        return result.Value
+
+    
     }
 
 }
