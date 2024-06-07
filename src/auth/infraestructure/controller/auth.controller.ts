@@ -134,7 +134,7 @@ export class AuthController {
             this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
             this.secretCodes.push( result.Value )
         }
-        return result.Value.date
+        return { date: result.Value.date }
     }
 
     @Put('change/password')
@@ -153,7 +153,7 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        return (await changePasswordApplicationService.execute(data))
+        await changePasswordApplicationService.execute(data)
     }
     
     @Post('code/validate')
