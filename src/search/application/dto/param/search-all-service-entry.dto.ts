@@ -6,4 +6,5 @@ import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagi
 export interface SearchAllServiceEntryDto extends ApplicationServiceEntryDto{
     name: string
     pagination: PaginationDto
+    tags: string[]
 }
