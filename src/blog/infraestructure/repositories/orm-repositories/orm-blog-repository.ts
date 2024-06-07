@@ -31,22 +31,50 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
         this.ormTagsRepository = dataSource.getRepository( OrmBlogTags )
     }
+    async findBlogsByTagsAndTitle ( tags: string[], title: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
+    {
+        try
+        {
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).leftJoinAndSelect('blog.tags','tags').where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy( 'blog.publication_date', 'DESC' ).getMany()
+            
+            let filteredBlogs = blogs.filter( blog => tags.every( tag => blog.tags.some( blogTag => blogTag.name === tag ) ) )
+            if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
+                return Result.fail<Blog[]>( new Error( 'page execedes lenght of blogs' ), 404, 'page execedes lenght of blogs' )
+
+            filteredBlogs = filteredBlogs.slice( pagination.page, pagination.perPage )
+
+            for ( const blog of filteredBlogs )
+            {
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
+
+            }
+            return Result.success<Blog[]>( await Promise.all( filteredBlogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
+
+        } catch ( error )
+        {
+            return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
+        }
+    }
     async saveBlogAggregate ( blog: Blog ): Promise<Result<Blog>>
     {
-        try {
-            
+        try
+        {
+
             const newBlog = await this.ormBlogMapper.fromDomainToPersistence( blog )
             const tags = this.ormTagsRepository.create( blog.Tags.map( tag => { return { name: tag } } ) )
             await this.ormTagsRepository.save( tags )
             await this.save( newBlog )
             for ( const image of blog.Images )
             {
-                const newImage = this.ormImageRepository.create( {id: image.Id ,url: image.Url, blog_id: newBlog.id } )
+                const newImage = this.ormImageRepository.create( { id: image.Id, url: image.Url, blog_id: newBlog.id } )
                 await this.ormImageRepository.save( newImage )
             }
             return Result.success<Blog>( blog, 200 )
 
-        } catch (error) {
+        } catch ( error )
+        {
             return Result.fail<Blog>( new Error( error.message ), error.code, error.message )
         }
     }
@@ -67,19 +95,16 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { trainer_id: trainerId }, order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
+            const blogs = await this.find( { where: { trainer_id: trainerId }, order: { publication_date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
 
-            if ( blogs.length > 0 )
+
+            for ( const blog of blogs )
             {
-
-                for ( const blog of blogs )
-                {
-                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
-                    blog.images = blogImages
-                }
-                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
             }
-            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+            return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
@@ -90,32 +115,31 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find({order: {publication_date: 'DESC'}})
+            const blogs = await this.find( { order: { publication_date: 'DESC' } } )
             let filteredBlogs = blogs.filter( blog => tags.every( tag => blog.tags.some( blogTag => blogTag.name === tag ) ) )
-            
+
             if ( filteredBlogs.length <= pagination.page && filteredBlogs.length > 0 )
                 return Result.fail<Blog[]>( new Error( 'page execedes lenght of blogs' ), 404, 'page execedes lenght of blogs' )
 
-            filteredBlogs = filteredBlogs.slice( pagination.page, pagination.perPage)
+            filteredBlogs = filteredBlogs.slice( pagination.page, pagination.perPage )
 
-            if ( filteredBlogs.length > 0 )
+
+
+            for ( const blog of filteredBlogs )
             {
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
 
-                for ( const blog of filteredBlogs )
-                {
-                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
-                    blog.images = blogImages
-
-                }
-                return Result.success<Blog[]>( await Promise.all( filteredBlogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
             }
-            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+            return Result.success<Blog[]>( await Promise.all( filteredBlogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
         }
     }
 
+    //!TODO: change the find by id to not give error if not found
     async findBlogById ( id: string ): Promise<Result<Blog>>
     {
         try
@@ -139,19 +163,16 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy('blog.publication_date', 'DESC').take( pagination.perPage ).skip( pagination.page ).getMany()
+            const blogs = await this.createQueryBuilder( 'blog' ).leftJoinAndSelect( 'blog.trainer', 'trainer' ).where( 'LOWER(blog.title) LIKE :title', { title: `%${ title.toLowerCase().trim() }%` } ).orderBy( 'blog.publication_date', 'DESC' ).take( pagination.perPage ).skip( pagination.page ).getMany()
 
-            if ( blogs.length > 0 )
+
+            for ( const blog of blogs )
             {
-
-                for ( const blog of blogs )
-                {
-                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
-                    blog.images = blogImages
-                }
-                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
             }
-            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+            return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
@@ -162,19 +183,15 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { category_id: categoryId },order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
+            const blogs = await this.find( { where: { category_id: categoryId }, order: { publication_date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
 
-            if ( blogs.length > 0 )
+            for ( const blog of blogs )
             {
-
-                for ( const blog of blogs )
-                {
-                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
-                    blog.images = blogImages
-                }
-                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
             }
-            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+            return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )
@@ -212,18 +229,15 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     {
         try
         {
-            const blogs = await this.find( { where: { trainer_id: trainerId },order: {publication_date: 'DESC'}, skip: pagination.page, take: pagination.perPage } )
-            if ( blogs.length > 0 )
-            {
+            const blogs = await this.find( { where: { trainer_id: trainerId }, order: { publication_date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
 
-                for ( const blog of blogs )
-                {
-                    const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
-                    blog.images = blogImages
-                }
-                return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+            for ( const blog of blogs )
+            {
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: blog.id } )
+                blog.images = blogImages
             }
-            return Result.fail<Blog[]>( new Error( 'Blogs not found' ), 404, 'Blogs not found' )
+            return Result.success<Blog[]>( await Promise.all( blogs.map( async blog => await this.ormBlogMapper.fromPersistenceToDomain( blog ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Blog[]>( new Error( error.message ), error.code, error.message )

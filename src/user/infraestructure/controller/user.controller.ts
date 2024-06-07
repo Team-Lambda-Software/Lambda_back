@@ -14,84 +14,85 @@ import {
 import { OrmUserRepository } from '../repositories/orm-repositories/orm-user-repository';
 import { DataSource } from 'typeorm';
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from 'src/user/application/services/queries/get-user-profile.application.service';
-import { ExceptionDecorator } from 'src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator';
-import { LoggingDecorator } from 'src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator';
-import { NativeLogger } from 'src/common/Infraestructure/logger/logger';
-import { userUpdateEntryInfraestructureDto } from '../dto/entry/user-update-entry-infraestructure';
-import { UpdateUserProfileAplicationService } from 'src/user/application/services/command/update-user-profile.application.service';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { User } from 'src/user/domain/user';
-import { OrmTrainerRepository } from 'src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository';
-import { OrmTrainerMapper } from 'src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper';
-import { FollowTrainerUserApplicationService } from 'src/user/application/services/command/follow-trainer-user.application.service';
-import { UnfollowTrainerUserApplicationService } from 'src/user/application/services/command/unfollow-trainer-user.application.service';
-import { JwtAuthGuard } from 'src/auth/infraestructure/jwt/decorator/jwt-auth.guard';
-import { GetUser } from 'src/auth/infraestructure/jwt/decorator/get-user.param.decorator';
-import { UpdateUserProfileSwaggerResponseDto } from 'src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto';
-import { FolloUnfollowSwaggerResponseDto } from '../dto/response/follow-unfollow-entry-swagger-response.dto';
-import { GetUserSwaggerResponseDto } from '../dto/response/get-user-swagger-response.dto';
-import { PaginationDto } from 'src/common/Infraestructure/dto/entry/pagination.dto';
-import { OrmCourseRepository } from 'src/course/infraestructure/repositories/orm-repositories/orm-couser-repository';
-import { OrmCourseMapper } from 'src/course/infraestructure/mappers/orm-mappers/orm-course-mapper';
-import { OrmSectionMapper } from 'src/course/infraestructure/mappers/orm-mappers/orm-section-mapper';
-import { OrmSectionCommentMapper } from 'src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper';
-import { OrmProgressCourseRepository } from 'src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository';
-import { OrmProgressCourseMapper } from 'src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper';
-import { OrmProgressSectionMapper } from 'src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper';
-import { OrmProgressVideoMapper } from 'src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper';
-import { HttpExceptionHandler } from 'src/common/Infraestructure/http-exception-handler/http-exception-handler';
-import { IInfraUserRepository } from '../repositories/interfaces/orm-infra-user-repository.interface';
-import { IUserRepository } from 'src/user/domain/repositories/user-repository.interface';
-import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface';
-import { ICourseRepository } from 'src/course/domain/repositories/course-repository.interface';
-import { IProgressCourseRepository } from 'src/progress/domain/repositories/progress-course-repository.interface';
-import { OrmInfraUserRepository } from '../repositories/orm-repositories/orm-infra-user-repository';
-import { IAuditingRepository } from 'src/common/Application/auditing/repositories/auditing-repository.interface';
-import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
+import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service";
+import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
+import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
+import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { userUpdateEntryInfraestructureDto } from "../dto/entry/user-update-entry-infraestructure";
+import { UpdateUserProfileAplicationService } from "src/user/application/services/command/update-user-profile.application.service";
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
+import { User } from "src/user/domain/user";
+import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
+import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service";
+import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service";
+import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
+import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
+import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto";
+import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto";
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
+import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
+import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
+import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
+import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
+import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
+import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
+import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
-import { IdGenerator } from 'src/common/Application/Id-generator/id-generator.interface';
-import { UuidGenerator } from 'src/common/Infraestructure/id-generator/uuid-generator';
+import { IInfraUserRepository } from '../repositories/interfaces/orm-infra-user-repository.interface';
+import { OrmInfraUserRepository } from '../repositories/orm-repositories/orm-infra-user-repository';
+import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
+
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
+  private readonly userRepository: OrmUserRepository
+  private readonly trainerRepository: OrmTrainerRepository
+  private readonly courseRepository: OrmCourseRepository
+  private readonly progressRepository: OrmProgressCourseRepository
+  private readonly logger: Logger = new Logger("UserController")
+  private readonly imageTransformer: ImageTransformer
+  private readonly idGenerator: IdGenerator<string>
+  private readonly fileUploader: AzureFileUploader
   private readonly infraUserRepository: IInfraUserRepository;
-  private readonly userRepository: IUserRepository;
-  private readonly trainerRepository: ITrainerRepository;
-  private readonly courseRepository: ICourseRepository;
-  private readonly progressRepository: IProgressCourseRepository;
-  private readonly auditingRepository: IAuditingRepository;
-  private readonly idGenerator: IdGenerator<string>;
-  private readonly logger: Logger = new Logger('UserController');
+  private readonly auditingRepository: OrmAuditingRepository;
+
 
   constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
-    this.infraUserRepository = new OrmInfraUserRepository(dataSource);
-    this.userRepository = new OrmUserRepository(
-      new OrmUserMapper(),
-      dataSource,
-    );
-    this.trainerRepository = new OrmTrainerRepository(
-      new OrmTrainerMapper(),
-      dataSource,
-    );
-    this.courseRepository = new OrmCourseRepository(
-      new OrmCourseMapper(new OrmSectionMapper(), new OrmTrainerMapper()),
-      new OrmSectionMapper(),
-      new OrmSectionCommentMapper(),
-      dataSource,
-    );
-    this.progressRepository = new OrmProgressCourseRepository(
-      new OrmProgressCourseMapper(),
-      new OrmProgressSectionMapper(),
-      new OrmProgressVideoMapper(),
-      this.courseRepository,
-      dataSource,
-    );
-    this.auditingRepository = new OrmAuditingRepository(dataSource);
-    this.idGenerator = new UuidGenerator();
+    this.infraUserRepository = new OrmInfraUserRepository(dataSource)
+    this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
+    this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
+    this.courseRepository =
+      new OrmCourseRepository(
+        new OrmCourseMapper(
+          new OrmSectionMapper(),
+          new OrmTrainerMapper()
+        ),
+        new OrmSectionMapper(),
+        new OrmSectionCommentMapper(),
+        dataSource
+      )
+    this.progressRepository =
+      new OrmProgressCourseRepository(
+        new OrmProgressCourseMapper(),
+        new OrmProgressSectionMapper(),
+        new OrmProgressVideoMapper(),
+        this.courseRepository,
+        dataSource)
+    this.imageTransformer = new ImageTransformer()
+    this.idGenerator = new UuidGenerator()
+    this.fileUploader = new AzureFileUploader()
+    this.auditingRepository = new OrmAuditingRepository(dataSource)
   }
-
   @Get('')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -133,13 +134,17 @@ export class UserController {
       'Modificar dato/s de registro de un usuario, dado el id del usuario',
     type: UpdateUserProfileSwaggerResponseDto,
   })
-  async updateUser(@Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
-    const userUpdateDto = { ...updateEntryDTO };
+  async updateUser(@GetUser() user: User, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
+    let image: File = null
+    if (updateEntryDTO.image) {
+      image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
+    }
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
         new LoggingDecorator(
-          new UpdateUserProfileAplicationService(this.infraUserRepository),
+          new UpdateUserProfileAplicationService(this.userRepository,this.fileUploader, this.idGenerator),
           new NativeLogger(this.logger),
         ),
         new HttpExceptionHandler(),
@@ -148,18 +153,20 @@ export class UserController {
       this.idGenerator,
     );
 
-    const resultUpdate = await updateUserProfileService.execute(userUpdateDto);
+    const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
 
     if (!resultUpdate.isSuccess) {
-      return resultUpdate.Error;
+      return resultUpdate.Error
     }
 
     const Respuesta: UpdateUserProfileSwaggerResponseDto = {
-      Id: resultUpdate.Value.userId,
-    };
+      Id: resultUpdate.Value.userId
+    }
 
-    return Respuesta;
+    return Respuesta
+
   }
+
 
   @Post('/follow/:trainerID')
   @UseGuards(JwtAuthGuard)

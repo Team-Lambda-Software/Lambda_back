@@ -34,8 +34,7 @@ export class SaveTokenAddressApplicationService implements IApplicationService<S
     
     async execute(saveTokenDto: SaveTokenAddressEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail(saveTokenDto.email)
-        if ( !findResult.isSuccess() ) 
-            return Result.fail( new Error('Email no registrado'), 500, 'Email no registrado' )
+        if ( !findResult.isSuccess() ) return Result.fail( new Error('Email no registrado'), 500, 'Email no registrado' )
 
         const saveResult = await this.notiAddressRepository.saveNotificationAddress(
             OrmNotificationAddress.create(

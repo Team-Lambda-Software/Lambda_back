@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -38,6 +38,8 @@ import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
+import { ValidateCodeForgetPasswordSwaggerResponseDto } from "../dto/response/val-code-swagger-response.dto";
+import { ChangePasswordSwaggerResponseDto } from "../dto/response/change-password-swagger-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -132,14 +134,14 @@ export class AuthController {
             this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
             this.secretCodes.push( result.Value )
         }
-        return result.Value
+        return { date: result.Value.date }
     }
 
     @Put('change/password')
-    //@ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: UpdatePasswordUserSwaggerResponseDto })
+    @ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: ChangePasswordSwaggerResponseDto })
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
-        const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( !result ) return { message: 'code invalid', code: updatePasswordDto.code }
+        const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
+        if ( !result ) throw new BadRequestException('code invalid')
         const data = { userId: 'none',  ...updatePasswordDto }
         const changePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -151,16 +153,24 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        return (await changePasswordApplicationService.execute(data)).Value
+        await changePasswordApplicationService.execute(data)
     }
     
     @Post('code/validate')
-    //@ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: NewTokenSwaggerResponseDto })
-    async validateCode( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        return { ok: true } 
+    @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
+    async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('code invalid')
     }
 
-    private verifyCode( code: string, email: string ) {
+    private validateCode( code: string, email: string ) {
+        var nowTime = new Date().getTime()
+        var search = this.secretCodes.filter( e => (e.code == code && e.email == email) )
+        if ( search.length == 0 ) return false
+        if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
+        return true
+    }
+
+    private signCode( code: string, email: string ) {
         var nowTime = new Date().getTime()
         var search = this.secretCodes.filter( e => (e.code == code && e.email == email) )
         if ( search.length == 0 ) return false

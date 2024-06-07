@@ -4,7 +4,7 @@ import {
     InternalServerErrorException,
     ForbiddenException,
   } from '@nestjs/common';
-import { IExceptionHandler } from 'src/common/exception-handler/exception-handler.interface'
+import { IExceptionHandler } from 'src/common/Application/exception-handler/exception-handler.interface'
   
   export class HttpExceptionHandler implements IExceptionHandler {
   

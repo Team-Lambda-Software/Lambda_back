@@ -19,7 +19,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
     private readonly trainerRepository: ITrainerRepository
     private readonly categoryRepository: ICategoryRepository
     private readonly fileUploader: IFileUploader
-    private readonly idGenerator: IdGenerator<string>
+    private readonly idGenerator: IdGenerator<string> 
 
     constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
     {

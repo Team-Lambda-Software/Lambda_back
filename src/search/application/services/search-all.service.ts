@@ -33,19 +33,15 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
     async execute ( data: SearchAllServiceEntryDto ): Promise<Result<SearchAllServiceResponseDto>>
     {
         const { page = 0, perPage = 10 } = data.pagination
-        let resultCourses = await this.courseRepository.findCoursesByName( data.name, { page, perPage } )
+        let resultCourses = await this.courseRepository.findCoursesByTagsAndName( data.tags, data.name, { page, perPage } )
         if ( !resultCourses.isSuccess() )
         {
-            if ( resultCourses.StatusCode != 404 )
-                return Result.fail<SearchAllServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message )
-            resultCourses = Result.success<Course[]>( [], 200 )
+            return Result.fail<SearchAllServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message )
         }
-        let resultBlogs = await this.blogRepository.findBlogsByTitle( data.name, { page, perPage } )
+        let resultBlogs = await this.blogRepository.findBlogsByTagsAndTitle( data.tags,data.name, { page, perPage } )
         if ( !resultBlogs.isSuccess() )
         {
-            if ( resultBlogs.StatusCode != 404 )
-                return Result.fail<SearchAllServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
-            resultBlogs = Result.success<Blog[]>( [], 200 )
+            return Result.fail<SearchAllServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message )
         }
         let responseSearch: SearchAllServiceResponseDto = { courses: [], blogs: [] }
         if ( resultCourses.Value.length > 0 )

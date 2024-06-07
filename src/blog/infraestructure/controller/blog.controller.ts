@@ -118,12 +118,15 @@ export class BlogController
                 ),
                 new HttpExceptionHandler()
             )
+        const newImages = []
         for ( const image of images ){
+            const newImage = new File( [image.buffer], image.originalname, {type: image.mimetype})
+            newImages.push(newImage)
             if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const result = await service.execute( { images: images, ...createBlogParams, userId: user.Id } )
+        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.Id } )
         return result.Value
     }
 
