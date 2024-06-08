@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -134,14 +134,14 @@ export class AuthController {
             this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
             this.secretCodes.push( result.Value )
         }
-        return result.Value
+        return { date: result.Value.date }
     }
 
     @Put('change/password')
     @ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: ChangePasswordSwaggerResponseDto })
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( !result ) return { message: 'code invalid', code: updatePasswordDto.code }
+        if ( !result ) throw new BadRequestException('code invalid')
         const data = { userId: 'none',  ...updatePasswordDto }
         const changePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -153,14 +153,13 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        return (await changePasswordApplicationService.execute(data)).Value
+        await changePasswordApplicationService.execute(data)
     }
     
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) return { code: codeValDto.code, validate: false }
-        return { code: codeValDto.code, validate: true } 
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('code invalid')
     }
 
     private validateCode( code: string, email: string ) {
