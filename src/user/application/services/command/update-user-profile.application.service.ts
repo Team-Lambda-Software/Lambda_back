@@ -8,14 +8,16 @@ import { UpdateUserProfileServiceEntryDto } from "../../dto/params/update-user-p
 import { UpdateUserProfileServiceResponseDto } from "../../dto/responses/update-user-profile-service-response.dto";
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IInfraUserRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
 
-    constructor ( userRepository: IUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>){
+    constructor ( userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>){
         this.userRepository = userRepository
         this.fileUploader = fileUploader
         this.idGenerator = idGenerator
@@ -25,30 +27,24 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
         
         const user = await this.userRepository.findUserById(data.userId)
 
-        if(!user.isSuccess){
-           return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message);
-        }
-        
-        const userUpdate: User = user.Value
+        if (!user.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message);
+ 
+        const userResult = user.Value
+        const userUpdate: OrmUser = await OrmUser.create(
+            userResult.id,
+            (data.phone) ? data.phone : userResult.phone,
+            (data.name) ? data.name : userResult.name,
+            (data.image) ? await this.fileUploader.UploadFile( data.image, await this.idGenerator.generateId() ) : userResult.image,
+            (data.email) ? data.email : userResult.email,
+            (data.password) ? data.password : userResult.password,
+        )
 
-        if(data.name) userUpdate.updateName(data.name)
-        if(data.image){
-            const imageId = await this.idGenerator.generateId()
-            const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-            userUpdate.updateImage(imageUrl)
-        } 
-        if(data.email) userUpdate.updateEmail(data.email)
-        if(data.password) userUpdate.updatePassword(data.password)
-        if(data.phone) userUpdate.updatePhone(data.phone)
-        
-        const updateResult = await this.userRepository.saveUserAggregate(userUpdate);
+        const updateResult = await this.userRepository.saveOrmUser(userUpdate);
 
-        if(!updateResult.isSuccess){
-            return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
-        }
+        if(!updateResult.isSuccess) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
         const respuesta: UpdateUserProfileServiceResponseDto = {
-            userId: updateResult.Value.Id
+            userId: updateResult.Value.id
         }
 
         return Result.success<UpdateUserProfileServiceResponseDto>(respuesta,200)

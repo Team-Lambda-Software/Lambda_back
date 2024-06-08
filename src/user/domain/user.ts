@@ -10,30 +10,24 @@ export class User extends Entity<string>
 {
 
     private name: string
-    private email: string
-    private password: string
     private phone: string
     private trainers: Trainer[]
     private progressVideo:ProgressVideo[]
     private progressCourse: ProgressCourse[]
     private progressSection: ProgressSection[]
     private image: string
-    private type: string
     //TODO: Add fields for the stadistics, courses made, etc.
 
-    private constructor ( id: string, name: string, email: string, password: string, phone: string, type: string, image?: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
+    private constructor ( id: string, name: string, phone: string, image?: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
     {
         super( id )
         this.name = name
-        this.email = email
-        this.password = password
         this.phone = phone
         this.trainers = trainers
         this.progressCourse = progressCourse
         this.progressSection = progressSection
         this.progressVideo = progressVideo
         this.image = image
-        this.type = type
     }
 
     get Name (): string
@@ -44,21 +38,6 @@ export class User extends Entity<string>
     get Image (): string
     {
         return this.image
-    }
-
-    get Email (): string
-    {
-        return this.email
-    }
-
-    get Type (): string
-    {
-        return this.type
-    }
-
-    get Password (): string
-    {
-        return this.password
     }
 
     get Phone (): string
@@ -86,9 +65,9 @@ export class User extends Entity<string>
         return this.progressVideo
     }
 
-    static create ( id: string, name: string, email: string, password: string, phone: string, type: string, image?: string): User
+    static create ( id: string, name: string, phone: string, image?: string): User
     {
-        return new User( id, name, email, password, phone, type, image)
+        return new User( id, name, phone, image)
     }
 
     public updateName ( name: string ): void
@@ -99,21 +78,6 @@ export class User extends Entity<string>
     public updateImage ( image: string ): void
     {
         this.image = image
-    }
-
-    public updateEmail ( email: string ): void
-    {
-        this.email = email
-    }
-
-    public updateType ( type: string ): void
-    {
-        this.type = type
-    }
-
-    public updatePassword ( password: string ): void
-    {
-        this.password = password
     }
 
     public updatePhone (phone: string): void
