@@ -7,38 +7,38 @@ export class GetTrainerProfileSwaggerResponseDto
 {
     @ApiProperty( {
         example: {
-            trainerName: 'Pedro Perez Peraza'
+            name: 'Pedro Perez Peraza'
         },
     } )
-    trainerName: string;
+    name: string;
 
     @ApiProperty( {
         example: {
-            trainerId: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2'
+            id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2'
         },
     } )
-    trainerId:string;
+    id:string;
 
     @ApiProperty( {
         example: {
             "count": 21
         },
     } )
-    followerCount:number;
+    followers:number;
 
     @ApiProperty( {
         example: {
-            doesUserFollow: true
+            userFollow: true
         },
     } )
-    doesUserFollow: boolean;
+    userFollow: boolean;
 
     @ApiProperty( {
         example: {
             location: '-46.8772 30.2114'
         },
     } )
-    trainerLocation:string;
+    location:string;
 
     //unused Per the new specification, this data is no longer required here. Will cleanup later, just in case
     // @ApiProperty( {
