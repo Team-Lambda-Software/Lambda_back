@@ -3,5 +3,4 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 export class SaveTokenAddressEntryApplicationDto implements ApplicationServiceEntryDto {
     userId: string
     token: string
-    email: string
 }

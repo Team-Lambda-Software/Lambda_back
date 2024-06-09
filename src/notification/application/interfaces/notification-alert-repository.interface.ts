@@ -1,6 +1,6 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
-import { OrmNotificationAlert } from "../../entities/orm-entities/orm-notification-alert"
+import { OrmNotificationAlert } from "../../infraestructure/entities/orm-entities/orm-notification-alert"
 
 export interface INotificationAlertRepository {
     findManyNotificationsByIdUser ( userId: string, pagDto: PaginationDto ): Promise<Result<OrmNotificationAlert[]>>

@@ -43,6 +43,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         } else {
             videoId = await this.idGenerator.generateId()
             videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
+            videoUrl = videoUrl + process.env.SAS_TOKEN
         } 
         
         let section

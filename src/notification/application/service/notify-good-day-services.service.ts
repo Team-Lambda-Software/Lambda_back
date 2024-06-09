@@ -1,8 +1,8 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Application/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { INotificationAddressRepository } from "../../infraestructure/repositories/interfaces/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../../infraestructure/repositories/interfaces/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../interfaces/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../interfaces/notification-alert-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
@@ -27,36 +27,21 @@ export class NotifyGoodDayApplicationService implements IApplicationService<Appl
     
     async execute(notifyDto: ApplicationServiceEntryDto): Promise<Result<any>> {
         const findResult = await this.notiAddressRepository.findAllTokens()
-        if ( !findResult.isSuccess() )
-            return Result.fail( new Error('Sin tokens registrados'), 500, 'Sin tokens registrados' )
-        
+        if ( !findResult.isSuccess() ) return Result.fail( findResult.Error, findResult.StatusCode, findResult.Message )
         const listTokens = findResult.Value
-            listTokens.forEach( async e => {  
-                try {
 
-                    const pushMessage:PushNotificationDto = {
-                        token: e.token,
-                        notification: {
-                            title: 'Good ney day!',
-                            body: 'be Happy, my budy'
-                        }
-                    }    
-
-                    const result = await this.pushNotifier.sendNotification( pushMessage )
-                    if ( result.isSuccess() ) {
-                        this.notiAlertRepository.saveNotificationAlert(
-                            OrmNotificationAlert.create(
-                                await this.uuidGenerator.generateId(),
-                                e.user_id,
-                                "Good new Day!",
-                                'be Happy, my budy',
-                                false,
-                                new Date()
-                            )
-                        )
-                    }
-                } catch (e) {}
-            })
+        listTokens.forEach( async e => {  
+            try {
+                const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Good ney day!', body: 'be Happy, my budy' } }    
+                const result = await this.pushNotifier.sendNotification( pushMessage )
+                if ( result.isSuccess() ) {
+                    this.notiAlertRepository.saveNotificationAlert(
+                        OrmNotificationAlert.create( 
+                            await this.uuidGenerator.generateId(), e.user_id, "Good new Day!", 'be Happy, my budy', false, new Date() )
+                    )
+                }
+            } catch (e) { return Result.fail(new Error('Something went wrong'), 500, 'Something went wrong') }
+        })
         return Result.success('good day push sended', 200)
     }
    

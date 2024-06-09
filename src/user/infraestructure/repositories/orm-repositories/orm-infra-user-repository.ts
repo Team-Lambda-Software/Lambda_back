@@ -1,7 +1,7 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"
-import { IInfraUserRepository } from "../interfaces/orm-infra-user-repository.interface"
+import { IInfraUserRepository } from "../../../application/interfaces/orm-infra-user-repository.interface"
 
 export class OrmInfraUserRepository extends Repository<OrmUser> implements IInfraUserRepository {
 
