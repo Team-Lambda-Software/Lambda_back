@@ -8,7 +8,7 @@ import { INotifier } from "src/common/Application/notifier/notifier.application"
 import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
 import { OrmNotificationAddress } from "src/notification/infraestructure/entities/orm-entities/orm-notification-address";
 import { OrmNotificationAlert } from "src/notification/infraestructure/entities/orm-entities/orm-notification-alert";
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 
 export class SaveTokenAddressApplicationService implements IApplicationService<SaveTokenAddressEntryApplicationDto, any> {
         

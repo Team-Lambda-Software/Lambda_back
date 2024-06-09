@@ -20,7 +20,7 @@ export class OrmUserMapper implements IMapper<User, OrmUser>
     }
     async fromPersistenceToDomain ( persistence: OrmUser ): Promise<User>
     {
-        const domainUser = User.create( persistence.id, persistence.name, persistence.phone, persistence.image)
+        const domainUser = User.create( persistence.id, persistence.name, persistence.phone, persistence.image )
         return domainUser
     }
 }

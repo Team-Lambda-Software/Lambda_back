@@ -8,19 +8,22 @@ import { UpdateUserProfileServiceEntryDto } from "../../dto/params/update-user-p
 import { UpdateUserProfileServiceResponseDto } from "../../dto/responses/update-user-profile-service-response.dto";
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
     private readonly userRepository: IInfraUserRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
+    private readonly encryptor: IEncryptor
 
-    constructor ( userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>){
+    constructor ( userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>, encryptor:IEncryptor ){
         this.userRepository = userRepository
         this.fileUploader = fileUploader
         this.idGenerator = idGenerator
+        this.encryptor = encryptor
     }
 
     async execute(data: UpdateUserProfileServiceEntryDto): Promise<Result<UpdateUserProfileServiceResponseDto>> {
@@ -36,7 +39,7 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
             (data.name) ? data.name : userResult.name,
             (data.image) ? await this.fileUploader.UploadFile( data.image, await this.idGenerator.generateId() ) : userResult.image,
             (data.email) ? data.email : userResult.email,
-            (data.password) ? data.password : userResult.password,
+            (data.password) ? await this.encryptor.hashPassword(data.password) : userResult.password,
         )
 
         const updateResult = await this.userRepository.saveOrmUser(userUpdate);

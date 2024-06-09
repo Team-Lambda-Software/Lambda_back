@@ -34,7 +34,7 @@ import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not
 import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
 import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 
 @ApiTags('Notification')
