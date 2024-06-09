@@ -3,6 +3,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 
 export interface GetTrainerProfileServiceEntryDto extends ApplicationServiceEntryDto {
     trainerId:string;
-    coursesPagination:PaginationDto;
-    blogsPagination:PaginationDto;
+    //unused Common API specification does not consider this
+        // coursesPagination:PaginationDto;
+        // blogsPagination:PaginationDto;
 }
