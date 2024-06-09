@@ -40,7 +40,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 signUpDto.type    
             )
         )
-        if ( !userResult.isSuccess() ) return Result.fail( userResult.Error, 500, 'Something went wrong signing up user' )        
+        if ( !userResult.isSuccess() ) return Result.fail( new Error('Something went wrong signing up user'), 500, 'Something went wrong signing up user' )        
         const answer = { 
             id: userResult.Value.id,
             email: userResult.Value.email,

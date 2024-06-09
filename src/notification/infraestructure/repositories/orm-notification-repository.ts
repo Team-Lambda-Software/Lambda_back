@@ -1,7 +1,7 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmNotificationAddress } from "../entities/orm-entities/orm-notification-address"
-import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interfaces/notification-address-repository.interface"
+import { INotificationAddressRepository } from "src/notification/application/interfaces/notification-address-repository.interface"
 
 export class OrmNotificationAddressRepository extends Repository<OrmNotificationAddress> implements INotificationAddressRepository {
 
@@ -11,7 +11,7 @@ export class OrmNotificationAddressRepository extends Repository<OrmNotification
 
     async findAllTokens(): Promise<Result<OrmNotificationAddress[]>> {
         const OrmAddress = await this.find()
-        if(OrmAddress.length > 0){
+        if (OrmAddress.length > 0){
             const list_address: OrmNotificationAddress[] = [];
             for (const address of OrmAddress) { list_address.push(address) }
             return Result.success<OrmNotificationAddress[]>(list_address,200);

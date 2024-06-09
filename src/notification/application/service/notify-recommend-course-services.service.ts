@@ -2,8 +2,8 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Application/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { INotificationAddressRepository } from "../../infraestructure/repositories/interfaces/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../../infraestructure/repositories/interfaces/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../interfaces/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../interfaces/notification-alert-repository.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { randomInt } from "crypto";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
@@ -34,12 +34,10 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
     
     async execute(notifyDto: ApplicationServiceEntryDto): Promise<Result<any>> {
         const findResultTokens = await this.notiAddressRepository.findAllTokens()
-        if ( !findResultTokens.isSuccess() )
-            return Result.fail( new Error('Sin tokens registrados'), 500, 'Sin tokens registrados' )
-        
+        if ( !findResultTokens.isSuccess() ) return Result.fail(findResultTokens.Error, findResultTokens.StatusCode, findResultTokens.Message)
+
         const findResultCourses = await this.courseRepository.findCoursesByName(' ', { perPage: 10, page: 0 })
-        if ( !findResultCourses.isSuccess() )
-            return Result.fail( new Error('Sin cursos registrados'), 500, 'Sin cursos registrados' )
+        if ( !findResultCourses.isSuccess() ) return Result.fail(findResultCourses.Error, findResultCourses.StatusCode, findResultCourses.Message)
 
         const listTokens = findResultTokens.Value
         const listCourses = findResultCourses.Value
@@ -48,29 +46,15 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
 
         listTokens.forEach( async e => {
             try {
-
-                const pushMessage:PushNotificationDto = {
-                    token: e.token,
-                    notification: {
-                        title: 'Recomendación del día!',
-                        body: 'Te recomendamos personalmente el curso de ' + course.Name 
-                    }
-                }
-
+                const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.Name }}
                 const result = await this.pushNotifier.sendNotification( pushMessage )
                 if ( result.isSuccess() ) {
                     this.notiAlertRepository.saveNotificationAlert(
                         OrmNotificationAlert.create(
-                            await this.uuidGenerator.generateId(),
-                            e.user_id,
-                            "Recomendación del día!",
-                            'Te recomendamos personalmente el curso de ' + course.Name,
-                            false,
-                            new Date()
-                        )
+                            await this.uuidGenerator.generateId(), e.user_id, 'Recommendation of the day', 'We recommend you ' + course.Name, false, new Date() )
                     )
                 }
-            } catch (e) {}
+            } catch (e) { return Result.fail(new Error('Something went wrong'), 500, 'Something went wrong') }
         })
         return Result.success('recommend push sended', 200)
     }

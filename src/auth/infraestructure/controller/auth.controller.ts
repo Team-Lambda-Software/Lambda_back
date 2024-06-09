@@ -3,10 +3,8 @@ import { ExceptionDecorator } from "src/common/Application/application-services/
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { Logger } from "@nestjs/common";
-import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
-import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
 import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
