@@ -19,13 +19,13 @@ export class FollowTrainerUserApplicationService implements IApplicationService<
 
         const trainer = await this.trainerRepository.findTrainerById(data.trainerId)
 
-        if(!trainer.isSuccess){
+        if(!trainer.isSuccess()){
             return Result.fail<Trainer>(trainer.Error,trainer.StatusCode,trainer.Message);
         } 
 
         const resultado = await this.trainerRepository.followTrainer(data.trainerId,data.userId);
 
-        if(!resultado.isSuccess){
+        if(!resultado.isSuccess()){
             return Result.fail<Trainer>(resultado.Error,resultado.StatusCode,resultado.Message);
         }
 

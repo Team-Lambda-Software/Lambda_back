@@ -18,7 +18,7 @@ export class UnfollowTrainerUserApplicationService implements IApplicationServic
 
         const trainer = await this.trainerRepository.findTrainerById(data.trainerId)
 
-        if(!trainer.isSuccess){
+        if(!trainer.isSuccess()){
             return Result.fail<Trainer>(trainer.Error,trainer.StatusCode,trainer.Message);
         } 
 
