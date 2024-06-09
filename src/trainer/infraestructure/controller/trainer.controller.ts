@@ -22,6 +22,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 //CCC-Logging, I think
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -70,7 +71,8 @@ export class TrainerController {
                         this.courseRepository
                     ),
                     new NativeLogger( this.logger )
-                )
+                ),
+                new HttpExceptionHandler()
             );
         const result = await service.execute( {userId: user.Id, trainerId:id, coursesPagination:coursePagination, blogsPagination:blogPagination} );
         return result.Value;

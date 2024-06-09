@@ -103,7 +103,7 @@ export class GetCourseSwaggerResponseDto
     description: string
 
     @ApiProperty( {
-        example: "e0f943f5-1327-45e1-a4f9-100c925486f0"
+        example: "fisico"
     } )
     category: string
 

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { TestController } from './test/infraestructure/controller/test.controller'
 import { ormDatabaseProvider } from './common/Infraestructure/providers/db-providers/db-provider'
 import { UserController } from './user/infraestructure/controller/user.controller'
 import { AuthController } from './auth/infraestructure/controller/auth.controller';
@@ -13,6 +12,7 @@ import { NotificationController } from './notification/infraestructure/controlle
 import { CategoryController } from './categories/infraesctructure/controller/category.controller'
 import { SearchController } from './search/infraestructure/controller/search.controller'
 import { ProgressController } from './progress/infraestructure/controller/progress.controller'
+import { CommentController } from './comment/infraestructure/controller/comment.controller'
 
 @Module( {
   imports: [
@@ -27,7 +27,6 @@ import { ProgressController } from './progress/infraestructure/controller/progre
 
   ],
   controllers: [
-    TestController, 
     UserController,
     AuthController,
     CourseController, 
@@ -36,7 +35,8 @@ import { ProgressController } from './progress/infraestructure/controller/progre
     CategoryController,
     SearchController,
     TrainerController,
-    ProgressController
+    ProgressController,
+    CommentController
   ],
   providers: [     
     ormDatabaseProvider

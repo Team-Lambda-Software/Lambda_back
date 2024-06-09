@@ -13,6 +13,8 @@ import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
+import { OrmCourseTags } from "../../entities/orm-entities/orm-course-tags"
 
 
 
@@ -29,6 +31,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     private readonly ormSectionRepository: Repository<OrmSection>
     private readonly ormImageRepository: Repository<OrmSectionImage>
     private readonly ormVideoRepository: Repository<OrmSectionVideo>
+    private readonly ormTagRepistory: Repository<OrmCourseTags>
     private readonly ormCommentRepository: Repository<OrmSectionComment>
     constructor ( ormCourseMapper: OrmCourseMapper, ormSectionMapper: OrmSectionMapper, ormSectionCommentMapper: OrmSectionCommentMapper, dataSource: DataSource )
     {
@@ -40,33 +43,105 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormImageRepository = dataSource.getRepository( OrmSectionImage )
         this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
+        this.ormTagRepistory = dataSource.getRepository( OrmCourseTags )
+
+    }
+    async findCoursesByTagsAndName ( tags: string[], name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect( 'course.trainer', 'trainer' ).leftJoinAndSelect( 'course.tags', 'course_tags' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).orderBy( 'course.date', 'DESC' ).getMany()
+            let filteredCourses = courses.filter( course => tags.every( tag => course.tags.some( courseTag => courseTag.name === tag ) ) )
+
+            if ( filteredCourses.length <= pagination.page && filteredCourses.length > 0 )
+                return Result.fail<Course[]>( new Error( 'page execedes lenght of courses' ), 404, 'page execedes lenght of courses' )
+
+            filteredCourses = filteredCourses.slice( pagination.page, pagination.perPage )
+
+
+            for ( const course of filteredCourses )
+            {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
+
+            }
+            return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
+        }
+    }
+
+    async addSectionToCourse ( courseId: string, section: Section ): Promise<Result<Section>>
+    {
+        try
+        {
+            const newSection = await this.ormSectionMapper.fromDomainToPersistence( section )
+            newSection.course_id = courseId
+            const savedSection = await this.ormSectionRepository.save( newSection )
+            if ( section.Image )
+            {
+                const image = OrmSectionImage.create( section.Image.Id, section.Image.Url )
+                image.section_id = savedSection.id
+                await this.ormImageRepository.save( image )
+            }
+            if ( section.Video )
+            {
+                const video = OrmSectionVideo.create( section.Video.Id, section.Video.Url )
+                video.section_id = savedSection.id
+                await this.ormVideoRepository.save( video )
+            }
+            return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( savedSection ), 200 )
+
+        } catch ( error )
+        {
+            return Result.fail<Section>( error, error.code, error.message )
+        }
+    }
+    async findCoursesByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<Course[]>>
+    {
+        try
+        {
+            const courses = await this.find( { where: { trainer_id: trainerId }, order: { date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
+
+            for ( const course of courses )
+            {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
+
+            }
+            return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+
+        } catch ( error )
+        {
+            return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
+        }
     }
     async findCoursesByTags ( tags: string[], pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.find()
-            let filteredCourses = courses.filter( course => course.tags.some( tag => tags.includes( tag.name ) ) )
-            
+            const courses = await this.find( { order: { date: 'DESC' } } )
+            let filteredCourses = courses.filter( course => tags.every( tag => course.tags.some( courseTag => courseTag.name === tag ) ) )
+
             if ( filteredCourses.length <= pagination.page && filteredCourses.length > 0 )
                 return Result.fail<Course[]>( new Error( 'page execedes lenght of courses' ), 404, 'page execedes lenght of courses' )
 
-            filteredCourses = filteredCourses.slice( pagination.page, pagination.perPage)
+            filteredCourses = filteredCourses.slice( pagination.page, pagination.perPage )
 
-            if ( filteredCourses.length > 0 )
+            for ( const course of filteredCourses )
             {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
 
-                for ( const course of filteredCourses )
-                {
-                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
-                    course.sections = sections
-                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                    course.image = courseImage
-
-                }
-                return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
-            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
         } catch ( error )
         {
             return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
@@ -74,36 +149,35 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     }
     async saveCourseAggregate ( course: Course ): Promise<Result<Course>>
     {
-        try {
+        try
+        {
             const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
+            await this.ormTagRepistory.save( course.Tags.map( tag => OrmCourseTags.create( tag ) ) )
+            await this.ormImageRepository.save( newCourse.image )
             const savedCourse = await this.save( newCourse )
-            return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( savedCourse ), 200 )
+            return Result.success<Course>( course, 200 )
         } catch ( error )
         {
             return Result.fail<Course>( new Error( error.message ), error.code, error.message )
-        
+
         }
     }
     async findCoursesByLevels ( levels: number[], pagination: PaginationDto ): Promise<Result<Course[]>>
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'course.level IN (:...levels)', { levels:  levels }  ).skip( pagination.page ).take( pagination.perPage ).getMany()
-            
-            if ( courses.length > 0 )
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect( 'course.trainer', 'trainer' ).leftJoinAndSelect( 'course.tags', 'course_tags' ).where( 'course.level IN (:...levels)', { levels: levels } ).orderBy( 'course.date', 'DESC' ).skip( pagination.page ).take( pagination.perPage ).getMany()
+
+            for ( const course of courses )
             {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
 
-                for ( const course of courses )
-                {
-                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
-                    course.sections = sections
-                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                    course.image = courseImage
-
-                }
-                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
-            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
@@ -114,22 +188,19 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { trainer_id: trainerId }, skip: pagination.page, take: pagination.perPage } )
+            const courses = await this.find( { where: { trainer_id: trainerId }, order: { date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
 
-            if ( courses.length > 0 )
+
+            for ( const course of courses )
             {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
 
-                for ( const course of courses )
-                {
-                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
-                    course.sections = sections
-                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                    course.image = courseImage
-
-                }
-                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
-            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
@@ -207,22 +278,19 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect('course.trainer','trainer').leftJoinAndSelect('course.tags', 'course_tags').where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).skip( pagination.page ).take( pagination.perPage ).getMany()
+            const courses = await this.createQueryBuilder( 'course' ).leftJoinAndSelect( 'course.trainer', 'trainer' ).leftJoinAndSelect( 'course.tags', 'course_tags' ).where( 'LOWER(course.name) LIKE :name', { name: `%${ name.toLowerCase().trim() }%` } ).orderBy( 'course.date', 'DESC' ).skip( pagination.page ).take( pagination.perPage ).getMany()
 
-            if ( courses.length > 0 )
+
+            for ( const course of courses )
             {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
 
-                for ( const course of courses )
-                {
-                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
-                    course.sections = sections
-                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                    course.image = courseImage
-
-                }
-                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
-            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )
@@ -268,22 +336,18 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     {
         try
         {
-            const courses = await this.find( { where: { category_id: categoryId }, skip: pagination.page, take: pagination.perPage } )
+            const courses = await this.find( { where: { category_id: categoryId }, order: { date: 'DESC' }, skip: pagination.page, take: pagination.perPage } )
 
-            if ( courses.length > 0 )
+            for ( const course of courses )
             {
+                const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
+                course.sections = sections
+                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
+                course.image = courseImage
 
-                for ( const course of courses )
-                {
-                    const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
-                    course.sections = sections
-                    const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                    course.image = courseImage
-
-                }
-                return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
             }
-            return Result.fail<Course[]>( new Error( 'Courses not found' ), 404, 'Courses not found' )
+            return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
+
         } catch ( error )
         {
             return Result.fail<Course[]>( new Error( error.message ), error.code, error.message )

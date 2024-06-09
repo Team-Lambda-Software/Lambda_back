@@ -1,18 +1,18 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Application/result-handler/Result";
 import { LogInEntryApplicationDto } from "../dto/log-in-entry.application.dto";
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IJwtGenerator } from "../interface/jwt-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 
 export class LogInUserApplicationService implements IApplicationService<LogInEntryApplicationDto, any> { 
     
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IInfraUserRepository
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
 
     constructor(
-        userRepository: IUserRepository,
+        userRepository: IInfraUserRepository,
         tokenGenerator: IJwtGenerator<string>,
         encryptor: IEncryptor
     ){
@@ -23,22 +23,22 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
     
     async execute(logInDto: LogInEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.userRepository.findUserByEmail( logInDto.email )
-        if ( !findResult.isSuccess() ) 
-            return Result.fail( new Error('Correo electrónico no registrado'), 500, 'Correo electrónico no registrado' )
+        if ( !findResult.isSuccess() ) return Result.fail( new Error('Email not registered'), 403, 'Email not registered' )
         const userResult = await findResult.Value
-        const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.Password)
-        if (!checkPassword) 
-            return Result.fail( new Error('Contraseña incorrecta'), 500, 'Contraseña incorrecta' )
-        const token = this.tokenGenerator.generateJwt( userResult.Id )   
+        const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.password)
+        if (!checkPassword) return Result.fail( new Error('Incorrect password'), 400, 'Incorrect password' )
+        const token = this.tokenGenerator.generateJwt( userResult.id )   
         const answer = {
             token: token,
-            email: userResult.Email,
-            firstLastName: userResult.FirstLastName,
-            firstName: userResult.FirstName,
-            secondLastName: userResult.SecondLastName,
-            phone: userResult.Phone
+            type: userResult.type,
+            user: {
+                id: userResult.id,
+                email: userResult.email,
+                name: userResult.name,
+                phone: userResult.phone,
+            }               
         }
-        return Result.success(answer, 200)
+        return Result.success( answer, 200)
     }
     
     get name(): string { return this.constructor.name }

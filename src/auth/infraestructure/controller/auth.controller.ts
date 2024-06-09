@@ -1,16 +1,10 @@
-import { Controller, Get, Post } from "@nestjs/common"
-import { LogInEntryInfrastructureDto } from "../dto/entry/log-in-entry.infrastructure.dto";
-import { SignUpEntryInfrastructureDto } from "../dto/entry/sign-up-entry.infrastructure.dto";
+import { BadRequestException, Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { Logger } from "@nestjs/common";
-import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
-import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
-import { Body } from "@nestjs/common";
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
@@ -22,28 +16,34 @@ import { SignUpUserApplicationService } from "src/auth/application/services/sign
 import { JwtService } from "@nestjs/jwt";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
 import { SecretCodeGenerator } from "../secret-code-generator/secret-code-generator";
-import { GetCodeForUpdatePasswordUserInfrastructureDto } from "../dto/entry/get-code-update-password-user-entry.infrastructure.dto";
-import { UpdatePasswordUserInfrastructureDto } from "../dto/entry/update-password-user.entry.infraestructure.dto";
-import { UpdatePasswordUserApplicationService } from "src/auth/application/services/update-password-user-service.application.service";
 import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { GetCodeUpdatePasswordSwaggerResponseDto } from "../dto/response/get-code-update-password-swagger-response.dto";
+import { ForgetPasswordSwaggerResponseDto } from "../dto/response/forget-password-swagger-response.dto";
 import { LogInUserSwaggerResponseDto } from "../dto/response/log-in-user-swagger-response.dto";
 import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagger-response.dto";
-import { UpdatePasswordUserSwaggerResponseDto } from "../dto/response/update-password-user-swagger-response.dto";
-import { NewTokenSwaggerResponseDto } from "../dto/response/new-token-swagger-response.dto";
-import { CheckTokenSwaggerResponseDto } from "../dto/response/check-token-swagger-response.dto";
 import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
 import { GetUser } from "../jwt/decorator/get-user.param.decorator";
+import { SignUpUserEntryInfraDto } from "../dto/entry/sign-up-user-entry.dto";
+import { LogInUserEntryInfraDto } from "../dto/entry/log-in-user-entry.dto";
+import { CodeValidateEntryInfraDto } from "../dto/entry/code-validate-entry.dto";
+import { ForgetPasswordEntryInfraDto } from "../dto/entry/forget-password-entry.dto";
+import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swagger-response.dto";
+import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
+import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
+import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
+import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
+import { ValidateCodeForgetPasswordSwaggerResponseDto } from "../dto/response/val-code-swagger-response.dto";
+import { ChangePasswordSwaggerResponseDto } from "../dto/response/change-password-swagger-response.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
-    private readonly userRepository: IUserRepository
+    private readonly infraUserRepository: IInfraUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
@@ -54,121 +54,123 @@ export class AuthController {
         private jwtAuthService: JwtService
     ) {
         this.logger = new Logger('AuthController')
-        this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
+        this.infraUserRepository = new OrmInfraUserRepository(dataSource)
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
     }
     
-    @Get('checktoken')
+    @Get('current')
     @UseGuards(JwtAuthGuard)
-    @ApiOkResponse({ 
-        description: 'Verificar validez del token mediante el header Authorization', 
-        type: CheckTokenSwaggerResponseDto
-    })
+    @ApiOkResponse({ description: 'Obtener usuario actual', type: CurrentUserSwaggerResponseDto })
     @ApiBearerAuth()
-    async checkToken() { return { tokenIsValid: true } }    
-
-    @Get('newtoken')
-    @UseGuards(JwtAuthGuard)
-    @ApiOkResponse({ 
-        description: 'Generar nuevo token para prevenir el vencimiento del actual', 
-        type: NewTokenSwaggerResponseDto 
-    })
-    @ApiBearerAuth()
-    async newToken( @GetUser() user ) {
-        return { newToken: this.tokenGenerator.generateJwt( user.id ) } 
+    async currentUser( @GetUser() user ) {        
+        return {
+            id: user.Id,
+            email: user.Email,
+            name: user.Name,
+            phone: user.Phone,
+            image: user.Image
+        } 
     }
 
-    @Post('loginuser')
-    @ApiOkResponse({ 
-        description: 'Iniciar sesion de usuario', 
-        type: LogInUserSwaggerResponseDto 
-    })
-    async logInUser(@Body() logInDto: LogInEntryInfrastructureDto) {
+    @Post('login')
+    @ApiOkResponse({ description: 'Iniciar sesion de usuario', type: LogInUserSwaggerResponseDto })
+    async logInUser(@Body() logInDto: LogInUserEntryInfraDto) {
         const data = { userId: 'none', ...logInDto }
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new LogInUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.tokenGenerator,
                     this.encryptor
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         return (await logInUserService.execute(data)).Value
     }
     
-    @Post('signupuser')
-    @ApiOkResponse({ 
-        description: 'Registrar un nuevo usuario en el sistema', 
-        type: SignUpUserSwaggerResponseDto 
-    })
-    async signUpUser(@Body() signUpDto: SignUpEntryInfrastructureDto) {
-        const data = { userId: 'none', ...signUpDto }
+    @Post('register')
+    @ApiOkResponse({ description: 'Registrar un nuevo usuario en el sistema', type: SignUpUserSwaggerResponseDto })
+    async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
+        var data = { userId: 'none', ...signUpDto }
+        if ( !data.type ) data = { type: 'CLIENT', ...data }
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.uuidGenerator,
-                    this.tokenGenerator,
                     this.encryptor,
-                    new WelcomeSender()
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
-        return (await signUpApplicationService.execute(data)).Value
+        const resultService = await (await signUpApplicationService.execute(data)).Value
+        const emailSender = new WelcomeSender()
+        emailSender.setVariables( { firstname: resultService.name } )
+        emailSender.sendEmail( resultService.email, resultService.name )
+        return { id: resultService.id }
     }
     
-    @Post('getcodeupdatepassword')
-    @ApiOkResponse({ 
-        description: 'Obtener codigo de validez temporal para confirmar que la petición pertenece al usuario correspondiente', 
-        type: GetCodeUpdatePasswordSwaggerResponseDto
-    })
-    async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: GetCodeForUpdatePasswordUserInfrastructureDto ) {
+    @Post('forget/password')
+    @ApiOkResponse({ description: 'Obtener codigo temporal para confirmar usuario', type: ForgetPasswordSwaggerResponseDto })
+    async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: ForgetPasswordEntryInfraDto ) {
         const data = { userId: 'none', ...getCodeUpdateDto, }
         const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetCodeUpdatePasswordUserApplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     new UpdatePasswordSender(),
                     new SecretCodeGenerator(),
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
-        if ( result.isSuccess() ) {
-            this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
-            this.secretCodes.push( result.Value )
-        }
-        return result.Value
+        this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
+        this.secretCodes.push( result.Value )
+        console.log( this.secretCodes )
+        return { date: result.Value.date }
     }
 
-    @Post('updatepassword')
-    @ApiOkResponse({ 
-        description: 'Cambiar la contraseña del usuario', 
-        type: UpdatePasswordUserSwaggerResponseDto
-    })
-    async updatePasswordUser(@Body() updatePasswordDto: UpdatePasswordUserInfrastructureDto ) {     
-        const result = this.verifyCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( !result ) return { message: 'code invalid', code: updatePasswordDto.code }
+    @Put('change/password')
+    @ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: ChangePasswordSwaggerResponseDto })
+    async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
+        const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
+        if ( !result ) throw new BadRequestException('Invalid secret code')
         const data = { userId: 'none',  ...updatePasswordDto }
-        const updatePasswordApplicationService = new ExceptionDecorator( 
+        const changePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new UpdatePasswordUserApplicationService(
-                    this.userRepository,
+                new ChangePasswordUserApplicationService(
+                    this.infraUserRepository,
                     this.encryptor
                 ), 
                 new NativeLogger(this.logger)
-            )
+            ),
+            new HttpExceptionHandler()
         )
-        return (await updatePasswordApplicationService.execute(data)).Value
+        await changePasswordApplicationService.execute(data)
+    }
+    
+    @Post('code/validate')
+    @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
+    async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('Invalid secret code')
     }
 
-    private verifyCode( code: string, email: string ) {
+    private validateCode( code: string, email: string ) {
+        var nowTime = new Date().getTime()
+        var search = this.secretCodes.filter( e => (e.code == code && e.email == email) )
+        if ( search.length == 0 ) return false
+        if ( (nowTime - search[0].date)/1000 >= 300 ) return false   
+        return true
+    }
+
+    private signCode( code: string, email: string ) {
         var nowTime = new Date().getTime()
         var search = this.secretCodes.filter( e => (e.code == code && e.email == email) )
         if ( search.length == 0 ) return false

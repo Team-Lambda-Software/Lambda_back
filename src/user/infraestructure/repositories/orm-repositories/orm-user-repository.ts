@@ -45,9 +45,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         try
         {
             const ormUser = await this.ormUserMapper.fromDomainToPersistence( user )
-
             await this.save( ormUser )
-
             return Result.success<User>( user, 200 )
         } catch ( error )
         {
@@ -55,7 +53,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         }
     }
 
-    async findUserByEmail ( email: string ): Promise<Result<User>>
+    /*async findUserByEmail ( email: string ): Promise<Result<User>>
     {
         const user = await this.findOneBy({email})
         if(user){
@@ -73,7 +71,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
             return Result.success<User>(await this.ormUserMapper.fromPersistenceToDomain(user),200);
         }
         return Result.fail<User>(new Error('User not found'),404,'User not found');
-    }
+    }*/
 
     async findAllUser(): Promise<Result<User[]>>
     {
@@ -108,7 +106,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
 
         usuarios_registrados = OrmUsers.Value.length;
 
-       return Result.success<number>(usuarios_registrados,200)
+       return Result.success<number>(usuarios_registrados, 200)
 
     }
 }
