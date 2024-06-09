@@ -3,10 +3,8 @@ import { ExceptionDecorator } from "src/common/Application/application-services/
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { Logger } from "@nestjs/common";
-import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
-import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
 import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
@@ -36,7 +34,7 @@ import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swag
 import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
 import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 import { ValidateCodeForgetPasswordSwaggerResponseDto } from "../dto/response/val-code-swagger-response.dto";
 import { ChangePasswordSwaggerResponseDto } from "../dto/response/change-password-swagger-response.dto";
@@ -98,20 +96,23 @@ export class AuthController {
     @ApiOkResponse({ description: 'Registrar un nuevo usuario en el sistema', type: SignUpUserSwaggerResponseDto })
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
-        if ( data.type == null ) data = { type: 'CLIENT', ...data }
+        if ( !data.type ) data = { type: 'CLIENT', ...data }
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
                     this.infraUserRepository,
                     this.uuidGenerator,
                     this.encryptor,
-                    new WelcomeSender()
                 ), 
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
         )
-        return (await signUpApplicationService.execute(data)).Value
+        const resultService = await (await signUpApplicationService.execute(data)).Value
+        const emailSender = new WelcomeSender()
+        emailSender.setVariables( { firstname: resultService.name } )
+        emailSender.sendEmail( resultService.email, resultService.name )
+        return { id: resultService.id }
     }
     
     @Post('forget/password')
@@ -130,10 +131,9 @@ export class AuthController {
             new HttpExceptionHandler()
         )
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
-        if ( result.isSuccess() ) {
-            this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
-            this.secretCodes.push( result.Value )
-        }
+        this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
+        this.secretCodes.push( result.Value )
+        console.log( this.secretCodes )
         return { date: result.Value.date }
     }
 
@@ -141,7 +141,7 @@ export class AuthController {
     @ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: ChangePasswordSwaggerResponseDto })
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( !result ) throw new BadRequestException('code invalid')
+        if ( !result ) throw new BadRequestException('Invalid secret code')
         const data = { userId: 'none',  ...updatePasswordDto }
         const changePasswordApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -159,7 +159,7 @@ export class AuthController {
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('code invalid')
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('Invalid secret code')
     }
 
     private validateCode( code: string, email: string ) {

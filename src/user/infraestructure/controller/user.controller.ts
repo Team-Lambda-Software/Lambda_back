@@ -35,6 +35,10 @@ import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { IInfraUserRepository } from "../../application/interfaces/orm-infra-user-repository.interface";
+import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
+import { EncryptorBcrypt } from "src/auth/infraestructure/encryptor/encryptor-bcrypt";
+import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 
 
 @ApiTags('User')
@@ -42,6 +46,7 @@ import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-gene
 export class UserController {
 
     private readonly userRepository: OrmUserRepository
+    private readonly infraUserRepository: IInfraUserRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly courseRepository: OrmCourseRepository
     private readonly progressRepository: OrmProgressCourseRepository
@@ -49,9 +54,11 @@ export class UserController {
     private readonly imageTransformer: ImageTransformer 
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
+    private readonly encryptor: IEncryptor
     
     constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
-        
+        this.encryptor = new EncryptorBcrypt()
+        this.infraUserRepository = new OrmInfraUserRepository(dataSource)
         this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
         this. trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
         this.courseRepository =
@@ -122,9 +129,10 @@ export class UserController {
         const updateUserProfileService = new ExceptionDecorator(
             new LoggingDecorator(
                 new UpdateUserProfileAplicationService(
-                    this.userRepository,
+                    this.infraUserRepository,
                     this.fileUploader,
-                    this.idGenerator
+                    this.idGenerator,
+                    this.encryptor
                     ), 
                 new NativeLogger(this.logger)
             ),

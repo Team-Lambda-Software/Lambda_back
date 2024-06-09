@@ -4,7 +4,7 @@ import { SignUpEntryApplicationDto } from "../dto/sign-up-entry.application.dto"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IEncryptor } from "../interface/encryptor.interface";
 import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 
 export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
@@ -18,18 +18,15 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
         infraUserRepository: IInfraUserRepository,
         uuidGenerator: IdGenerator<string>,
         encryptor: IEncryptor,
-        emailSender: IEmailSender
     ){
         this.infraUserRepository = infraUserRepository
         this.uuidGenerator = uuidGenerator
         this.encryptor = encryptor
-        this.emailSender = emailSender
     }
     
     async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
         const findResult = await this.infraUserRepository.findUserByEmail( signUpDto.email )
-        if ( findResult.isSuccess() ) return Result.fail( new Error('Email ya registrado'), 500, 'Email ya registrado')
-        
+        if ( findResult.isSuccess() ) return Result.fail( new Error('Email registered'), 403, 'Email registered')
         const idUser = await this.uuidGenerator.generateId()
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
         const userResult = await this.infraUserRepository.saveOrmUser( 
@@ -37,15 +34,18 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
                 idUser,
                 signUpDto.phone,
                 signUpDto.name,
+                undefined,
                 signUpDto.email,
                 plainToHash,
                 signUpDto.type    
             )
         )
-        if ( !userResult.isSuccess() ) return Result.fail( userResult.Error, 500, 'Error al registrar usuario' )        
-        this.emailSender.setVariables( { firstname: signUpDto.name } )
-        this.emailSender.sendEmail( signUpDto.email, signUpDto.name )
-        const answer = { id: userResult.Value.id }
+        if ( !userResult.isSuccess() ) return Result.fail( new Error('Something went wrong signing up user'), 500, 'Something went wrong signing up user' )        
+        const answer = { 
+            id: userResult.Value.id,
+            email: userResult.Value.email,
+            name: userResult.Value.name 
+        }
         return Result.success(answer, 200)
     }
    

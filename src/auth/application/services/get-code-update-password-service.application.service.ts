@@ -3,7 +3,7 @@ import { Result } from "src/common/Application/result-handler/Result";
 import { ICodeGenerator } from "../interface/code-generator.interface";
 import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
 import { ForgetPasswordEntryApplicationDto } from "../dto/forget-password-entry.application.dto copy";
-import { IInfraUserRepository } from "src/user/infraestructure/repositories/interfaces/orm-infra-user-repository.interface";
+import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 
 export class GetCodeUpdatePasswordUserApplicationService implements IApplicationService<ForgetPasswordEntryApplicationDto, any> {
     private readonly userRepository: IInfraUserRepository   
@@ -21,8 +21,7 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
     
     async execute(forgetDto: ForgetPasswordEntryApplicationDto): Promise<Result<any>> {
         const result = await this.userRepository.findUserByEmail( forgetDto.email )
-        if ( !result.isSuccess() ) 
-            return Result.fail( new Error('Cuenta no existente'), 500, 'Cuenta no existente' )
+        if ( !result.isSuccess() ) return Result.fail( new Error('Email not registered'), 400, 'Email not registered' )
         const code = this.codeGenerator.generateCode(4)
         this.emailSender.setVariables( { firstname: result.Value.name, secretcode: code } )
         this.emailSender.sendEmail( forgetDto.email, forgetDto.email )
