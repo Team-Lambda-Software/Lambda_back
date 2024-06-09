@@ -126,10 +126,10 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
     {
         try
         {
-            const followerCount = await this.createQueryBuilder().select('COUNT(follows.follower_id)').from(OrmTrainer, 'trainer')
+            const followerCount = await this.createQueryBuilder().select('follows.follower_id').from(OrmTrainer, 'trainer')
                                     .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.trainer_id = :target', {target: id})
-                                    .getRawOne<number>();
+                                    .getCount();
             if (followerCount != null)
             {
                 return Result.success<number>( followerCount, 200 )

@@ -6,37 +6,27 @@ import { Trainer } from "src/trainer/domain/trainer";
 export class GetTrainerProfileSwaggerResponseDto
 {
     @ApiProperty( {
-        example: {
-            name: 'Pedro Perez Peraza'
-        },
+        example: 'Pedro Perez Peraza',
     } )
     name: string;
 
     @ApiProperty( {
-        example: {
-            id: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2'
-        },
+        example: '7bcbfd8a-e775-4149-83ee-9ba4c709e8a2',
     } )
     id:string;
 
     @ApiProperty( {
-        example: {
-            "count": 21
-        },
+        example: 21,
     } )
     followers:number;
 
     @ApiProperty( {
-        example: {
-            userFollow: true
-        },
+        example: true,
     } )
     userFollow: boolean;
 
     @ApiProperty( {
-        example: {
-            location: '-46.8772 30.2114'
-        },
+        example: '-46.8772 30.2114',
     } )
     location:string;
 

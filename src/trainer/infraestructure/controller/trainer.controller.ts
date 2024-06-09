@@ -78,7 +78,9 @@ export class TrainerController {
                 new HttpExceptionHandler()
             );
         const result = await service.execute( {userId: user.Id, trainerId:id} );
-        return result.Value;
+        const value = result.Value;
+        //Map the fields of the DTO to the fields of the swagger response
+        return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
     }
 
     @Post( '/trainer/toggle/follow/:id' )
