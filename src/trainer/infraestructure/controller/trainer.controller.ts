@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common"
+import { Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
 import { OrmTrainerRepository } from "../repositories/orm-repositories/orm-trainer-repository"
 import { OrmTrainerMapper } from "../mappers/orm-mapper/orm-trainer-mapper"
 import { DataSource } from "typeorm"
@@ -23,6 +23,11 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
+import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/follow-unfollow-entry-Service"
+import { Trainer } from "src/trainer/domain/trainer"
+import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service"
+import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -56,25 +61,56 @@ export class TrainerController {
             );
     }
     
-    @Get( ':id' )
+    @Get( '/trainer/one/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve informacion sobre un entrenador, todos sus seguidores, cursos y blogs que haya creado; dado su id.', type: GetTrainerProfileSwaggerResponseDto})
-    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user:User, @Query('CoursePagination')coursePagination:PaginationDto, @Query('BlogPagination')blogPagination:PaginationDto )
+    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user:User)
     {
         const service = 
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetTrainerProfileApplicationService(
-                        this.trainerRepository,
-                        this.blogRepository,
-                        this.courseRepository
+                        this.trainerRepository
                     ),
                     new NativeLogger( this.logger )
                 ),
                 new HttpExceptionHandler()
             );
-        const result = await service.execute( {userId: user.Id, trainerId:id, coursesPagination:coursePagination, blogsPagination:blogPagination} );
+        const result = await service.execute( {userId: user.Id, trainerId:id} );
         return result.Value;
+    }
+
+    @Post( '/trainer/toggle/follow/:id' )
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
+    async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user:User)
+    {
+        let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>; //to-do Maybe this should return some primitive type or DTO instead of trainer?
+
+        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.Id);
+        if (doesFollowResult.isSuccess())
+        {
+            const doesFollow = doesFollowResult.Value;
+            if (doesFollow)
+            {
+                baseService = new UnfollowTrainerUserApplicationService(this.trainerRepository);
+            }
+            else
+            {
+                baseService = new FollowTrainerUserApplicationService(this.trainerRepository);
+            }
+        }
+
+        const service = 
+        new ExceptionDecorator(
+            new LoggingDecorator(
+                baseService,
+                new NativeLogger( this.logger )
+            ),
+            new HttpExceptionHandler()
+        );
+        await service.execute({userId: user.Id, trainerId: id})
     }
 }
