@@ -190,18 +190,14 @@ export class CourseController
             )
         let fileType = null
         let newFile = null
-        if ( file && !addSectionToCourseEntryDto.paragraph ){
+        if ( file ){
             newFile = new File( [file.buffer], file.originalname, {type: file.mimetype})
-            if ( ['png','jpg','jpeg'].includes(file.originalname.split('.').pop())){
-                fileType = 'IMAGE'
-            } else if ( ['mp4'].includes(file.originalname.split('.').pop())){
-                fileType = 'VIDEO'
-            } else {
+            if ( !['mp4'].includes(file.originalname.split('.').pop())){
                 return Result.fail( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
             }
         }
         
-        const result = await service.execute( {fileType ,file: newFile ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        const result = await service.execute( {file: newFile ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
         return result.Value
     }
 

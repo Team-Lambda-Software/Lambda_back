@@ -3,7 +3,6 @@ import { Course } from "../course"
 import { Section } from "../entities/section"
 import { SectionComment } from "../entities/section-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
-import { SectionImage } from "../entities/compose-fields/section-image"
 
 
 

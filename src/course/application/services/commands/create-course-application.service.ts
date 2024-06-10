@@ -4,7 +4,6 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { Course } from "src/course/domain/course"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
-import { SectionImage } from '../../../domain/entities/compose-fields/section-image'
 import { GetCourseServiceResponseDto } from "../../dto/responses/get-course-service-response.dto"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
@@ -41,7 +40,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, SectionImage.create( imageUrl, imageId ), data.tags, new Date() )
+        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, imageUrl, data.tags, new Date() )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
