@@ -1,10 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Course } from "src/course/domain/course"
-import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
-import { Section } from "src/course/domain/entities/section"
-import { ProgressCourse } from "src/progress/domain/entities/progress-course"
-import { ProgressSection } from "src/progress/domain/entities/progress-section"
-import { Trainer } from "src/trainer/domain/trainer"
 
 
 
@@ -154,15 +148,13 @@ export class GetCourseSwaggerResponseDto
         title: "seccion 1",
         content: "En el corazón del frenesí moderno, el yoga emerge como un oasis de paz y armonía.\n\n",
         video: "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/170246-843069659_small.mp4",
-        image: "https://cs210032000ecc9b343.blob.core.windows.net/lambda-media-container/16300683348682.jpg"
       }]
     })
     lessons: {
         id: string
         title: string
         content: string
-        video?: string
-        image?: string
+        video: string
     }[]
 
 }
