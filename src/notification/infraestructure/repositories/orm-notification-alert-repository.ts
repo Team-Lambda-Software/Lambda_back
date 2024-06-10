@@ -1,7 +1,7 @@
 import { Result } from "src/common/Application/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert"
-import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interfaces/notification-alert-repository.interface"
+import { INotificationAlertRepository } from "src/notification/application/interfaces/notification-alert-repository.interface"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 
 export class OrmNotificationAlertRepository extends Repository<OrmNotificationAlert> implements INotificationAlertRepository {

@@ -1,15 +1,15 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from "typeorm";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
-import { OrmSectionVideo } from "src/course/infraestructure/entities/orm-entities/orm-section-videos";
+// import { OrmSectionVideo } from "src/course/infraestructure/entities/orm-entities/orm-section-videos";
 
 @Entity( {name:"progress_video"} )
 export class OrmProgressVideo
 {
     @PrimaryColumn( {type: "uuid"} )
     video_id:string;
-    @ManyToOne(() => OrmSectionVideo)
-    @JoinColumn( {name: 'video_id', referencedColumnName: 'id'} )
-    video:OrmSectionVideo;
+    // @ManyToOne(() => OrmSectionVideo)
+    // @JoinColumn( {name: 'video_id', referencedColumnName: 'id'} )
+    // video:OrmSectionVideo;
 
     @PrimaryColumn( {type: "uuid"} )
     user_id:string;

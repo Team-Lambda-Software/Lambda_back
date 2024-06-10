@@ -6,14 +6,11 @@ import { DataSource, Repository } from 'typeorm'
 import { OrmCourse } from "../../entities/orm-entities/orm-course"
 import { OrmCourseMapper } from "../../mappers/orm-mappers/orm-course-mapper"
 import { OrmSection } from "../../entities/orm-entities/orm-section"
-import { OrmSectionImage } from "../../entities/orm-entities/orm-section-images"
-import { OrmSectionVideo } from "../../entities/orm-entities/orm-section-videos"
 import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comment"
 import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
-import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
 import { OrmCourseTags } from "../../entities/orm-entities/orm-course-tags"
 
 
@@ -29,8 +26,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
     private readonly ormSectionCommentMapper: OrmSectionCommentMapper
 
     private readonly ormSectionRepository: Repository<OrmSection>
-    private readonly ormImageRepository: Repository<OrmSectionImage>
-    private readonly ormVideoRepository: Repository<OrmSectionVideo>
     private readonly ormTagRepistory: Repository<OrmCourseTags>
     private readonly ormCommentRepository: Repository<OrmSectionComment>
     constructor ( ormCourseMapper: OrmCourseMapper, ormSectionMapper: OrmSectionMapper, ormSectionCommentMapper: OrmSectionCommentMapper, dataSource: DataSource )
@@ -40,8 +35,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormCourseMapper = ormCourseMapper
         this.ormSectionCommentMapper = ormSectionCommentMapper
         this.ormSectionRepository = dataSource.getRepository( OrmSection )
-        this.ormImageRepository = dataSource.getRepository( OrmSectionImage )
-        this.ormVideoRepository = dataSource.getRepository( OrmSectionVideo )
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
         this.ormTagRepistory = dataSource.getRepository( OrmCourseTags )
 
@@ -63,8 +56,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
@@ -81,18 +72,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             const newSection = await this.ormSectionMapper.fromDomainToPersistence( section )
             newSection.course_id = courseId
             const savedSection = await this.ormSectionRepository.save( newSection )
-            if ( section.Image )
-            {
-                const image = OrmSectionImage.create( section.Image.Id, section.Image.Url )
-                image.section_id = savedSection.id
-                await this.ormImageRepository.save( image )
-            }
-            if ( section.Video )
-            {
-                const video = OrmSectionVideo.create( section.Video.Id, section.Video.Url )
-                video.section_id = savedSection.id
-                await this.ormVideoRepository.save( video )
-            }
             return Result.success<Section>( await this.ormSectionMapper.fromPersistenceToDomain( savedSection ), 200 )
 
         } catch ( error )
@@ -110,8 +89,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
@@ -137,8 +114,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( filteredCourses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
@@ -153,7 +128,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         {
             const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
             await this.ormTagRepistory.save( course.Tags.map( tag => OrmCourseTags.create( tag ) ) )
-            await this.ormImageRepository.save( newCourse.image )
             const savedCourse = await this.save( newCourse )
             return Result.success<Course>( course, 200 )
         } catch ( error )
@@ -172,9 +146,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
-
             }
             return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
 
@@ -195,8 +166,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
@@ -215,21 +184,11 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             if ( !section )
                 return Result.fail<Section>( new Error( 'Section not found' ), 404, 'Section not found' )
 
-            let sectionImage: OrmSectionImage = null
-            let sectionVideo: OrmSectionVideo = null
             let sectionComments: OrmSectionComment[] = []
 
-            const image = await this.ormImageRepository.findOneBy( { section_id: section.id } )
-            const video = await this.ormVideoRepository.findOneBy( { section_id: section.id } )
             const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
-            sectionImage = image
-            sectionVideo = video
             sectionComments = sectionComments.concat( comments )
 
-
-
-            section.image = sectionImage
-            section.video = sectionVideo
             section.comments = sectionComments.filter( comment => comment.section_id === section.id )
 
 
@@ -261,9 +220,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             const course = await this.findOneBy( { id } )
             if ( course )
             {
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: id } )
-                course.image = courseImage
-
 
                 return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( course ), 200 )
             }
@@ -285,8 +241,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )
@@ -304,11 +258,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             const sections = await this.ormSectionRepository.find( { where: { course_id: id } } )
             for ( const section of sections )
             {
-                const image = await this.ormImageRepository.findOneBy( { section_id: section.id } )
-                const video = await this.ormVideoRepository.findOneBy( { section_id: section.id } )
                 const comments = await this.ormCommentRepository.findBy( { section_id: section.id } )
-                section.image = image
-                section.video = video
                 section.comments = comments
             }
 
@@ -342,8 +292,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             {
                 const sections = await this.ormSectionRepository.findBy( { course_id: course.id } )
                 course.sections = sections
-                const courseImage = await this.ormImageRepository.findOneBy( { course_id: course.id } )
-                course.image = courseImage
 
             }
             return Result.success<Course[]>( await Promise.all( courses.map( async course => await this.ormCourseMapper.fromPersistenceToDomain( course ) ) ), 200 )

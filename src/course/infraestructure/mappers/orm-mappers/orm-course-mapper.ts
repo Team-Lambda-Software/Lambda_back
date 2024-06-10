@@ -4,10 +4,7 @@ import { OrmCourse } from "../../entities/orm-entities/orm-course"
 import { Section } from "src/course/domain/entities/section"
 
 import { OrmSectionMapper } from "./orm-section-mapper"
-import { SectionImage } from "src/course/domain/entities/compose-fields/section-image"
-import { Trainer } from "src/trainer/domain/trainer"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { OrmSectionImage } from '../../entities/orm-entities/orm-section-images';
 import { OrmCourseTags } from "../../entities/orm-entities/orm-course-tags"
 
 
@@ -29,7 +26,7 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         domain.Tags.forEach(tag => {
             tags.push(OrmCourseTags.create(tag))
         })
-        return OrmCourse.create( domain.Id, domain.Name, domain.Description, domain.Level, domain.WeeksDuration, domain.MinutesDuration, domain.Trainer.Id, domain.CategoryId, OrmSectionImage.create(domain.Image.Id, domain.Image.Url), tags)
+        return OrmCourse.create( domain.Id, domain.Name, domain.Description, domain.Level, domain.WeeksDuration, domain.MinutesDuration, domain.Trainer.Id, domain.CategoryId, domain.Image, tags)
     }
     async fromPersistenceToDomain ( persistence: OrmCourse ): Promise<Course>
     {
@@ -53,7 +50,7 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         const trainer = await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer)
         console.log(trainer)
         const course: Course =
-            Course.create( persistence.id, trainer, persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, SectionImage.create( persistence.image.url, persistence.image.id ), tags, persistence.date)
+            Course.create( persistence.id, trainer, persistence.name, persistence.description, persistence.weeks_duration, persistence.minutes_per_section, persistence.level, sections, persistence.category_id, persistence.image_url, tags, persistence.date)
         return course
     }
 

@@ -34,7 +34,7 @@ export class FirebaseNotifier implements INotifier {
             const res = await admin.messaging().send(message)
             return Result.success<string>('push_sended', 200)
         } catch(e) { 
-            return Result.fail<string>(new Error('error enviando token'), 500, 'error enviando push')
+            return Result.fail<string>(new Error('error_sending_push'), 500, 'error_sending_push')
         } 
     }
 

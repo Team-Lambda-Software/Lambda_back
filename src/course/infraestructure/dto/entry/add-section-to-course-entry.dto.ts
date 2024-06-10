@@ -17,11 +17,5 @@ export class AddSectionToCourseEntryDto {
     @IsInt()
     @Min( 1 )
     duration: number
-
-
-    @IsString()
-    @IsOptional()
-    paragraph?: string
-
     
 }

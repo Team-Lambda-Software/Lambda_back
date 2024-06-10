@@ -36,11 +36,11 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         return Result.fail<Trainer>(new Error("Trainer not found"), 404, "Trainer not found");
     }
 
-    async findTrainersByLocation(location:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>
+    async findTrainersByLocation(latitude:string, longitude:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>
     {
         try
         {
-            const trainers = await this.find( {where: {location: location}, skip:pagination.page, take:pagination.perPage } );
+            const trainers = await this.find( {where: {latitude: latitude, longitude: longitude}, skip:pagination.page, take:pagination.perPage } );
 
             if (trainers.length > 0)
             {
@@ -54,6 +54,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
     } 
 
+    //Get all trainers that are being followed by a given user
     async findTrainersByFollower(followerID:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>
     {
         try
@@ -76,6 +77,29 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
         }
     }    
 
+    //Check if a given user follows a given trainer
+    async checkIfFollowerExists(trainerID:string, followerID:string): Promise<Result<boolean>>
+    {
+        try
+        {
+            const selectCount = await this.createQueryBuilder().select('trainer').from(OrmTrainer, 'trainer')
+                                    .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
+                                    .where('follows.follower_id = :fid', {fid: followerID})
+                                    .andWhere('follows.trainer_id = :tid', {tid: trainerID})
+                                    .getCount();
+            if (selectCount > 0)
+            {
+                return Result.success<boolean>( true, 200 )
+            }
+            return Result.success<boolean>( false, 200 );
+        }
+        catch (error)
+        {
+            return Result.fail<boolean>( new Error(error.message), error.code, error.message );
+        }
+    }
+
+    //Get the Id of all the followers that a given trainer (by id) has
     async findAllTrainerFollowersId(id:string, pagination:PaginationDto): Promise<Result<Array<string>>>
     {
         try
@@ -102,10 +126,10 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
     {
         try
         {
-            const followerCount = await this.createQueryBuilder().select('COUNT(follows.follower_id)').from(OrmTrainer, 'trainer')
+            const followerCount = await this.createQueryBuilder().select('follows.follower_id').from(OrmTrainer, 'trainer')
                                     .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.trainer_id = :target', {target: id})
-                                    .getRawOne<number>();
+                                    .getCount();
             if (followerCount != null)
             {
                 return Result.success<number>( followerCount, 200 )
