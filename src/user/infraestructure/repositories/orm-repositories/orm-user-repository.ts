@@ -100,7 +100,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
 
         const OrmUsers = await this.findAllUser()
 
-        if(!OrmUsers.isSuccess){
+        if(!OrmUsers.isSuccess()){
             return Result.fail<number>(OrmUsers.Error,OrmUsers.StatusCode,OrmUsers.Message)
         }
 

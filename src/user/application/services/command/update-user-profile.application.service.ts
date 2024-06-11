@@ -44,7 +44,7 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
 
         const updateResult = await this.userRepository.saveOrmUser(userUpdate);
 
-        if(!updateResult.isSuccess) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
+        if(!updateResult.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
         const respuesta: UpdateUserProfileServiceResponseDto = {
             userId: updateResult.Value.id
