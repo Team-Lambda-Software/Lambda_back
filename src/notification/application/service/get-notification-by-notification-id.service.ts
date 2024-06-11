@@ -1,7 +1,7 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Application/result-handler/Result"
-import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interfaces/notification-alert-repository.interface"
+import { INotificationAlertRepository } from "src/notification/application/interfaces/notification-alert-repository.interface"
 import { GetNotificationUserEntryAplicationDto } from "../dto/get-notification-by-notification-id.aplication"
 
 export class GetNotificationByIdApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
@@ -14,8 +14,7 @@ export class GetNotificationByIdApplicationService implements IApplicationServic
     }
     async execute(data: GetNotificationUserEntryAplicationDto): Promise<Result<any>> {
         const notificationResult= await this.notiAlertRepository.findNotificationById(data.userId, data.notificationId)
-        if (!notificationResult.isSuccess())
-            return Result.fail( new Error('Sin notificaciones asociadas'), 500, 'Sin notificaciones asociadas' );
+        if (!notificationResult.isSuccess()) return Result.fail( new Error('Something went wrong'), 500, 'Something went wrong' );
         return (notificationResult)
     }
 

@@ -8,12 +8,14 @@ export class Trainer extends Entity<string>
     private email: string;
     private phone: string;
     private followersID: Array<string>; //Array of all the users that follow this particular trainer
-    private coursesID: Array<string>; //Array of all courses that a given trainer teaches
-    private blogsID: Array<string>; //Array of all courses that a given trainer wrote
-    private location?:string|undefined; //to-do Refactor as Optional<String>, Optional<LocationClass>
+    //unused For easier DDD, the blogs and courses a certain trainer teaches is not part of itself
+        //. private coursesID: Array<string>; //Array of all courses that a given trainer teaches
+        //. private blogsID: Array<string>; //Array of all courses that a given trainer wrote
+    private latitude:string|undefined; //to-do Refactor as Optional<String>, Optional<LocationClass>
+    private longitude:string|undefined;
     //to-do Add field for associated courses? Maybe some stats?
 
-    private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, coursesID:Array<string>, blogsID:Array<string>, location?:string)
+    private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, latitude?:string, longitude?:string)
     {
         super(id);
 
@@ -23,10 +25,9 @@ export class Trainer extends Entity<string>
         this.email = email;
         this.phone = phone;
         this.followersID = followersID;
-        this.coursesID = coursesID;
-        this.blogsID = blogsID;
 
-        this.location = location;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     get FirstName(): string
@@ -61,13 +62,13 @@ export class Trainer extends Entity<string>
 
     get Location(): string
     {
-        if (this.location === undefined) { throw new ReferenceError("This trainer has no associated location"); }
-        return <string>this.location;
+        if ( (this.latitude === undefined)||(this.longitude === undefined) ) { throw new ReferenceError("This trainer has no associated location"); }
+        return <string>this.latitude + " " + <string>this.longitude;
     }
 
-    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, coursesID:Array<string>, blogsID:Array<string>, location?:string):Trainer
+    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, latitude?:string, longitude?:string):Trainer
     {
-        return new Trainer(id, firstName, firstLastName, secondLastName, email, phone, followersID, coursesID, blogsID, location);
+        return new Trainer(id, firstName, firstLastName, secondLastName, email, phone, followersID, latitude, longitude);
     }
 
     public updateFirstName(firstName:string):void
@@ -125,8 +126,9 @@ export class Trainer extends Entity<string>
         return false;
     }
 
-    public updateLocation(location?:string):void
+    public updateLocation(latitude?:string, longitude?:string):void
     {
-        this.location = location;
+        if (latitude != undefined) { this.latitude = latitude; }
+        if (longitude != undefined) { this.longitude = longitude; }
     }
 }

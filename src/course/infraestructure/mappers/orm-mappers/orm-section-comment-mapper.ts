@@ -1,5 +1,4 @@
 import { IMapper } from "src/common/Application/mapper/mapper.interface"
-import { Section } from "src/course/domain/entities/section"
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comment"
 

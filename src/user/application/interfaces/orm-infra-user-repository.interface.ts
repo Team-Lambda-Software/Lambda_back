@@ -1,5 +1,5 @@
 import { Result } from "src/common/Application/result-handler/Result";
-import { OrmUser } from "../../entities/orm-entities/user.entity";
+import { OrmUser } from "../../infraestructure/entities/orm-entities/user.entity";
 
 export interface IInfraUserRepository {
     saveOrmUser(user: OrmUser): Promise<Result<OrmUser>>;

@@ -46,10 +46,12 @@ import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
-import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
-import { IInfraUserRepository } from '../repositories/interfaces/orm-infra-user-repository.interface';
-import { OrmInfraUserRepository } from '../repositories/orm-repositories/orm-infra-user-repository';
+import { IInfraUserRepository } from "../../application/interfaces/orm-infra-user-repository.interface";
+import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
+import { EncryptorBcrypt } from "src/auth/infraestructure/encryptor/encryptor-bcrypt";
+import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
+import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 
 
 @ApiTags('User')
@@ -65,9 +67,10 @@ export class UserController {
   private readonly fileUploader: AzureFileUploader
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
-
+  private readonly encryptor: IEncryptor
 
   constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+    this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
@@ -144,7 +147,12 @@ export class UserController {
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
         new LoggingDecorator(
-          new UpdateUserProfileAplicationService(this.userRepository,this.fileUploader, this.idGenerator),
+          new UpdateUserProfileAplicationService(
+            this.infraUserRepository,
+            this.fileUploader,
+            this.idGenerator,
+            this.encryptor
+            ),
           new NativeLogger(this.logger),
         ),
         new HttpExceptionHandler(),
@@ -158,15 +166,11 @@ export class UserController {
     if (!resultUpdate.isSuccess) {
       return resultUpdate.Error
     }
-
     const Respuesta: UpdateUserProfileSwaggerResponseDto = {
       Id: resultUpdate.Value.userId
     }
-
     return Respuesta
-
   }
-
 
   @Post('/follow/:trainerID')
   @UseGuards(JwtAuthGuard)

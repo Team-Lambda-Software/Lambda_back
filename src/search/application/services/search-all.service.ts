@@ -1,11 +1,9 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { Course } from "src/course/domain/course"
 import { Result } from "src/common/Application/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { SearchAllServiceEntryDto } from "../dto/param/search-all-service-entry.dto"
 import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service-response.dto"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
-import { Blog } from "src/blog/domain/blog"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 
@@ -61,7 +59,7 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
                 responseSearch.courses.push( {
                     id: course.Id,
                     title: course.Name,
-                    image: course.Image.Url,
+                    image: course.Image,
                     date: course.Date,
                     category: category.Value.Name,
                     trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
