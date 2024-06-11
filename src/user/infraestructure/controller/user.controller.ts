@@ -103,7 +103,7 @@ export class UserController {
         
         const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
 
-        if(!resultado.isSuccess){
+        if(!resultado.isSuccess()){
           return resultado.Error
         }
         
@@ -141,7 +141,7 @@ export class UserController {
 
         const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
 
-        if(!resultUpdate.isSuccess){
+        if(!resultUpdate.isSuccess()){
           return resultUpdate.Error
         }
 
@@ -175,7 +175,7 @@ export class UserController {
 
         const resultado = await followService.execute(userTrainerFollowDTO)
 
-        if(!resultado.isSuccess){
+        if(!resultado.isSuccess()){
             return resultado.Error
         }
 
@@ -204,7 +204,7 @@ export class UserController {
 
         const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
 
-        if(!resultado.isSuccess){
+        if(!resultado.isSuccess()){
             return resultado.Error
         }
 
