@@ -66,7 +66,7 @@ export class SearchMostPopularCoursesByTrainerApplicationService implements IApp
             responseCourses.push({
                 id: course.Id,
                 title: course.Name,
-                image: course.Image.Url,
+                image: course.Image,
                 date: course.Date,
                 category: category.Value.Name,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
