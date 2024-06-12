@@ -12,7 +12,8 @@ export class OrmTrainer
     @Column('varchar') second_last_name:string;
     @Column('varchar', {unique: true} ) email:string;
     @Column('varchar', {unique: true, nullable: true} ) phone:string;
-    @Column('varchar', {nullable:true} ) location:string; //to-do Remember to polish this
+    @Column('varchar', {nullable:true} ) latitude:string; //to-do Remember to polish this
+    @Column('varchar', {nullable:true} ) longitude:string;
     //to-do Relations for statistics and courses made
 
     //A trainer is followed by 'many' users
@@ -40,7 +41,7 @@ export class OrmTrainer
     @OneToMany(() => OrmBlog, (blog) => blog.trainer_id, {nullable:true})
     blogs:OrmBlog[];
 
-    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, location:string, followers:OrmUser[], courses:OrmCourse[], blogs:OrmBlog[]):OrmTrainer
+    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, latitude:string, longitude:string, followers:OrmUser[], courses:OrmCourse[], blogs:OrmBlog[]):OrmTrainer
     {
         const trainer = new OrmTrainer();
         trainer.id = id;
@@ -49,7 +50,8 @@ export class OrmTrainer
         trainer.second_last_name = secondLastName;
         trainer.email = email;
         trainer.phone = phone;
-        trainer.location = location;
+        trainer.latitude = latitude;
+        trainer.longitude = longitude;
         trainer.followers = followers;
         trainer.courses = courses;
         trainer.blogs = blogs;

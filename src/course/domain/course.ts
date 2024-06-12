@@ -1,6 +1,5 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Section } from "./entities/section"
-import { SectionImage } from "./entities/compose-fields/section-image"
 import { Trainer } from "src/trainer/domain/trainer"
 
 
@@ -17,7 +16,7 @@ export class Course extends Entity<string>
     private level: number
     private categoryId: string
     private sections: Section[]
-    private image: SectionImage
+    private image: string
     private tags: string[]
     private date: Date
     
@@ -67,7 +66,7 @@ export class Course extends Entity<string>
         return this.sections
     }
 
-    get Image (): SectionImage
+    get Image (): string
     {
         return this.image
     }
@@ -77,7 +76,7 @@ export class Course extends Entity<string>
         return this.date
     }
 
-    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[], date: Date)
+    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: string, tags: string[], date: Date)
     {
         super( id )
         this.trainer = trainer
@@ -126,7 +125,7 @@ export class Course extends Entity<string>
         this.sections = sections
     }
 
-    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: SectionImage, tags: string[], date: Date): Course
+    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: string, tags: string[], date: Date): Course
     {
         return new Course( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }

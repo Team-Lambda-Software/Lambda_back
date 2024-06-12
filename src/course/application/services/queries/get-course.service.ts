@@ -76,7 +76,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
             title: course.Name,
             description: course.Description,
             category: category.Value.Name,
-            image: course.Image.Url,
+            image: course.Image,
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
@@ -93,9 +93,8 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
             responseCourse.lessons.push( {
                 id: section.Id,
                 title: section.Name,
-                content: section.Paragraph,
-                video: section.Video ? section.Video.Url : null,
-                image: section.Image ? section.Image.Url : null
+                content: section.Description,
+                video: section.Video
             } )
         }
 

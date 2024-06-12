@@ -11,14 +11,13 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 export class GetTrainerProfileApplicationService implements IApplicationService<GetTrainerProfileServiceEntryDto, GetTrainerProfileServiceResponseDto>
 {
     private readonly trainerRepository: ITrainerRepository;
-    private readonly blogRepository: IBlogRepository;
-    private readonly courseRepository: ICourseRepository;
+    //unused According to the specifications of the common API, this data is not used when requesting a trainer
+    // private readonly blogRepository: IBlogRepository;
+    // private readonly courseRepository: ICourseRepository;
 
-    constructor (trainerRepository: ITrainerRepository, blogRepository: IBlogRepository, courseRepository: ICourseRepository)
+    constructor (trainerRepository: ITrainerRepository)
     {
         this.trainerRepository = trainerRepository;
-        this.blogRepository = blogRepository;
-        this.courseRepository = courseRepository;
     }
 
     async execute(data: GetTrainerProfileServiceEntryDto):Promise<Result<GetTrainerProfileServiceResponseDto>>
@@ -37,21 +36,33 @@ export class GetTrainerProfileApplicationService implements IApplicationService<
         }
         const followerCount = resultCount.Value;
 
-        const resultCourses = await this.courseRepository.findAllTrainerCourses(trainer.Id, data.coursesPagination);
-        if (!resultCourses.isSuccess())
+        const resultFollowFlag = await this.trainerRepository.checkIfFollowerExists(trainer.Id, data.userId);
+        if (!resultFollowFlag.isSuccess())
         {
-            return Result.fail<GetTrainerProfileServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message );
+            return Result.fail<GetTrainerProfileServiceResponseDto>( resultFollowFlag.Error, resultFollowFlag.StatusCode, resultFollowFlag.Message );
         }
-        const courses = resultCourses.Value;
+        const doesUserFollow = resultFollowFlag.Value;
 
-        const resultBlogs = await this.blogRepository.findAllTrainerBlogs(trainer.Id, data.blogsPagination);
-        if (!resultBlogs.isSuccess())
-        {
-            return Result.fail<GetTrainerProfileServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message );
-        }
-        const blogs = resultBlogs.Value;
+        const trainerName = trainer.FirstName + " " + trainer.FirstLastName + " " + trainer.SecondLastName;
+        const trainerId = trainer.Id;
+        const trainerLocation = trainer.Location;
 
-        return Result.success<GetTrainerProfileServiceResponseDto>({trainer, followerCount, courses, blogs}, 200)
+        //. Same reason as above 'unused' flag
+        // const resultCourses = await this.courseRepository.findAllTrainerCourses(trainer.Id, data.coursesPagination);
+        // if (!resultCourses.isSuccess())
+        // {
+        //     return Result.fail<GetTrainerProfileServiceResponseDto>( resultCourses.Error, resultCourses.StatusCode, resultCourses.Message );
+        // }
+        // const courses = resultCourses.Value;
+
+        // const resultBlogs = await this.blogRepository.findAllTrainerBlogs(trainer.Id, data.blogsPagination);
+        // if (!resultBlogs.isSuccess())
+        // {
+        //     return Result.fail<GetTrainerProfileServiceResponseDto>( resultBlogs.Error, resultBlogs.StatusCode, resultBlogs.Message );
+        // }
+        // const blogs = resultBlogs.Value;
+
+        return Result.success<GetTrainerProfileServiceResponseDto>({trainerName, trainerId, followerCount, doesUserFollow, trainerLocation}, 200)
     }
 
     get name():string

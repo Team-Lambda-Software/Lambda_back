@@ -3,8 +3,12 @@ import { Course } from "src/course/domain/course";
 import { Blog } from "src/blog/domain/blog";
 
 export interface GetTrainerProfileServiceResponseDto {
-    trainer: Trainer;
+    trainerName: string;
+    trainerId:string;
     followerCount:number;
-    courses:Course[];
-    blogs:Blog[];
+    doesUserFollow:boolean;
+    trainerLocation:string;
+    //unused According to the specifications of the common API, this data will not be required
+    // courses:Course[];
+    // blogs:Blog[];
 }
