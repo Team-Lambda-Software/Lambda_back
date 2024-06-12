@@ -12,7 +12,7 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
 
     async findManyNotificationsByIdUser(userId: string, pagDto: PaginationDto): Promise<Result<OrmNotificationAlert[]>> {
         const OrmAlerts = await this.find( 
-            { where: { user_id: userId }, skip: pagDto.page, take: pagDto.perPage, order: { date: 'DESC' } } 
+            { where: { user_id: userId }, skip: pagDto.page, take: pagDto.perPage } 
         )
         if (OrmAlerts.length > 0) {
             const list_alerts: OrmNotificationAlert[] = [];
