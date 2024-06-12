@@ -1,15 +1,17 @@
 import { Result } from "src/common/Application/result-handler/Result";
 import { ProgressSection } from "./progress-section";
+import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
-export class ProgressCourse
+export class ProgressCourse extends Entity<string>
 {
     private userId:string;
     private courseId:string;
     private isCompleted:boolean;
     private sectionProgress: Map<string, ProgressSection> = new Map<string, ProgressSection>();
 
-    protected constructor (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    protected constructor (progressId:string, userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
     {
+        super(progressId)
         this.userId = userId;
         this.courseId = courseId;
         this.isCompleted = isCompleted;
@@ -76,9 +78,9 @@ export class ProgressCourse
         return Result.success<ProgressSection>(<ProgressSection>sectionSearch, 200);
     }
 
-    static create (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    static create (progressId:string, userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
     {
-        return new ProgressCourse(userId, courseId, isCompleted, sections);
+        return new ProgressCourse(progressId, userId, courseId, isCompleted, sections);
     }
 
     public updateCompletion(isCompleted:boolean)
