@@ -6,7 +6,7 @@ export class OrmProgressCourseMapper implements IMapper<ProgressCourse, OrmProgr
 {
     async fromDomainToPersistence(domain: ProgressCourse): Promise<OrmProgressCourse> 
     {
-        const persistenceProgress = OrmProgressCourse.create(domain.Id, domain.CourseId, domain.UserId, domain.IsCompleted, domain.CompletionPercent);
+        const persistenceProgress = OrmProgressCourse.create(domain.Id, domain.CourseId, domain.UserId, domain.IsCompleted, domain.CompletionPercent, new Date());
         return persistenceProgress;
     }
 
