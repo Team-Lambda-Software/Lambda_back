@@ -14,6 +14,9 @@ export interface IProgressCourseRepository
     findAllStartedCourses (userId:string, pagination:PaginationDto): Promise<Result<ProgressCourse[]>>;
     findAllStartedSections (userId:string, courseId:string, pagination:PaginationDto): Promise<Result<ProgressSection[]>>;
 
+    findLatestCourse (userId:string): Promise<Result<{course: ProgressCourse, lastSeen: Date}>>;
+    getTotalViewtime (userId:string): Promise<Result<number>>;
+
     saveCourseProgress (progress:ProgressCourse): Promise<Result<ProgressCourse>>;
     saveSectionProgress (progress:ProgressSection, userId?:string): Promise<Result<ProgressSection>>;
     //unused saveVideoProgress (progress:ProgressVideo): Promise<Result<ProgressVideo>>;

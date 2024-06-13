@@ -295,4 +295,42 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             return Result.fail<ProgressSection[]>( new Error(error.message), error.code, error.message );
         }
     }
+
+    async findLatestCourse (userId:string): Promise<Result<{course: ProgressCourse, lastSeen: Date}>>
+    {
+        try
+        {
+            const ormCourseProgress = await this.createQueryBuilder().select()
+                                        .where('user_id = :target', {target: userId})
+                                        .addOrderBy('last_seen_date', "DESC", "NULLS LAST")
+                                        .take(1)
+                                        .getOne();
+            if (!ormCourseProgress) //No progress exists on DB
+            {
+                return Result.fail<{course: ProgressCourse, lastSeen: Date}>(new Error("No progress found for this user"), 404, "No progress found for this user");
+            }
+
+            const course = await this.ormProgressCourseMapper.fromPersistenceToDomain(ormCourseProgress);
+            const lastSeen = ormCourseProgress.last_seen_date;
+            return Result.success<{course: ProgressCourse, lastSeen: Date}>({course: course, lastSeen: lastSeen}, 200);
+        }
+        catch (error)
+        {
+            return Result.fail<{course: ProgressCourse, lastSeen: Date}>( new Error(error.message), error.code, error.message);
+        }
+    }
+
+    //Returns viewtime in seconds
+    async getTotalViewtime (userId:string): Promise<Result<number>>
+    {
+        try
+        {
+            const viewtime = await this.ormProgressSectionRepository.sum("video_second", {user_id:userId});
+            return Result.success<number>( viewtime, 200 );
+        }
+        catch (error)
+        {
+            return Result.fail<number>( new Error(error.message), error.code, error.message );
+        }
+    }
 }
