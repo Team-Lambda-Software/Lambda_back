@@ -11,31 +11,23 @@ export class OrmNotificationAlertRepository extends Repository<OrmNotificationAl
     }
 
     async findManyNotificationsByIdUser(userId: string, pagDto: PaginationDto): Promise<Result<OrmNotificationAlert[]>> {
-        const OrmAlerts = await this.find( 
-            { where: { user_id: userId }, skip: pagDto.page, take: pagDto.perPage } 
-        )
-        if (OrmAlerts.length > 0) {
-            const list_alerts: OrmNotificationAlert[] = [];
-            for(const alert of OrmAlerts) { list_alerts.push(alert) }
-            return Result.success<OrmNotificationAlert[]>(list_alerts, 200);
-        }
-        return Result.fail<OrmNotificationAlert[]>( new Error( 'Non-existing user' ), 404, 'Non-existing user')    
+        const OrmAlerts = await this.find({ where: { user_id: userId }, skip: pagDto.page, take: pagDto.perPage })
+        const list_alerts: OrmNotificationAlert[] = [];
+        for(const alert of OrmAlerts) { list_alerts.push(alert) }
+        return Result.success<OrmNotificationAlert[]>(list_alerts, 200);
     }
    
     async findNotificationById(user_id: string, notification_id: string): Promise<Result<OrmNotificationAlert>> {
         const OrmAlerts = await this.findOneBy( { user_id: user_id, id: notification_id } )
         if ( OrmAlerts ) return Result.success<OrmNotificationAlert>(OrmAlerts, 200);
-        return Result.fail<OrmNotificationAlert>( new Error( 'Non-existing comment' ), 404, 'Non-existing comment')
+        return Result.fail<OrmNotificationAlert>( new Error( 'Non-existing notification' ), 404, 'Non-existing notification')
     }
 
     async findAllByIdUserNotReaded(user_id: string): Promise<Result<OrmNotificationAlert[]>> {
         const OrmAlerts = await this.find( { where: { user_id: user_id, userReaded: false }, order: { date: 'DESC' } } )
-        if (OrmAlerts.length > 0){
-            const list_alerts: OrmNotificationAlert[] = [];
-            for(const alert of OrmAlerts) { list_alerts.push( alert ) }
-            return Result.success<OrmNotificationAlert[]>(list_alerts, 200);
-        }
-        return Result.fail<OrmNotificationAlert[]>( new Error( 'Non-existing user' ), 404, 'Non-existing user')
+        const list_alerts: OrmNotificationAlert[] = [];
+        for (const alert of OrmAlerts) { list_alerts.push( alert ) }
+        return Result.success<OrmNotificationAlert[]>(list_alerts, 200);    
     }
     
     async saveNotificationAlert(noti_alert: OrmNotificationAlert): Promise<Result<OrmNotificationAlert>> {

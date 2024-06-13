@@ -179,10 +179,9 @@ export class NotificationController {
         )
         const result = await (await service.execute( data )).Value
         const resultNotifier = await this.pushNotifier.sendNotification( this.createPushMessage( saveTokenDto.token, 'Welcome', 'Be welcome my dear' ) )
-        if ( resultNotifier.isSuccess() ) 
-            await this.notiAlertRepository.saveNotificationAlert(
-                OrmNotificationAlert.create( await this.uuidGenerator.generateId(), user.Id, "Welcome", 'be Welcome my dear', false, new Date() ) 
-            )
+        await this.notiAlertRepository.saveNotificationAlert(
+            OrmNotificationAlert.create( await this.uuidGenerator.generateId(), user.Id, "Welcome", 'be Welcome my dear', false, new Date() ) 
+        )
         return result
     }
 
