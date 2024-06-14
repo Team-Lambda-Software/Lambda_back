@@ -27,7 +27,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
     //? Couple with OrmCourseRepository?
     private readonly ormCourseRepository: ICourseRepository;
     //Couple with IdGenerator to create IDs for new progresses
-    private readonly uuidGenerator: IdGenerator<string>
+    private readonly uuidGenerator: IdGenerator<string>;
 
     constructor (ormProgressCourseMapper:OrmProgressCourseMapper, ormProgressSectionMapper:OrmProgressSectionMapper, ormCourseRepository:ICourseRepository, dataSource:DataSource, uuidGenerator:IdGenerator<string>)
     {
@@ -38,6 +38,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         this.ormProgressSectionRepository = dataSource.getRepository( OrmProgressSection );
 
         this.ormCourseRepository = ormCourseRepository;
+
+        this.uuidGenerator = uuidGenerator;
     }
 
     //unused According to new specification of the API, video is now only one and part of the section. So, this method is not needed
@@ -66,13 +68,23 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             let domainProgress:ProgressSection;
             if ( progressSection ) //Progress exists on DB
             {
+                //TEST
+                    console.log("Previous progress found. Printing ORM and Domain");
+                    progressSection.completion_percent = <number>progressSection.completion_percent;
+                    progressSection.video_second = <number>progressSection.video_second;
+                    console.log(progressSection);
                 //Create domain progress
                 domainProgress = await this.ormProgressSectionMapper.fromPersistenceToDomain(progressSection);
+                //TEST
+                    console.log(domainProgress);
             }
             else
             {
+                //TEST
+                    console.log("Generating new uuid... No previous progress found");
                 //Progress not found. Return result as "newly-started" section
-                domainProgress = ProgressSection.create(await this.uuidGenerator.generateId(), sectionId);
+                const newId:string = await this.uuidGenerator.generateId();
+                domainProgress = ProgressSection.create(newId, sectionId);
             }
 
             const progress = domainProgress;
@@ -98,7 +110,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             else
             {
                 //Progress not found. Return result as "newly-started" course
-                domainProgress = ProgressCourse.create(await this.uuidGenerator.generateId(), userId, courseId, false, []);
+                const newId:string = await this.uuidGenerator.generateId();
+                domainProgress = ProgressCourse.create(newId, userId, courseId, false, []);
             }
             
             //Fetch associated course's sections
@@ -112,10 +125,10 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             //Fetch associated section progress' entities from course's sections
             for (let section of sections)
             {
-                let target = await this.getSectionProgressById(userId, section.Id);
+                let target:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
                 if (target.isSuccess()) //Progress found or created from scratch
                 {
-                    domainProgress.saveSection(target.Value);
+                    domainProgress.saveSection(<ProgressSection>(target.Value));
                 }
                 else //Some error found
                 {
@@ -123,7 +136,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 }
             }
 
-            const progress = domainProgress;
+            const progress:ProgressCourse = domainProgress;
             return Result.success<ProgressCourse>( progress, 200 );
         }
         catch (error)
@@ -152,8 +165,14 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
     {
         try
         {
+            //TEST
+                console.log("Saving section progress");
             const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId);
+            //TEST
+                console.log("Mapper done");
             await this.ormProgressSectionRepository.save( ormProgress );
+            //TEST
+                console.log("ORM saving done");
 
             return Result.success<ProgressSection>( progress, 200 );
         }
@@ -309,10 +328,15 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             {
                 return Result.fail<{course: ProgressCourse, lastSeen: Date}>(new Error("No progress found for this user"), 404, "No progress found for this user");
             }
+            const latestCourseResult = await this.getCourseProgressById(ormCourseProgress.user_id, ormCourseProgress.course_id);
+            if (!latestCourseResult.isSuccess())
+            {
+                return Result.fail<{course: ProgressCourse, lastSeen: Date}>(latestCourseResult.Error, latestCourseResult.StatusCode, latestCourseResult.Message);
+            }
+            const latestCourse = latestCourseResult.Value;
 
-            const course = await this.ormProgressCourseMapper.fromPersistenceToDomain(ormCourseProgress);
             const lastSeen = ormCourseProgress.last_seen_date;
-            return Result.success<{course: ProgressCourse, lastSeen: Date}>({course: course, lastSeen: lastSeen}, 200);
+            return Result.success<{course: ProgressCourse, lastSeen: Date}>({course: latestCourse, lastSeen: lastSeen}, 200);
         }
         catch (error)
         {

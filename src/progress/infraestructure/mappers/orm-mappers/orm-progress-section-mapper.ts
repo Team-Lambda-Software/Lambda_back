@@ -13,7 +13,7 @@ export class OrmProgressSectionMapper implements IMapper<ProgressSection, OrmPro
 
     async fromPersistenceToDomain(persistence: OrmProgressSection): Promise<ProgressSection> 
     {
-        const domainProgress = ProgressSection.create(persistence.progress_id, persistence.section_id, persistence.completed, persistence.video_second, persistence.completion_percent);
+        const domainProgress = ProgressSection.create(persistence.progress_id, persistence.section_id, persistence.completed, parseFloat(persistence.video_second.toString()), parseFloat(persistence.completion_percent.toString())); //! Postgres returns numeric as strings on runtime. Possible workaround?
         return domainProgress; //? Is it alright to return without videos inside? Should service deal with this?
     }
 }

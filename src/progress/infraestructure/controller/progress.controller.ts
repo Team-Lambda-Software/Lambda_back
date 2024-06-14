@@ -112,7 +112,11 @@ export class ProgressController {
             new HttpExceptionHandler()
         );
 
+        //TEST
+            console.log("Initiating SaveSectionProgressService");
         const sectionUpdateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
+        //TEST
+            console.log("Service successful");
         if (sectionUpdateResult.isSuccess())
         {
             const courseSyncResult = await syncCourseProgressService.execute(syncCourseProgressDto);

@@ -31,7 +31,7 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
         }
         const arrayProgress = arrayProgressResult.Value;
 
-        let arrayResponseData:{course:Course, categoryName:string, progress:ProgressCourse}[];
+        let arrayResponseData:{course:Course, categoryName:string, progress:ProgressCourse}[] = [];
         for (let progress of arrayProgress)
         {
             const courseResult = await this.courseRepository.findCourseById(progress.CourseId);
@@ -54,7 +54,6 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
         let returnDataArray:Array< { id: string, title: string, image:string, date: Date, category: string, trainerName: string, completionPercent: number } > = [];
         for (let response of arrayResponseData)
         {
-            //? Is CategoryId sufficient? Or is the category's name desired?
             const returnData = { 
                 id: response.progress.CourseId, 
                 title: response.course.Name, 

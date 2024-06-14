@@ -23,6 +23,11 @@ export class SyncCourseProgressApplicationService implements IApplicationService
         }
         const progress:ProgressCourse = progressResult.Value;
 
+        //TEST Why is not updating?
+            console.log("Syncing data . . .");
+            console.log(progress.Sections);
+            console.log(progress.CompletionPercent);
+
         if (progress.CompletionPercent === 100) { progress.updateCompletion(true); }
 
         const syncResult = await this.progressRepository.saveCourseProgress(progress);

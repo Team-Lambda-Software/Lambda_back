@@ -16,7 +16,7 @@ export class GetAllSectionsFromCourseApplicationService implements IApplicationS
 
     async execute(data:GetAllSectionsFromCourseEntryDto): Promise<Result<GetAllSectionsFromCourseResponseDto>>
     {
-        let returnData:GetAllSectionsFromCourseResponseDto;
+        let returnData:GetAllSectionsFromCourseResponseDto = {completionPercent: 0, sections: []};
 
         const courseProgressResult = await this.progressRepository.getCourseProgressById(data.userId, data.courseId);
         if (!courseProgressResult.isSuccess())
@@ -29,10 +29,11 @@ export class GetAllSectionsFromCourseApplicationService implements IApplicationS
         returnData.sections = [];
         for (let section of courseProgress.Sections)
         {
-            let returnSection:{id:string, videoSecond:number, completionPercent:number};
-            returnSection.id = section.SectionId;
-            returnSection.videoSecond = section.VideoSecond;
-            returnSection.completionPercent = section.CompletionPercent;
+            let returnSection:{id:string, videoSecond:number, completionPercent:number} = {
+                id: section.SectionId,
+                videoSecond: section.VideoSecond,
+                completionPercent: section.CompletionPercent
+            };
             returnData.sections.push(returnSection);
         }
 

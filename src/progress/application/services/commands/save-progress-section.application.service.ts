@@ -15,15 +15,26 @@ export class SaveSectionProgressApplicationService implements IApplicationServic
 
     async execute(data: SaveSectionProgressServiceEntryDto): Promise<Result<ProgressSection>>
     {
+        //TEST
+            console.log("Getting previous progress...");
         const progressResult = await this.progressRepository.getSectionProgressById(data.userId, data.sectionId);
+        //TEST
+            console.log("Progress obtained!");
         if (!progressResult.isSuccess())
         {
             return Result.fail<ProgressSection>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
         }
         const progressUpdate:ProgressSection = progressResult.Value;
 
-        if (data.isCompleted != undefined) { progressUpdate.updateCompletion(data.isCompleted); }
-        if (data.videoSecond != undefined) { progressUpdate.updateVideoSecond(data.videoSecond); }
+        if (data.isCompleted != undefined) 
+        { 
+            progressUpdate.updateCompletion(data.isCompleted); 
+            if (data.isCompleted)
+            {
+                progressUpdate.updateCompletionPercent(100);
+            }
+        }
+        if (data.videoSecond != undefined) { progressUpdate.updateVideoSecond(data.videoSecond); } //to-do Sync completionPercent after updating video progress
 
         //unused Sections now only have a single video, thus, its metadata can be saved within
             // if (data.videos) 
