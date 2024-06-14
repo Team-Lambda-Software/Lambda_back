@@ -19,7 +19,7 @@ import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper
 import { OrmProgressCourseRepository } from '../../../progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository'
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
-import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+//import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { SearchCourseQueryParametersDto } from "../dto/queryParameters/search-course-query-parameters.dto"
 import { SearchCoursesByCategoryServiceEntryDto } from "src/course/application/dto/param/search-courses-by-category-service-entry.dto"
 import { SearchMostPopularCoursesByCategoryApplicationService } from "src/course/application/services/queries/search-most-popular-courses-by-category.service"
@@ -73,9 +73,9 @@ export class CourseController
             new OrmProgressCourseRepository(
                 new OrmProgressCourseMapper(),
                 new OrmProgressSectionMapper(),
-                new OrmProgressVideoMapper(),
                 this.courseRepository,
-                dataSource )
+                dataSource,
+                new UuidGenerator() )
         this.auditingRepository = new OrmAuditingRepository( dataSource )
 
         this.categoryRepository = new OrmCategoryRepository(

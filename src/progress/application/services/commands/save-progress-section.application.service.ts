@@ -3,57 +3,65 @@ import { Result } from "src/common/Application/result-handler/Result";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { ProgressSection } from "src/progress/domain/entities/progress-section";
 import { SaveSectionProgressServiceEntryDto } from "../../dto/parameters/save-progress-section-entry.dto";
-import { ProgressVideo } from "src/progress/domain/entities/progress-video";
-import { SaveVideoProgressServiceEntryDto } from "../../dto/parameters/save-progress-video-entry.dto";
-import { SaveVideoProgressApplicationService } from "./save-progress-video.application.service";
-import { SaveVideoProgressEntryDto } from "src/progress/infraestructure/dto/entry/save-video-progress-entry.dto";
 
 export class SaveSectionProgressApplicationService implements IApplicationService<SaveSectionProgressServiceEntryDto, ProgressSection>
 {
     private readonly progressRepository: IProgressCourseRepository;
-    private readonly saveVideoService: SaveVideoProgressApplicationService; //! Should *not* couple this service to another one. How to decouple?
 
-    constructor ( progressRepository:IProgressCourseRepository, saveVideoService: SaveVideoProgressApplicationService )
+    constructor ( progressRepository:IProgressCourseRepository )
     {
         this.progressRepository = progressRepository;
-        this.saveVideoService = saveVideoService;
     }
 
     async execute(data: SaveSectionProgressServiceEntryDto): Promise<Result<ProgressSection>>
     {
+        //TEST
+            console.log("Getting previous progress...");
         const progressResult = await this.progressRepository.getSectionProgressById(data.userId, data.sectionId);
+        //TEST
+            console.log("Progress obtained!");
         if (!progressResult.isSuccess())
         {
             return Result.fail<ProgressSection>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
         }
         const progressUpdate:ProgressSection = progressResult.Value;
 
-        if (data.isCompleted != undefined) progressUpdate.updateCompletion(data.isCompleted);
-        if (data.videos) 
-        {
-            for (let videoTuple of data.videos)
+        if (data.isCompleted != undefined) 
+        { 
+            progressUpdate.updateCompletion(data.isCompleted); 
+            if (data.isCompleted)
             {
-                const videoAttributes = videoTuple[1];
-                const video:ProgressVideo = ProgressVideo.create(videoAttributes.userId, videoAttributes.videoId, videoAttributes.playbackMilisec, videoAttributes.isCompleted);
-                
-                let videoSaveDto:SaveVideoProgressServiceEntryDto = {userId: data.userId, videoId:video.VideoId, isCompleted: video.IsCompleted, playbackMilisec: video.PlaybackMilisec};
-                
-                progressUpdate.saveVideo(video);
-
-                let videoResult:Result<ProgressVideo> = await this.saveVideoService.execute(videoSaveDto); //When saving a section, cascade-save all progress of videos within
-                if (!videoResult.isSuccess()) //If video could not be saved, abort section saving
-                {
-                    return Result.fail<ProgressSection>(videoResult.Error, videoResult.StatusCode, videoResult.Message);
-                }
+                progressUpdate.updateCompletionPercent(100);
             }
         }
+        if (data.videoSecond != undefined) { progressUpdate.updateVideoSecond(data.videoSecond); } //to-do Sync completionPercent after updating video progress
 
-        const updateResult = await this.progressRepository.saveSectionProgress(progressUpdate);
+        //unused Sections now only have a single video, thus, its metadata can be saved within
+            // if (data.videos) 
+            // {
+            //     for (let videoTuple of data.videos)
+            //     {
+            //         const videoAttributes = videoTuple[1];
+            //         const video:ProgressVideo = ProgressVideo.create(videoAttributes.userId, videoAttributes.videoId, videoAttributes.playbackMilisec, videoAttributes.isCompleted);
+                    
+            //         let videoSaveDto:SaveVideoProgressServiceEntryDto = {userId: data.userId, videoId:video.VideoId, isCompleted: video.IsCompleted, playbackMilisec: video.PlaybackMilisec};
+                    
+            //         progressUpdate.saveVideo(video);
+
+            //         let videoResult:Result<ProgressVideo> = await this.saveVideoService.execute(videoSaveDto); //When saving a section, cascade-save all progress of videos within
+            //         if (!videoResult.isSuccess()) //If video could not be saved, abort section saving
+            //         {
+            //             return Result.fail<ProgressSection>(videoResult.Error, videoResult.StatusCode, videoResult.Message);
+            //         }
+            //     }
+            // }
+
+        const updateResult = await this.progressRepository.saveSectionProgress(progressUpdate, data.userId);
         if (!updateResult.isSuccess())
         {
             return Result.fail<ProgressSection>(updateResult.Error, updateResult.StatusCode, updateResult.Message);
         }
-        return updateResult;
+        return Result.success<ProgressSection>(updateResult.Value, 200);
     }
 
     get name():string
