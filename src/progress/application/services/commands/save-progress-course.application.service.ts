@@ -1,13 +1,13 @@
-import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
-import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
-import { ProgressCourse } from "src/progress/domain/entities/progress-course";
-import { SaveCourseProgressServiceEntryDto } from "../../dto/parameters/save-progress-course-entry.dto";
-import { ProgressSection } from "src/progress/domain/entities/progress-section";
-import { SaveSectionProgressServiceEntryDto } from "../../dto/parameters/save-progress-section-entry.dto";
-import { SaveSectionProgressApplicationService } from "./save-progress-section.application.service";
-import { SaveSectionProgressEntryDto } from "src/progress/infraestructure/dto/entry/save-section-progress-entry.dto";
-import { stringify } from "querystring";
+// import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
+// import { Result } from "src/common/Application/result-handler/Result";
+// import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
+// import { ProgressCourse } from "src/progress/domain/entities/progress-course";
+// import { SaveCourseProgressServiceEntryDto } from "../../dto/parameters/save-progress-course-entry.dto";
+// import { ProgressSection } from "src/progress/domain/entities/progress-section";
+// import { SaveSectionProgressServiceEntryDto } from "../../dto/parameters/save-progress-section-entry.dto";
+// import { SaveSectionProgressApplicationService } from "./save-progress-section.application.service";
+// import { SaveSectionProgressEntryDto } from "src/progress/infraestructure/dto/entry/save-section-progress-entry.dto";
+// import { stringify } from "querystring";
 //to-do //! Should this be refactored or destroyed altogether?
 //unused Seems like this service won't be needed in the new version of the API
 // export class SaveCourseProgressApplicationService implements IApplicationService<SaveCourseProgressServiceEntryDto, ProgressCourse>
