@@ -1,15 +1,17 @@
 import { Result } from "src/common/Application/result-handler/Result";
 import { ProgressSection } from "./progress-section";
+import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
-export class ProgressCourse
+export class ProgressCourse extends Entity<string>
 {
     private userId:string;
     private courseId:string;
     private isCompleted:boolean;
-    private sections: Map<string, ProgressSection> = new Map<string, ProgressSection>();
+    private sectionProgress: Map<string, ProgressSection> = new Map<string, ProgressSection>();
 
-    protected constructor (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    protected constructor (progressId:string, userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
     {
+        super(progressId)
         this.userId = userId;
         this.courseId = courseId;
         this.isCompleted = isCompleted;
@@ -17,7 +19,7 @@ export class ProgressCourse
         {
             for (let section of sections)
             {
-                this.sections.set(section.SectionId, section);
+                this.sectionProgress.set(section.SectionId, section);
             }
         }
     }
@@ -44,31 +46,41 @@ export class ProgressCourse
         {
             return 100;
         }
-        if (this.sections.size === 0)
+        if (this.sectionProgress.size === 0)
         {
             return 0;
         }
         let progressSum = 0;
-        for (let sectionTuple of this.sections)
+        for (let sectionTuple of this.sectionProgress)
         {
             progressSum += sectionTuple[1].CompletionPercent
         }
-        return ( progressSum / this.sections.size );
+        return ( progressSum / this.sectionProgress.size );
     }
 
     get Sections():ProgressSection[]
     {
         let sectionArray:Array<ProgressSection> = new Array<ProgressSection>();
-        for (let sectionTuple of this.sections)
+        for (let sectionTuple of this.sectionProgress)
         {
             sectionArray.push(sectionTuple[1]);
         }
         return sectionArray;
     }
 
-    static create (userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    public getSectionById(sectionId:string):Result<ProgressSection>
     {
-        return new ProgressCourse(userId, courseId, isCompleted, sections);
+        const sectionSearch = this.sectionProgress.get(sectionId);
+        if (sectionSearch === undefined) //to-do use optional?
+        {
+            return Result.fail<ProgressSection>(new Error("Section not found on course"), 404, "Section not found on course");
+        }
+        return Result.success<ProgressSection>(<ProgressSection>sectionSearch, 200);
+    }
+
+    static create (progressId:string, userId:string, courseId:string, isCompleted:boolean, sections?:ProgressSection[])
+    {
+        return new ProgressCourse(progressId, userId, courseId, isCompleted, sections);
     }
 
     public updateCompletion(isCompleted:boolean)
@@ -78,12 +90,12 @@ export class ProgressCourse
 
     public saveSection(newSection: ProgressSection)
     {
-        this.sections.set(newSection.SectionId, newSection);
+        this.sectionProgress.set(newSection.SectionId, newSection);
     }
 
     public updateSectionCompletionById(sectionId:string, isCompleted:boolean):Result<ProgressSection>
     {
-        let target:ProgressSection = this.sections.get(sectionId);
+        let target:ProgressSection = this.sectionProgress.get(sectionId);
         if (target === undefined) //to-do Use Optional?
         {
             return Result.fail<ProgressSection>(new Error('Section not found in Course'), 404, 'Section not found in Course');

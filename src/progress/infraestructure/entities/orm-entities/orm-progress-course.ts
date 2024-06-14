@@ -1,17 +1,21 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from "typeorm";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course";
+import { last } from "rxjs";
 
 @Entity( {name:"progress_course"} )
 export class OrmProgressCourse
 {
     @PrimaryColumn( {type: "uuid"} )
+    progress_id:string;
+
+    @Column( {type: "uuid"} )
     course_id:string;
     @ManyToOne(() => OrmCourse)
     @JoinColumn( {name: 'course_id', referencedColumnName: 'id'} )
     course:OrmCourse;
 
-    @PrimaryColumn( {type: "uuid"} )
+    @Column( {type: "uuid"} )
     user_id:string;
     @ManyToOne(() => OrmUser)
     @JoinColumn( {name: 'user_id', referencedColumnName: 'id'} )
@@ -19,14 +23,18 @@ export class OrmProgressCourse
 
     @Column('boolean') completed:boolean;
     @Column('numeric') completion_percent:number;
+    @Column('date') last_seen_date:Date;
 
-    static create (courseId:string, userId:string, isCompleted:boolean, completionPercent:number): OrmProgressCourse
+    static create (progressId:string, courseId:string, userId:string, isCompleted:boolean, completionPercent:number, lastSeenDate?:Date): OrmProgressCourse
     {
         const courseProgress = new OrmProgressCourse();
+        courseProgress.progress_id = progressId;
         courseProgress.course_id = courseId;
         courseProgress.user_id = userId;
         courseProgress.completed = isCompleted;
         courseProgress.completion_percent = completionPercent;
+        if (lastSeenDate === undefined) { courseProgress.last_seen_date = new Date(); }
+        else { courseProgress.last_seen_date = lastSeenDate; }
         return courseProgress;
     }
 }

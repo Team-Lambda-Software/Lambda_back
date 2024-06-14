@@ -28,7 +28,7 @@ import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-
 import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
-import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
+//import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
 import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
@@ -71,45 +71,45 @@ export class UserController {
                 new OrmSectionCommentMapper(),
                 dataSource
             )
-        this.progressRepository = 
-        new OrmProgressCourseRepository(
-            new OrmProgressCourseMapper(),
-            new OrmProgressSectionMapper(),
-            new OrmProgressVideoMapper(),
-            this.courseRepository, 
-            dataSource)    
+        this.progressRepository =
+            new OrmProgressCourseRepository(
+                new OrmProgressCourseMapper(),
+                new OrmProgressSectionMapper(),
+                this.courseRepository,
+                dataSource,
+                new UuidGenerator() ) 
         this.imageTransformer = new ImageTransformer()
         this.idGenerator = new UuidGenerator()
         this.fileUploader = new AzureFileUploader()
 
     }
 
-    @Get('')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ 
-        description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
-        type: GetUserSwaggerResponseDto
-    })
-    async getUser(@GetUser() user: User, @Query() pagination: PaginationDto) {
+    // @Get('')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({ 
+    //     description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
+    //     type: GetUserSwaggerResponseDto
+    // })
+    // async getUser(@GetUser() user: User, @Query() pagination: PaginationDto) {
         
-        const getUserProfileService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const getUserProfileService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
         
-        const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
+    //     const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
 
-        if(!resultado.isSuccess()){
-          return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //       return resultado.Error
+    //     }
         
-        return resultado.Value
+    //     return resultado.Value
         
-    }
+    // }
 
     
     @Patch('/update')
@@ -153,62 +153,62 @@ export class UserController {
 
     }
 
-    @Post('/follow/:trainerID')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ 
-        description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
-        type: FolloUnfollowSwaggerResponseDto
-    })
-    async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-    {
+    // @Post('/follow/:trainerID')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({ 
+    //     description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
+    //     type: FolloUnfollowSwaggerResponseDto
+    // })
+    // async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
+    // {
 
-        const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
+    //     const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
 
-        const followService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new FollowTrainerUserApplicationService(this.trainerRepository),
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const followService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new FollowTrainerUserApplicationService(this.trainerRepository),
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
 
-        const resultado = await followService.execute(userTrainerFollowDTO)
+    //     const resultado = await followService.execute(userTrainerFollowDTO)
 
-        if(!resultado.isSuccess()){
-            return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //         return resultado.Error
+    //     }
 
-        return resultado.Value
+    //     return resultado.Value
 
-    }
+    // }
 
-    @Delete('unfollow/:trainerID')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({
-        description:', dado el id del entrenador y del usuario',
-        type: FolloUnfollowSwaggerResponseDto
-    })
-    async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-    {
-        const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
+    // @Delete('unfollow/:trainerID')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({
+    //     description:', dado el id del entrenador y del usuario',
+    //     type: FolloUnfollowSwaggerResponseDto
+    // })
+    // async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
+    // {
+    //     const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
 
-        const unfollowService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new UnfollowTrainerUserApplicationService(this.trainerRepository),
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const unfollowService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new UnfollowTrainerUserApplicationService(this.trainerRepository),
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
 
-        const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
+    //     const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
 
-        if(!resultado.isSuccess()){
-            return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //         return resultado.Error
+    //     }
 
-        return resultado.Value
-    }
+    //     return resultado.Value
+    // }
 
 }
