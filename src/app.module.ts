@@ -21,7 +21,7 @@ import { CommentController } from './comment/infraestructure/controller/comment.
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: {
-        expiresIn: '2h'
+        expiresIn: '48h'
       }
     })
 

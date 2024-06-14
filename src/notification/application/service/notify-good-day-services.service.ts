@@ -31,16 +31,13 @@ export class NotifyGoodDayApplicationService implements IApplicationService<Appl
         const listTokens = findResult.Value
 
         listTokens.forEach( async e => {  
-            try {
-                const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Good ney day!', body: 'be Happy, my budy' } }    
-                const result = await this.pushNotifier.sendNotification( pushMessage )
-                if ( result.isSuccess() ) {
-                    this.notiAlertRepository.saveNotificationAlert(
-                        OrmNotificationAlert.create( 
-                            await this.uuidGenerator.generateId(), e.user_id, "Good new Day!", 'be Happy, my budy', false, new Date() )
-                    )
-                }
-            } catch (e) { return Result.fail(new Error('Something went wrong'), 500, 'Something went wrong') }
+            this.notiAlertRepository.saveNotificationAlert(
+                OrmNotificationAlert.create( 
+                    await this.uuidGenerator.generateId(), e.user_id, "Good new Day!", 'be Happy, my budy', false, new Date() )
+            )
+            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Good new day!', body: 'be Happy, my budy' } }    
+            const result = await this.pushNotifier.sendNotification( pushMessage )
+            //if ( result.isSuccess() ) {}
         })
         return Result.success('good day push sended', 200)
     }
