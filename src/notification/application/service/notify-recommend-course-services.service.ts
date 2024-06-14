@@ -45,16 +45,13 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
         const course = listCourses[ran]
 
         listTokens.forEach( async e => {
-            try {
-                const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.Name }}
-                const result = await this.pushNotifier.sendNotification( pushMessage )
-                if ( result.isSuccess() ) {
-                    this.notiAlertRepository.saveNotificationAlert(
-                        OrmNotificationAlert.create(
-                            await this.uuidGenerator.generateId(), e.user_id, 'Recommendation of the day', 'We recommend you ' + course.Name, false, new Date() )
-                    )
-                }
-            } catch (e) { return Result.fail(new Error('Something went wrong'), 500, 'Something went wrong') }
+            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.Name }}
+            const result = await this.pushNotifier.sendNotification( pushMessage )
+            //if ( result.isSuccess() ) {
+            this.notiAlertRepository.saveNotificationAlert(
+                OrmNotificationAlert.create(
+                    await this.uuidGenerator.generateId(), e.user_id, 'Recommendation of the day', 'We recommend you ' + course.Name, false, new Date() )
+            )
         })
         return Result.success('recommend push sended', 200)
     }
