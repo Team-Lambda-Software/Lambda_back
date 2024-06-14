@@ -84,32 +84,32 @@ export class UserController {
 
     }
 
-    @Get('')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ 
-        description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
-        type: GetUserSwaggerResponseDto
-    })
-    async getUser(@GetUser() user: User, @Query() pagination: PaginationDto) {
+    // @Get('')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({ 
+    //     description: 'Devuelve informacion sobre un usuario, toda su información de registro y los entrenadores a los que sigue; dado su id.', 
+    //     type: GetUserSwaggerResponseDto
+    // })
+    // async getUser(@GetUser() user: User, @Query() pagination: PaginationDto) {
         
-        const getUserProfileService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const getUserProfileService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new GetUserProfileApplicationService(this.userRepository, this.progressRepository, this.courseRepository), 
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
         
-        const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
+    //     const resultado = await getUserProfileService.execute({userId: user.Id, pagination})
 
-        if(!resultado.isSuccess()){
-          return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //       return resultado.Error
+    //     }
         
-        return resultado.Value
+    //     return resultado.Value
         
-    }
+    // }
 
     
     @Patch('/update')
@@ -153,62 +153,62 @@ export class UserController {
 
     }
 
-    @Post('/follow/:trainerID')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({ 
-        description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
-        type: FolloUnfollowSwaggerResponseDto
-    })
-    async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-    {
+    // @Post('/follow/:trainerID')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({ 
+    //     description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.', 
+    //     type: FolloUnfollowSwaggerResponseDto
+    // })
+    // async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
+    // {
 
-        const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
+    //     const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
 
-        const followService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new FollowTrainerUserApplicationService(this.trainerRepository),
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const followService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new FollowTrainerUserApplicationService(this.trainerRepository),
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
 
-        const resultado = await followService.execute(userTrainerFollowDTO)
+    //     const resultado = await followService.execute(userTrainerFollowDTO)
 
-        if(!resultado.isSuccess()){
-            return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //         return resultado.Error
+    //     }
 
-        return resultado.Value
+    //     return resultado.Value
 
-    }
+    // }
 
-    @Delete('unfollow/:trainerID')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({
-        description:', dado el id del entrenador y del usuario',
-        type: FolloUnfollowSwaggerResponseDto
-    })
-    async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-    {
-        const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
+    // @Delete('unfollow/:trainerID')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({
+    //     description:', dado el id del entrenador y del usuario',
+    //     type: FolloUnfollowSwaggerResponseDto
+    // })
+    // async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
+    // {
+    //     const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
 
-        const unfollowService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new UnfollowTrainerUserApplicationService(this.trainerRepository),
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        )
+    //     const unfollowService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new UnfollowTrainerUserApplicationService(this.trainerRepository),
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     )
 
-        const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
+    //     const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
 
-        if(!resultado.isSuccess()){
-            return resultado.Error
-        }
+    //     if(!resultado.isSuccess()){
+    //         return resultado.Error
+    //     }
 
-        return resultado.Value
-    }
+    //     return resultado.Value
+    // }
 
 }
