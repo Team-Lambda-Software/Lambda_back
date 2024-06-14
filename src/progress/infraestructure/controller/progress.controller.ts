@@ -31,29 +31,35 @@ import { SaveSectionProgressServiceEntryDto } from "src/progress/application/dto
 import { GetCourseProgressSwaggerResponseDto } from "../dto/response/get-course-progress-swagger-response.dto";
 import { GetAllSectionsFromCourseEntryDto } from "src/progress/application/dto/parameters/get-all-sections-from-course-entry.dto";
 import { GetAllSectionsFromCourseApplicationService } from "src/progress/application/services/queries/get-all-sections-from-course.application.service";
+import { GetTrendingCourseSwaggerResponseDto } from "../dto/response/get-trending-progress-swagger-response.dto";
+import { GetTrendingCourseApplicationService } from "src/progress/application/services/queries/get-trending-course.application.service";
+import { GetProgressProfileSwaggerResponseDto } from "../dto/response/get-progress-profile-swagger-response.dto";
+import { GetProgressProfileApplicationService } from "src/progress/application/services/queries/get-progress-profile.application.service";
 
 @ApiTags('Progress')
 @Controller('Progress')
 export class ProgressController {
 
     private readonly progressRepository:OrmProgressCourseRepository;
+    private readonly courseRepository:OrmCourseRepository;
 
     private readonly logger:Logger = new Logger( "ProgressController" );
 
     constructor ( @Inject( 'DataSource' ) private readonly dataSource:DataSource )
     {
+        this.courseRepository = new OrmCourseRepository(
+            new OrmCourseMapper(
+                new OrmSectionMapper(),
+                new OrmTrainerMapper()
+            ),
+            new OrmSectionMapper(),
+            new OrmSectionCommentMapper(),
+            dataSource
+        );
         this.progressRepository = new OrmProgressCourseRepository(
             new OrmProgressCourseMapper(),
             new OrmProgressSectionMapper(),
-            new OrmCourseRepository(
-                new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
-                ),
-                new OrmSectionMapper(),
-                new OrmSectionCommentMapper(),
-                dataSource
-            ),
+            this.courseRepository,
             dataSource,
             new UuidGenerator()
         );
@@ -130,8 +136,66 @@ export class ProgressController {
         {
             lessons.push({lessonId: section.id, time: section.videoSecond, percent: section.completionPercent});
         }
-        const responseDTO = { percent: returnData.completionPercent, lessons: lessons }
+        const responseDTO:GetCourseProgressSwaggerResponseDto = { percent: returnData.completionPercent, lessons: lessons }
 
         return responseDTO;
+    }
+
+    @Get('/progress/trending')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene el progreso del ultimo curso visto, para el usuario actual', type:GetTrendingCourseSwaggerResponseDto})
+    //Gets "trending" (latest) course seen by the user
+    async getTrendingCourse(@GetUser() user:User)
+    {
+        const getTrendingDto = {userId: user.Id};
+
+        const getTrendingApplicationService = new ExceptionDecorator(
+            new LoggingDecorator(
+                new GetTrendingCourseApplicationService(this.progressRepository, this.courseRepository),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const returnDataResult = await getTrendingApplicationService.execute(getTrendingDto);
+        const returnData = returnDataResult.Value;
+
+        const responseDTO:GetTrendingCourseSwaggerResponseDto =
+        {
+            percent: returnData.completionPercent,
+            courseTitle: returnData.courseTitle,
+            courseId: returnData.courseId,
+            lastTime: returnData.lastTime
+        }
+        return responseDTO
+    }
+
+    @Get('/progress/profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene los datos de progreso del perfil del usuario actual: progreso del ultimo curso visto y tiempo de visualizacion total en horas', type:GetProgressProfileSwaggerResponseDto})
+    //Gets data related to the progress-shown-in-profile for the current user
+    async GetProgressProfile(@GetUser() user)
+    {
+        const getProgressProfileDto = {userId: user.Id};
+
+        const getProgressProfileApplicationService = new ExceptionDecorator(
+            new LoggingDecorator(
+                new GetProgressProfileApplicationService(this.progressRepository),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const returnDataResult = await getProgressProfileApplicationService.execute(getProgressProfileDto);
+        const returnData = returnDataResult.Value;
+
+        const responseDTO:GetProgressProfileSwaggerResponseDto =
+        {
+            percent: returnData.latestCompletionPercent,
+            time: returnData.totalViewtimeInHours
+        }
+        return responseDTO
     }
 }
