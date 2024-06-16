@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ProgressSection } from "./progress-section";
 import { Entity } from "src/common/Domain/domain-object/entity.interface";
 

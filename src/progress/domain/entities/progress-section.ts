@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
 export class ProgressSection extends Entity<string>

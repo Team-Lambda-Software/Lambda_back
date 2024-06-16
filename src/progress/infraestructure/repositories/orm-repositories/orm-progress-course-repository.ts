@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { Repository, DataSource } from "typeorm";
 import { ProgressCourse } from "src/progress/domain/entities/progress-course";

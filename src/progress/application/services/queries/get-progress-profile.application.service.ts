@@ -2,7 +2,7 @@ import { IApplicationService } from "src/common/Application/application-services
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { GetProgressProfileResponseDto } from "../../dto/responses/get-progress-profile-response.dto";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 
 
 export class GetProgressProfileApplicationService implements IApplicationService<ApplicationServiceEntryDto, GetProgressProfileResponseDto>

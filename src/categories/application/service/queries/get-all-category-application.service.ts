@@ -1,6 +1,6 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { Category } from "src/categories/domain/categories"
 import { GetAllCategoryServiceEntryDto } from "../../Dto/param/get-all-category-service-entry.dto"
 import { GetAllCategoriesServiceResponseDto } from "../../Dto/responses/get-all-category-service-response.dto"
