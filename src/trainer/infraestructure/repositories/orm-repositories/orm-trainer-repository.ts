@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 import { Repository, DataSource, InsertResult } from "typeorm";
 import { OrmTrainer } from "../../entities/orm-entities/trainer.entity";

@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"
 import { IInfraUserRepository } from "../../../application/interfaces/orm-infra-user-repository.interface"

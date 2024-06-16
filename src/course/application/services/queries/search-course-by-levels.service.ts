@@ -1,6 +1,6 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { Course } from "src/course/domain/course"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { SearchCourseByLevelsServiceEntryDto } from "../../dto/param/search-course-by-levels-service-entry.dto"
 

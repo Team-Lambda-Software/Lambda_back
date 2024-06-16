@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { JwtPayload } from "src/auth/application/dto/jwt-payload.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { User } from "src/user/domain/user";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";

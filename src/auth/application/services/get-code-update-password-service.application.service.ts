@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ICodeGenerator } from "../interface/code-generator.interface";
 import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
 import { ForgetPasswordEntryApplicationDto } from "../dto/forget-password-entry.application.dto copy";

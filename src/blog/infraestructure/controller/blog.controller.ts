@@ -33,7 +33,7 @@ import { AuditingDecorator } from "src/common/Application/application-services/d
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 @ApiTags( 'Blog' )

@@ -3,7 +3,7 @@ import { GetAllStartedCoursesEntryDto } from "../../dto/parameters/get-all-start
 import { GetAllStartedCoursesResponseDto } from "../../dto/responses/get-all-started-courses-response.dto";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { Course } from "src/course/domain/course";
 import { ProgressCourse } from "src/progress/domain/entities/progress-course";
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface";
