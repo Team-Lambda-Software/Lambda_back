@@ -10,6 +10,7 @@ import { BlogTitle } from "src/blog/domain/value-objects/blog-title"
 import { BlogBody } from "src/blog/domain/value-objects/blog-body"
 import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
 {
@@ -31,7 +32,7 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
         domain.Tags.forEach( tag => {
             tags.push( OrmBlogTags.create( tag.Value ) )
         })
-        const blog = OrmBlog.create( domain.Id.Value, domain.Title.Value, domain.Body.Value, domain.PublicationDate.Value, domain.Trainer.Id, domain.CategoryId, images, tags)
+        const blog = OrmBlog.create( domain.Id.Value, domain.Title.Value, domain.Body.Value, domain.PublicationDate.Value, domain.Trainer.Id, domain.CategoryId.Value, images, tags)
         return blog
     }
     async fromPersistenceToDomain ( persistence: OrmBlog ): Promise<Blog>
@@ -53,7 +54,7 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
             images, 
             BlogPublicationDate.create(persistence.publication_date),
             await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), 
-            persistence.category_id, 
+            CategoryId.create(persistence.category_id), 
             tags)
         return blog
     }

@@ -41,14 +41,14 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
             }
             const course = courseResult.Value;
 
-            const categoryResult = await this.categoryRepository.findCategoryById(course.CategoryId);
+            const categoryResult = await this.categoryRepository.findCategoryById(course.CategoryId.Value);
             if (!categoryResult.isSuccess())
             {
                 return Result.fail<GetAllStartedCoursesResponseDto>(categoryResult.Error, categoryResult.StatusCode, categoryResult.Message);
             }
             const categoryName = categoryResult.Value.Name;
 
-            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName, progress: progress});
+            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName.Value, progress: progress});
         }
 
         let returnDataArray:Array< { id: string, title: string, image:string, date: Date, category: string, trainerName: string, completionPercent: number } > = [];

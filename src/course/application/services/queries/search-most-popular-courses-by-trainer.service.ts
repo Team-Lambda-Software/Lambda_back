@@ -53,7 +53,7 @@ export class SearchMostPopularCoursesByTrainerApplicationService implements IApp
         const responseCourses: SearchCourseServiceResponseDto[] = []
 
         for (const course of sortedCourses){
-            const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchCourseServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -68,7 +68,7 @@ export class SearchMostPopularCoursesByTrainerApplicationService implements IApp
                 title: course.Name,
                 image: course.Image,
                 date: course.Date,
-                category: category.Value.Name,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }

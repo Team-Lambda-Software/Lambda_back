@@ -14,6 +14,7 @@ import { BlogTitle } from "src/blog/domain/value-objects/blog-title"
 import { BlogBody } from "src/blog/domain/value-objects/blog-body"
 import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 
 
@@ -50,7 +51,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
             images.push( BlogImage.create( imageUrl ) )
         }
-        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, data.categoryId, data.tags.map(tag => BlogTag.create(tag)) )
+        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
         {
@@ -64,7 +65,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
         const responseBlog: GetBlogServiceResponseDto = {
             title: blog.Title.Value,
             description: blog.Body.Value,
-            category: category.Value.Name,
+            category: category.Value.Name.Value,
             images: blog.Images.map( image => image.Value ),
             trainer: {
                 id: trainer.Value.Id,

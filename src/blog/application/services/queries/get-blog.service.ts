@@ -30,7 +30,7 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
             return Result.fail<GetBlogServiceResponseDto>( resultBlog.Error, resultBlog.StatusCode, resultBlog.Message )
         }
         const blog = resultBlog.Value
-        const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+        const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
         if ( !category.isSuccess() )
         {
             return Result.fail<GetBlogServiceResponseDto>( category.Error, category.StatusCode, category.Message )
@@ -43,7 +43,7 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
         const response: GetBlogServiceResponseDto = {
             title: blog.Title.Value,
             description: blog.Body.Value,
-            category: category.Value.Name,
+            category: category.Value.Name.Value,
             images: blog.Images.map( image => image.Value ),
             trainer: {
                 id: trainer.Value.Id,
