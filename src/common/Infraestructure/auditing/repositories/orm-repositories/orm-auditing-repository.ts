@@ -1,6 +1,6 @@
 import { AuditingDto } from 'src/common/Application/auditing/dto/auditing.dto'
 import { IAuditingRepository } from '../../../../Application/auditing/repositories/auditing-repository.interface';
-import { Result } from 'src/common/Application/result-handler/Result'
+import { Result } from 'src/common/Domain/result-handler/Result'
 import { Repository, DataSource } from 'typeorm';
 import { OrmAuditing } from '../../entities/orm-entities/orm-auditing'
 

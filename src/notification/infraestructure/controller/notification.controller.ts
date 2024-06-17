@@ -81,7 +81,7 @@ export class NotificationController {
             ),
             new HttpExceptionHandler()
         )
-        let entry = { userId: user.userId }
+        let entry = { userId: user.Id }
         return (await service.execute(entry)).Value    
     }
     
@@ -93,7 +93,7 @@ export class NotificationController {
     })
     @ApiBearerAuth()
     async getNotificationById( @Param('id', ParseUUIDPipe) id: string,  @GetUser() user ) {
-        let dataentry = { notificationId: id, userId: user.userId }
+        let dataentry = { notificationId: id, userId: user.Id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetNotificationByIdApplicationService(
@@ -114,7 +114,7 @@ export class NotificationController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     async getNotificationsByUser( @Query() getNotifications:GetNotificationsUserDto, @GetUser() user ) {
-        let dataentry={ ...getNotifications, userId:user.userId }
+        let dataentry={ ...getNotifications, userId:user.Id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetManyNotificationByUserApplicationService(
@@ -179,11 +179,10 @@ export class NotificationController {
         )
         const result = await (await service.execute( data )).Value
         const resultNotifier = await this.pushNotifier.sendNotification( this.createPushMessage( saveTokenDto.token, 'Welcome', 'Be welcome my dear' ) )
-        if ( resultNotifier.isSuccess() ) 
-            this.notiAlertRepository.saveNotificationAlert(
-                OrmNotificationAlert.create( await this.uuidGenerator.generateId(), data.userId, "Welcome", 'be Welcome my dear', false, new Date() ) 
-            )
-        return result.Value
+        await this.notiAlertRepository.saveNotificationAlert(
+            OrmNotificationAlert.create( await this.uuidGenerator.generateId(), user.Id, "Welcome", 'be Welcome my dear', false, new Date() ) 
+        )
+        return result
     }
 
     private createPushMessage(token: string, title: string, body: string) {

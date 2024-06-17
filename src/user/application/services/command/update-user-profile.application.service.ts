@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 //import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { User } from "src/user/domain/user";
 import { UpdateUserProfileServiceEntryDto } from "../../dto/params/update-user-profile-service-entry.dto";
@@ -44,7 +44,7 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
 
         const updateResult = await this.userRepository.saveOrmUser(userUpdate);
 
-        if(!updateResult.isSuccess) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
+        if(!updateResult.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
         const respuesta: UpdateUserProfileServiceResponseDto = {
             userId: updateResult.Value.id

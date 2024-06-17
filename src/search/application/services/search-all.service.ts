@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { SearchAllServiceEntryDto } from "../dto/param/search-all-service-entry.dto"
 import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service-response.dto"

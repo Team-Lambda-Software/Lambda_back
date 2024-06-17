@@ -1,5 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { SectionComment } from "src/course/domain/entities/section-comment"
 import { AddCommentToSectionServiceEntryDto } from "../../dto/param/add-comment-to-section-service-entry.dto"

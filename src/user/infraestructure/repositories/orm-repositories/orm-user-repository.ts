@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 import { User } from "src/user/domain/user"
 import { Repository, DataSource } from 'typeorm'
@@ -100,7 +100,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
 
         const OrmUsers = await this.findAllUser()
 
-        if(!OrmUsers.isSuccess){
+        if(!OrmUsers.isSuccess()){
             return Result.fail<number>(OrmUsers.Error,OrmUsers.StatusCode,OrmUsers.Message)
         }
 

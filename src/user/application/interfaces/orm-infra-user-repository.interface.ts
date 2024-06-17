@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { OrmUser } from "../../infraestructure/entities/orm-entities/user.entity";
 
 export interface IInfraUserRepository {
