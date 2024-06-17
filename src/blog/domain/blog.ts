@@ -14,6 +14,7 @@ import { BlogCommentText } from "./entities/value-objects/blog-comment-text"
 import { BlogCommentId } from "./entities/value-objects/blog-comment-id"
 import { BlogCommentCreated } from "./events/blog-comment-created-event"
 import { BlogComment } from "./entities/blog-comment"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 
 
@@ -25,10 +26,10 @@ export class Blog extends AggregateRoot<BlogId>{
     private images: BlogImage[]
     private publicationDate: BlogPublicationDate
     private trainer: Trainer
-    private categoryId: string
+    private categoryId: CategoryId
     private tags: BlogTag[]
 
-    protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: string, tags: BlogTag[])
+    protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[])
     {
         const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate,trainer, categoryId, tags)
         super( id, blogCreated)
@@ -81,7 +82,7 @@ export class Blog extends AggregateRoot<BlogId>{
         return this.trainer
     }
 
-    get CategoryId (): string
+    get CategoryId (): CategoryId
     {
         return this.categoryId
     }
@@ -98,7 +99,7 @@ export class Blog extends AggregateRoot<BlogId>{
         return comment
     }
 
-    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: string, tags: BlogTag[]): Blog
+    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[]): Blog
     {
         return new Blog( id, title, body, images, publicationDate, trainer, categoryId, tags)
     }

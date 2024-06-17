@@ -8,6 +8,7 @@ import { GetCourseServiceResponseDto } from "../../dto/responses/get-course-serv
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 
 
@@ -40,7 +41,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, imageUrl, data.tags, new Date() )
+        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], CategoryId.create(data.categoryId), imageUrl, data.tags, new Date() )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
@@ -54,7 +55,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         const responseCourse: GetCourseServiceResponseDto = {
             title: course.Name,
             description: course.Description,
-            category: category.Value.Name,
+            category: category.Value.Name.Value,
             image: imageUrl,
             trainer: {
                 id: trainer.Value.Id,

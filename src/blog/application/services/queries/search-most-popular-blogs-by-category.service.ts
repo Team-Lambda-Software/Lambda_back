@@ -50,7 +50,7 @@ export class SearchMostPopularBlogsByCategoryApplicationService implements IAppl
         const responseblogs: SearchBlogServiceResponseDto[] = []
 
         for (const blog of sortedblogs){
-            const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -65,7 +65,7 @@ export class SearchMostPopularBlogsByCategoryApplicationService implements IAppl
                 title: blog.Title.Value,
                 image: blog.Images[0].Value,
                 date: blog.PublicationDate.Value,
-                category: category.Value.Name,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }

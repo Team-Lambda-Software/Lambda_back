@@ -1,6 +1,7 @@
 import { Entity } from "src/common/Domain/domain-object/entity.interface"
 import { Section } from "./entities/section"
 import { Trainer } from "src/trainer/domain/trainer"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 
 
@@ -14,7 +15,7 @@ export class Course extends Entity<string>
     private weeksDuration: number
     private minutesDuration: number //esto es lo que significa el tiempo que aparece en el figma?
     private level: number
-    private categoryId: string
+    private categoryId: CategoryId
     private sections: Section[]
     private image: string
     private tags: string[]
@@ -56,7 +57,7 @@ export class Course extends Entity<string>
         return this.level
     }
 
-    get CategoryId (): string
+    get CategoryId (): CategoryId
     {
         return this.categoryId
     }
@@ -76,7 +77,7 @@ export class Course extends Entity<string>
         return this.date
     }
 
-    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: string, tags: string[], date: Date)
+    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: CategoryId, image: string, tags: string[], date: Date)
     {
         super( id )
         this.trainer = trainer
@@ -125,7 +126,7 @@ export class Course extends Entity<string>
         this.sections = sections
     }
 
-    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: string, image: string, tags: string[], date: Date): Course
+    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: CategoryId, image: string, tags: string[], date: Date): Course
     {
         return new Course( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }

@@ -30,9 +30,9 @@ export class GetAllCategoriesApplicationService implements IApplicationService<G
 
         for (const cat of categorie){
             response.push({
-                id: cat.Id,
-                name: cat.Name,
-                icon: cat.Icon.Url
+                id: cat.Id.Value,
+                name: cat.Name.Value,
+                icon: cat.Icon.Value
             })
         }
 

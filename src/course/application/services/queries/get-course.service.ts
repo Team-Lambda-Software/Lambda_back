@@ -62,7 +62,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         //         sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
         //     }
         // }
-        const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+        const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
         if ( !category.isSuccess() )
         {
             return Result.fail<GetCourseServiceResponseDto>( category.Error, category.StatusCode, category.Message )
@@ -75,7 +75,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         let responseCourse: GetCourseServiceResponseDto = {
             title: course.Name,
             description: course.Description,
-            category: category.Value.Name,
+            category: category.Value.Name.Value,
             image: course.Image,
             trainer: {
                 id: trainer.Value.Id,

@@ -1,8 +1,8 @@
 import { IValueObject } from 'src/common/Domain/value-object/value-object.interface'
-import { InvalidBlogIdException } from '../exceptions/invalid-blog-id-exception'
+import { InvalidCategoryIdException } from '../exceptions/invalid-category-id-exception'
 
 
-export class BlogId implements IValueObject<BlogId>{
+export class CategoryId implements IValueObject<CategoryId>{
     
     private readonly id: string
     
@@ -11,17 +11,17 @@ export class BlogId implements IValueObject<BlogId>{
     protected constructor ( id: string ){
         const regex = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
         if (!regex.test(id))
-            throw new InvalidBlogIdException()
+            throw new InvalidCategoryIdException()
         this.id = id
     }
 
-    equals ( valueObject: BlogId ): boolean
+    equals ( valueObject: CategoryId ): boolean
     {
         return this.id === valueObject.Value
     }
 
     static create (id: string){
-        return new BlogId(id)
+        return new CategoryId(id)
     }
 
 }
