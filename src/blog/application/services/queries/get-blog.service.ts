@@ -41,16 +41,16 @@ export class GetBlogApplicationService implements IApplicationService<GetBlogSer
             return Result.fail<GetBlogServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
         const response: GetBlogServiceResponseDto = {
-            title: blog.Title,
-            description: blog.Body,
+            title: blog.Title.Value,
+            description: blog.Body.Value,
             category: category.Value.Name,
-            images: blog.Images.map( image => image.Url ),
+            images: blog.Images.map( image => image.Value ),
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName
             },
-            tags: blog.Tags,
-            date: blog.PublicationDate
+            tags: blog.Tags.map(tag => tag.Value),
+            date: blog.PublicationDate.Value
         }
 
         return Result.success<GetBlogServiceResponseDto>( response, 200 )

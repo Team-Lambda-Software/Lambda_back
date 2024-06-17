@@ -1,15 +1,20 @@
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
+import { Entity } from "src/common/Domain/entity/entity"
+import { BlogCommentId } from "./value-objects/blog-comment-id"
+import { BlogCommentText } from "./value-objects/blog-comment-text"
+import { BlogCommentDate } from "./value-objects/blog-comment-date"
+import { BlogId } from "../value-objects/blog-id"
+import { InvalidBlogCommentException } from "./exceptions/invalid-blog-comment-exception"
 
 
 
 
-export class BlogComment extends Entity<string>
+export class BlogComment extends Entity<BlogCommentId>
 {
 
     private userId: string
-    private text: string
-    private date: Date
-    private blogId: string
+    private text: BlogCommentText
+    private date: BlogCommentDate
+    private blogId: BlogId
 
     get UserId ()
     {
@@ -31,7 +36,7 @@ export class BlogComment extends Entity<string>
         return this.blogId
     }
 
-    protected constructor ( id: string, userId: string, text: string, date: Date, blogId: string )
+    protected constructor ( id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId )
     {
         super( id )
         this.userId = userId
@@ -43,18 +48,12 @@ export class BlogComment extends Entity<string>
 
     protected ensureValidState (): void
     {
-        if ( !this.userId )
-            throw new Error( "Comment must have a user" )
-
-        if ( !this.text )
-            throw new Error( "Comment must have a text" )
-
-        if ( !this.date )
-            throw new Error( "Comment must have a valid date" )
+        if ( !this.userId || !this.text || !this.blogId || !this.date)
+            throw new InvalidBlogCommentException()
 
     }
 
-    static create ( id: string, userId: string, text: string, date: Date, blogId: string ): BlogComment
+    static create ( id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId ): BlogComment
     {
         return new BlogComment( id, userId, text, date, blogId)
     }

@@ -1,67 +1,67 @@
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { BlogImage } from "./entities/blog-image"
 import { Trainer } from "src/trainer/domain/trainer"
+import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
+import { BlogId } from "./value-objects/blog-id"
+import { BlogTitle } from "./value-objects/blog-title"
+import { BlogBody } from "./value-objects/blog-body"
+import { BlogImage } from "./value-objects/blog-image"
+import { BlogPublicationDate } from "./value-objects/blog-publication-date"
+import { BlogTag } from "./value-objects/blog-tag"
+import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
+import { InvalidBlogException } from "./exceptions/invalid-blog-exception"
+import { BlogCreated } from "./events/blog-created-event"
+import { BlogCommentDate } from "./entities/value-objects/blog-comment-date"
+import { BlogCommentText } from "./entities/value-objects/blog-comment-text"
+import { BlogCommentId } from "./entities/value-objects/blog-comment-id"
+import { BlogCommentCreated } from "./events/blog-comment-created-event"
+import { BlogComment } from "./entities/blog-comment"
 
 
 
 
-export class Blog extends Entity<string>{
+export class Blog extends AggregateRoot<BlogId>{
 
-    private title: string
-    private body: string
+    private title: BlogTitle
+    private body: BlogBody
     private images: BlogImage[]
-    private publicationDate: Date
+    private publicationDate: BlogPublicationDate
     private trainer: Trainer
     private categoryId: string
-    private tags: string[]
+    private tags: BlogTag[]
 
-    protected constructor ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string, tags: string[])
+    protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: string, tags: BlogTag[])
     {
-        super( id )
-        this.title = title
-        this.body = body
-        this.images = images
-        this.publicationDate = publicationDate
-        this.trainer = trainer
-        this.categoryId = categoryId
-        this.tags = tags
-        this.validateState()
+        const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate,trainer, categoryId, tags)
+        super( id, blogCreated)
     }
 
-    protected validateState (): void
+    protected applyEvent ( event: DomainEvent ): void
     {
-        if ( !this.title )
-        {
-            throw new Error( 'Title is required' )
-        }
-        if ( !this.body )
-        {
-            throw new Error( 'Body is required' )
-        }
-        if ( !this.images )
-        {
-            throw new Error( 'Image is required' )
-        }
-        if ( !this.publicationDate )
-        {
-            throw new Error( 'Publication date is required' )
-        }
-        if ( !this.trainer )
-        {
-            throw new Error( 'Trainer id is required' )
-        }
-        if ( !this.categoryId )
-        {
-            throw new Error( 'Category id is required' )
+        switch (event.eventName){
+            case 'BlogCreated':
+                const blogCreated: BlogCreated = event as BlogCreated
+                this.title = blogCreated.title
+                this.body = blogCreated.body
+                this.tags = blogCreated.tags
+                this.categoryId = blogCreated.categoryId
+                this.images = blogCreated.images
+                this.publicationDate = blogCreated.publicationDate
+                this.trainer = blogCreated.trainer 
         }
     }
 
-    get Title (): string
+
+    protected ensureValidState (): void
+    {
+        if (!this.Body || !this.title || !this.CategoryId || !this.PublicationDate || !this.trainer)
+            throw new InvalidBlogException()
+    }
+
+    get Title (): BlogTitle
     {
         return this.title
     }
 
-    get Body (): string
+    get Body (): BlogBody
     {
         return this.body
     }
@@ -71,7 +71,7 @@ export class Blog extends Entity<string>{
         return this.images
     }
 
-    get PublicationDate (): Date
+    get PublicationDate (): BlogPublicationDate
     {
         return this.publicationDate
     }
@@ -86,12 +86,19 @@ export class Blog extends Entity<string>{
         return this.categoryId
     }
 
-    get Tags (): string[]
+    get Tags (): BlogTag[]
     {
         return this.tags
     }
 
-    static create ( id: string, title: string, body: string, images: BlogImage[], publicationDate: Date, trainer: Trainer, categoryId: string, tags: string[]): Blog
+    public createComment (id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate): BlogComment{
+        const comment: BlogComment = BlogComment.create(id, userId, text, date, this.Id)
+        const blogCommentCreated: BlogCommentCreated = BlogCommentCreated.create(id, userId, text, date, this.Id)
+        this.onEvent(blogCommentCreated)
+        return comment
+    }
+
+    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: string, tags: BlogTag[]): Blog
     {
         return new Blog( id, title, body, images, publicationDate, trainer, categoryId, tags)
     }

@@ -81,10 +81,10 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
                     return Result.fail<SearchAllServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
                 }
                 responseSearch.blogs.push( {
-                    id: blog.Id,
-                    title: blog.Title,
-                    image: blog.Images[ 0 ].Url,
-                    date: blog.PublicationDate,
+                    id: blog.Id.Value,
+                    title: blog.Title.Value,
+                    image: blog.Images[ 0 ].Value,
+                    date: blog.PublicationDate.Value,
                     category: category.Value.Name,
                     trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
                 } )
