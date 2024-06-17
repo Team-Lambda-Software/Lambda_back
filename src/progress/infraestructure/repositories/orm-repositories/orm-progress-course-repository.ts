@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { Repository, DataSource } from "typeorm";
 import { ProgressCourse } from "src/progress/domain/entities/progress-course";
@@ -7,9 +7,6 @@ import { OrmProgressCourseMapper } from "../../mappers/orm-mappers/orm-progress-
 import { ProgressSection } from "src/progress/domain/entities/progress-section";
 import { OrmProgressSection } from "../../entities/orm-entities/orm-progress-section";
 import { OrmProgressSectionMapper } from "../../mappers/orm-mappers/orm-progress-section-mapper";
-import { ProgressVideo } from "src/progress/domain/entities/progress-video";
-import { OrmProgressVideo } from "../../entities/orm-entities/orm-progress-video";
-import { OrmProgressVideoMapper } from "../../mappers/orm-mappers/orm-progress-video-mapper";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto";
 //? Couple with OrmCourseRepository to get all info from courses and fully construct progress' objects
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
@@ -18,86 +15,77 @@ import { Section } from "src/course/domain/entities/section";
 //import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video";
 import { skip } from "node:test";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 
 export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> implements IProgressCourseRepository
 {
     private readonly ormProgressCourseMapper: OrmProgressCourseMapper;
     private readonly ormProgressSectionMapper: OrmProgressSectionMapper;
-    private readonly ormProgressVideoMapper: OrmProgressVideoMapper;
 
     private readonly ormProgressSectionRepository: Repository<OrmProgressSection>;
-    private readonly ormProgressVideoRepository: Repository<OrmProgressVideo>;
 
     //? Couple with OrmCourseRepository?
     private readonly ormCourseRepository: ICourseRepository;
+    //Couple with IdGenerator to create IDs for new progresses
+    private readonly uuidGenerator: IdGenerator<string>;
 
-    constructor (ormProgressCourseMapper:OrmProgressCourseMapper, ormProgressSectionMapper:OrmProgressSectionMapper, ormProgressVideoMapper:OrmProgressVideoMapper, ormCourseRepository:ICourseRepository, dataSource:DataSource)
+    constructor (ormProgressCourseMapper:OrmProgressCourseMapper, ormProgressSectionMapper:OrmProgressSectionMapper, ormCourseRepository:ICourseRepository, dataSource:DataSource, uuidGenerator:IdGenerator<string>)
     {
         super( OrmProgressCourse, dataSource.createEntityManager() );
         this.ormProgressCourseMapper = ormProgressCourseMapper;
         this.ormProgressSectionMapper = ormProgressSectionMapper;
-        this.ormProgressVideoMapper = ormProgressVideoMapper;
 
         this.ormProgressSectionRepository = dataSource.getRepository( OrmProgressSection );
-        this.ormProgressVideoRepository = dataSource.getRepository( OrmProgressVideo );
 
         this.ormCourseRepository = ormCourseRepository;
+
+        this.uuidGenerator = uuidGenerator;
     }
 
-    async getVideoProgressById (userId:string, videoId:string): Promise<Result<ProgressVideo>>
-    {
-        try
-        {
-            const progressVideo = await this.ormProgressVideoRepository.findOneBy( {video_id: videoId, user_id: userId} );
-            if ( progressVideo ) //Video progress found on DB
-            {
-                return Result.success<ProgressVideo>(await this.ormProgressVideoMapper.fromPersistenceToDomain(progressVideo), 200);
-            } //Progress not found. Return as newly-started video
-            return Result.success<ProgressVideo>(ProgressVideo.create(userId, videoId, 0, false), 200);
-        }
-        catch (error)
-        {
-            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
-        }
-    }
+    //unused According to new specification of the API, video is now only one and part of the section. So, this method is not needed
+        // async getVideoProgressById (userId:string, videoId:string): Promise<Result<ProgressVideo>>
+        // {
+        //     try
+        //     {
+        //         const progressVideo = await this.ormProgressVideoRepository.findOneBy( {video_id: videoId, user_id: userId} );
+        //         if ( progressVideo ) //Video progress found on DB
+        //         {
+        //             return Result.success<ProgressVideo>(await this.ormProgressVideoMapper.fromPersistenceToDomain(progressVideo), 200);
+        //         } //Progress not found. Return as newly-started video
+        //         return Result.success<ProgressVideo>(ProgressVideo.create(userId, videoId, 0, false), 200);
+        //     }
+        //     catch (error)
+        //     {
+        //         return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
+        //     }
+        // }
 
     async getSectionProgressById (userId:string, sectionId:string): Promise<Result<ProgressSection>>
     {
         try
         {
-            const progressSection = await this.ormProgressSectionRepository.findOneBy( {section_id: sectionId, user_id: userId} );
+            const progressSection = await this.ormProgressSectionRepository.findOneBy( {user_id:userId, section_id:sectionId} );
             let domainProgress:ProgressSection;
             if ( progressSection ) //Progress exists on DB
             {
+                //TEST
+                    console.log("Previous progress found. Printing ORM and Domain");
+                    progressSection.completion_percent = <number>progressSection.completion_percent;
+                    progressSection.video_second = <number>progressSection.video_second;
+                    console.log(progressSection);
                 //Create domain progress
                 domainProgress = await this.ormProgressSectionMapper.fromPersistenceToDomain(progressSection);
+                //TEST
+                    console.log(domainProgress);
             }
             else
             {
+                //TEST
+                    console.log("Generating new uuid... No previous progress found");
                 //Progress not found. Return result as "newly-started" section
-                domainProgress = ProgressSection.create(userId, sectionId, false, []);
+                const newId:string = await this.uuidGenerator.generateId();
+                domainProgress = ProgressSection.create(newId, sectionId);
             }
-            
-            //Fetch associated section
-            const sectionResult = await this.ormCourseRepository.findSectionById(sectionId);
-            if (!sectionResult.isSuccess())
-            {
-                return Result.fail<ProgressSection>(sectionResult.Error, sectionResult.StatusCode, sectionResult.Message);
-            }
-            const section = sectionResult.Value;
-            
-            //Fetch associated video progress' entities from section's videos
-            
-            let target = await this.getVideoProgressById(userId, section.Video);
-            if (target.isSuccess()) //Progress found or created from scratch
-            {
-                domainProgress.saveVideo(target.Value);
-            }
-            else //Some error found
-            {
-                return Result.fail<ProgressSection>(target.Error, target.StatusCode, target.Message); 
-            }
-        
 
             const progress = domainProgress;
             return Result.success<ProgressSection>( progress, 200 );
@@ -122,7 +110,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             else
             {
                 //Progress not found. Return result as "newly-started" course
-                domainProgress = ProgressCourse.create(userId, courseId, false, []);
+                const newId:string = await this.uuidGenerator.generateId();
+                domainProgress = ProgressCourse.create(newId, userId, courseId, false, []);
             }
             
             //Fetch associated course's sections
@@ -136,10 +125,10 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             //Fetch associated section progress' entities from course's sections
             for (let section of sections)
             {
-                let target = await this.getSectionProgressById(userId, section.Id);
+                let target:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
                 if (target.isSuccess()) //Progress found or created from scratch
                 {
-                    domainProgress.saveSection(target.Value);
+                    domainProgress.saveSection(<ProgressSection>(target.Value));
                 }
                 else //Some error found
                 {
@@ -147,7 +136,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 }
             }
 
-            const progress = domainProgress;
+            const progress:ProgressCourse = domainProgress;
             return Result.success<ProgressCourse>( progress, 200 );
         }
         catch (error)
@@ -156,27 +145,34 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         }
     }
 
-    async saveVideoProgress (progress:ProgressVideo): Promise<Result<ProgressVideo>>
+    //unused According to new specification of the API, video is now only one and part of the section. So, this method is not needed
+        // async saveVideoProgress (progress:ProgressVideo): Promise<Result<ProgressVideo>>
+        // {
+        //     try
+        //     {
+        //         const ormProgress = await this.ormProgressVideoMapper.fromDomainToPersistence(progress);
+        //         await this.ormProgressVideoRepository.save( ormProgress );
+
+        //         return Result.success<ProgressVideo>( progress, 200 );
+        //     }
+        //     catch ( error )
+        //     {
+        //         return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
+        //     }
+        // }
+
+    async saveSectionProgress (progress:ProgressSection, userId?:string): Promise<Result<ProgressSection>>
     {
         try
         {
-            const ormProgress = await this.ormProgressVideoMapper.fromDomainToPersistence(progress);
-            await this.ormProgressVideoRepository.save( ormProgress );
-
-            return Result.success<ProgressVideo>( progress, 200 );
-        }
-        catch ( error )
-        {
-            return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
-        }
-    }
-
-    async saveSectionProgress (progress:ProgressSection): Promise<Result<ProgressSection>>
-    {
-        try
-        {
-            const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress);
+            //TEST
+                console.log("Saving section progress");
+            const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId);
+            //TEST
+                console.log("Mapper done");
             await this.ormProgressSectionRepository.save( ormProgress );
+            //TEST
+                console.log("ORM saving done");
 
             return Result.success<ProgressSection>( progress, 200 );
         }
@@ -316,6 +312,49 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         catch (error)
         {
             return Result.fail<ProgressSection[]>( new Error(error.message), error.code, error.message );
+        }
+    }
+
+    async findLatestCourse (userId:string): Promise<Result<{course: ProgressCourse, lastSeen: Date}>>
+    {
+        try
+        {
+            const ormCourseProgress = await this.createQueryBuilder().select()
+                                        .where('user_id = :target', {target: userId})
+                                        .addOrderBy('last_seen_date', "DESC", "NULLS LAST")
+                                        .take(1)
+                                        .getOne();
+            if (!ormCourseProgress) //No progress exists on DB
+            {
+                return Result.fail<{course: ProgressCourse, lastSeen: Date}>(new Error("No progress found for this user"), 404, "No progress found for this user");
+            }
+            const latestCourseResult = await this.getCourseProgressById(ormCourseProgress.user_id, ormCourseProgress.course_id);
+            if (!latestCourseResult.isSuccess())
+            {
+                return Result.fail<{course: ProgressCourse, lastSeen: Date}>(latestCourseResult.Error, latestCourseResult.StatusCode, latestCourseResult.Message);
+            }
+            const latestCourse = latestCourseResult.Value;
+
+            const lastSeen = ormCourseProgress.last_seen_date;
+            return Result.success<{course: ProgressCourse, lastSeen: Date}>({course: latestCourse, lastSeen: lastSeen}, 200);
+        }
+        catch (error)
+        {
+            return Result.fail<{course: ProgressCourse, lastSeen: Date}>( new Error(error.message), error.code, error.message);
+        }
+    }
+
+    //Returns viewtime in seconds
+    async getTotalViewtime (userId:string): Promise<Result<number>>
+    {
+        try
+        {
+            const viewtime = await this.ormProgressSectionRepository.sum("video_second", {user_id:userId});
+            return Result.success<number>( viewtime, 200 );
+        }
+        catch (error)
+        {
+            return Result.fail<number>( new Error(error.message), error.code, error.message );
         }
     }
 }

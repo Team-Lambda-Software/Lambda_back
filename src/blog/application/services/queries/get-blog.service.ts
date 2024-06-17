@@ -1,7 +1,7 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { GetBlogServiceEntryDto } from "../../dto/params/get-blog-service-entry.dto"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { GetBlogServiceResponseDto } from "../../dto/responses/get-blog-service-response.dto"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"

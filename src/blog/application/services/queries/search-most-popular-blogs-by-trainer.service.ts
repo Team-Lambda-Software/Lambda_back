@@ -1,7 +1,7 @@
 import { Blog } from 'src/blog/domain/blog'
 import { IBlogRepository } from 'src/blog/domain/repositories/blog-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
-import { Result } from 'src/common/Application/result-handler/Result'
+import { Result } from 'src/common/Domain/result-handler/Result'
 import { randomInt } from 'crypto'
 import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
 import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'

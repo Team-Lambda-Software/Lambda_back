@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { IApplicationService } from "../../../application-service.interface"
 import { ApplicationServiceDecorator } from "../../application-service.decorator"
 import { ILogger } from "src/common/Application/logger/logger.interface"

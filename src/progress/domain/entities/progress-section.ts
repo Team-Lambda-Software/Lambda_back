@@ -1,31 +1,27 @@
-import { Result } from "src/common/Application/result-handler/Result";
-import { ProgressVideo } from "./progress-video";
+import { Result } from "src/common/Domain/result-handler/Result";
+import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
-export class ProgressSection
+export class ProgressSection extends Entity<string>
 {
-    private userId:string;
     private sectionId:string;
     private isCompleted:boolean;
-    private videos: Map<string, ProgressVideo> = new Map<string,ProgressVideo>();
+    private videoSecond:number; //Moment of the video that the user was at when the progress was saved
+    private completionPercent:number; //Percentage of video that has been seen by user
 
-    protected constructor (userId:string, sectionId:string, isCompleted:boolean, videos?:ProgressVideo[])
+    protected constructor (progressId:string, sectionId:string, isCompleted:boolean, videoSecond:number, completion:number)
     {
-        this.userId = userId;
+        super(progressId);
         this.sectionId = sectionId;
         this.isCompleted = isCompleted;
-        if (videos != undefined)
-        {
-            for (let video of videos)
-            {
-                this.videos.set(video.VideoId, video);
-            }
-        }
+        this.videoSecond = videoSecond;
+        this.completionPercent = completion;
     }
 
-    get UserId():string
-    {
-        return this.userId;
-    }
+    //unused Redesign for common API does not consider standalone sections, thus, there is no need to save user data at the section level
+        // get UserId():string
+        // {
+        //     return this.userId;
+        // }
 
     get SectionId(): string
     {
@@ -37,41 +33,30 @@ export class ProgressSection
         return this.isCompleted;
     }
 
-    //Section completion equals to percentage of completed videos
-    get CompletionPercent(): number
+    get VideoSecond() : number
     {
-        if (this.IsCompleted)
-        {
-            return 100;
-        }
-        if (this.videos.size === 0)
-        {
-            return 0;
-        }
-        let completeVideos = 0;
-        for (let videoTuple of this.videos)
-        {
-            if (videoTuple[1].IsCompleted)
-            {
-                completeVideos += 1;
-            }
-        }
-        return ( (completeVideos/this.videos.size)*100 );
+        return this.videoSecond;
     }
 
-    get Videos():ProgressVideo[]
+    get CompletionPercent() : number
     {
-        let videoArray:Array<ProgressVideo> = new Array<ProgressVideo>();
-        for (let videoTuple of this.videos)
-        {
-            videoArray.push(videoTuple[1]);
-        }
-        return videoArray;
+        return this.completionPercent;
     }
 
-    static create (userId:string, sectionId:string, isCompleted:boolean, videos?:ProgressVideo[]):ProgressSection
+    //unused Sections now will have only a single video within. No need for this method. 11/jun
+        // get Videos():ProgressVideo[]
+        // {
+        //     let videoArray:Array<ProgressVideo> = new Array<ProgressVideo>();
+        //     for (let videoTuple of this.videos)
+        //     {
+        //         videoArray.push(videoTuple[1]);
+        //     }
+        //     return videoArray;
+        // }
+
+    static create (progressId:string, sectionId:string, isCompleted:boolean = false, videoSecond:number = 0, completionPercent:number = 0):ProgressSection
     {
-        return new ProgressSection(userId, sectionId, isCompleted, videos);
+        return new ProgressSection(progressId, sectionId, isCompleted, videoSecond, completionPercent);
     }
 
     public updateCompletion(isCompleted:boolean)
@@ -79,19 +64,31 @@ export class ProgressSection
         this.isCompleted = isCompleted;
     }
 
-    public saveVideo(newVideo:ProgressVideo)
+    public updateVideoSecond(videoSecond:number)
     {
-        this.videos.set(newVideo.VideoId, newVideo);
+        this.videoSecond = videoSecond;
     }
 
-    public updateVideoCompletionById(videoId:string, isCompleted:boolean):Result<ProgressVideo>
+    //to-do Dynamically update completion-percent whenever video-second progress is updated, via using section's duration
+    public updateCompletionPercent(completionPercent:number)
     {
-        let target:ProgressVideo = this.videos.get(videoId);
-        if (target === undefined) //to-do Use Optional?
-        {
-            return Result.fail<ProgressVideo>(new Error('Video not found in Section'), 404, 'Video not found in Section');
-        }
-        target.updateCompletion(isCompleted);
-        return Result.success<ProgressVideo>(target, 200);
+        this.completionPercent = completionPercent;
     }
+
+    //unused Sections now contain a single video and are updated by themselves
+        // public saveVideo(newVideo:ProgressVideo)
+        // {
+        //     this.videos.set(newVideo.VideoId, newVideo);
+        // }
+
+        // public updateVideoCompletionById(videoId:string, isCompleted:boolean):Result<ProgressVideo>
+        // {
+        //     let target:ProgressVideo = this.videos.get(videoId);
+        //     if (target === undefined) // to--do Use Optional?
+        //     {
+        //         return Result.fail<ProgressVideo>(new Error('Video not found in Section'), 404, 'Video not found in Section');
+        //     }
+        //     target.updateCompletion(isCompleted);
+        //     return Result.success<ProgressVideo>(target, 200);
+        // }
 }
