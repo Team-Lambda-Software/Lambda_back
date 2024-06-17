@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { ApplicationServiceDecorator } from "../../application-service.decorator"
 import { ApplicationServiceEntryDto } from "../../../dto/application-service-entry.dto"
 import { IApplicationService } from "../../../application-service.interface"

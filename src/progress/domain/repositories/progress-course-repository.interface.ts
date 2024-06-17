@@ -1,4 +1,4 @@
-import { Result } from "src/common/Application/result-handler/Result";
+import { Result } from "src/common/Domain/result-handler/Result";
 import { ProgressCourse } from "../entities/progress-course";
 import { ProgressSection } from "../entities/progress-section";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto";

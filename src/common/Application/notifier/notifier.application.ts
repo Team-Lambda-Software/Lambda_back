@@ -1,4 +1,4 @@
-import { Result } from "../result-handler/Result";
+import { Result } from "../../Domain/result-handler/Result";
 import { PushNotificationDto } from "./dto/token-notification.dto";
 
 export interface INotifier {

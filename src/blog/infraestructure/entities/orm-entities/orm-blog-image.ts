@@ -7,18 +7,16 @@ import { OrmBlog } from "./orm-blog"
 export class OrmBlogImage
 {
 
-    @PrimaryColumn( { type: "uuid" } ) id: string
-    @Column( 'varchar' ) url: string
+    @PrimaryColumn( { type: "varchar" } ) url: string
 
     @Column( { type: "uuid", nullable: true } ) blog_id: string
     @ManyToOne( () => OrmBlog, { eager: true } ) @JoinColumn( { name: 'blog_id' } ) blog: OrmBlog
 
-    static create ( id: string, url: string ): OrmBlogImage
+    static create ( url: string ): OrmBlogImage
     {
-        const video = new OrmBlogImage()
-        video.id = id
-        video.url = url
-        return video
+        const blog = new OrmBlogImage()
+        blog.url = url
+        return blog
     }
 
 }

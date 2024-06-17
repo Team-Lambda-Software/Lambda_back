@@ -1,6 +1,6 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { GetBlogCommentsServiceEntryDto } from "../../dto/params/get-blog-comments-service-entry.dto"
 import { GetBlogCommentsServiceResponseDto } from "../../dto/responses/get-blog-comments-service-response.dto"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
@@ -37,10 +37,10 @@ export class GetBlogCommentsApplicationService implements IApplicationService<Ge
                 return Result.fail<GetBlogCommentsServiceResponseDto[]>( user.Error, user.StatusCode, user.Message )
             }
             response.push( {
-                id: comment.Id,
+                id: comment.Id.Value,
                 user: user.Value.Name,
-                body: comment.Text,
-                date: comment.Date
+                body: comment.Text.Value,
+                date: comment.Date.Value
             } )
         }
 

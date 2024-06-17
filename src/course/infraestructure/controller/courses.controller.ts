@@ -40,7 +40,7 @@ import { AddSectionToCourseEntryDto } from "../dto/entry/add-section-to-course-e
 import { AzureFileUploader } from '../../../common/Infraestructure/azure-file-uploader/azure-file-uploader'
 import { FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
-import { Result } from "src/common/Application/result-handler/Result"
+import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 
 

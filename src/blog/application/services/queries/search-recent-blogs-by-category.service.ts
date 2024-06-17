@@ -1,6 +1,6 @@
 import { IBlogRepository } from 'src/blog/domain/repositories/blog-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
-import { Result } from 'src/common/Application/result-handler/Result'
+import { Result } from 'src/common/Domain/result-handler/Result'
 import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
 import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
 import { SearchBlogsByCategoryServiceEntryDto } from '../../dto/params/search-blogs-by-category-service-entry.dto'
@@ -40,10 +40,10 @@ export class SearchRecentBlogsByCategoryApplicationService implements IApplicati
                 return Result.fail<SearchBlogServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseBlogs.push({
-                id: blog.Id,
-                title: blog.Title,
-                image: blog.Images[0].Url,
-                date: blog.PublicationDate,
+                id: blog.Id.Value,
+                title: blog.Title.Value,
+                image: blog.Images[0].Value,
+                date: blog.PublicationDate.Value,
                 category: category.Value.Name,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
