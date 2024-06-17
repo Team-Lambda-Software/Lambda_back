@@ -40,10 +40,10 @@ export class SearchRecentBlogsByTrainerApplicationService implements IApplicatio
                 return Result.fail<SearchBlogServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseBlogs.push({
-                id: blog.Id,
-                title: blog.Title,
-                image: blog.Images[0].Url,
-                date: blog.PublicationDate,
+                id: blog.Id.Value,
+                title: blog.Title.Value,
+                image: blog.Images[0].Value,
+                date: blog.PublicationDate.Value,
                 category: category.Value.Name,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })

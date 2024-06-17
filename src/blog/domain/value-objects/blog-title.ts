@@ -9,7 +9,7 @@ export class BlogTitle implements IValueObject<BlogTitle>{
     get Value(){ return this.title }
 
     protected constructor ( title: string ){
-        if (title.length < 5 || title.length > 30)
+        if (title.length < 5 || title.length > 120)
             throw new InvalidBlogTitleException()
         this.title = title
     }

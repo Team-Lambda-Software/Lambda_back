@@ -91,7 +91,7 @@ export class Blog extends AggregateRoot<BlogId>{
         return this.tags
     }
 
-    createComment (id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate): BlogComment{
+    public createComment (id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate): BlogComment{
         const comment: BlogComment = BlogComment.create(id, userId, text, date, this.Id)
         const blogCommentCreated: BlogCommentCreated = BlogCommentCreated.create(id, userId, text, date, this.Id)
         this.onEvent(blogCommentCreated)

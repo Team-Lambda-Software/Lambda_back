@@ -9,8 +9,8 @@ export class BlogImage implements IValueObject<BlogImage>{
     get Value(){ return this.url }
 
     protected constructor ( url: string ){
-        const regex = new RegExp('(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})(\.[a-zA-Z0-9]{2,})?')
-        if (url.length < 5 || regex.test(url))
+        
+        if (url.length < 5)
             throw new InvalidBlogImageException()
         this.url = url
     }
