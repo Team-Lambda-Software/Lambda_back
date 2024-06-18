@@ -18,6 +18,7 @@ import { CourseImage } from "src/course/domain/value-objects/course-image"
 import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -28,15 +29,18 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
     private readonly trainerRepository: ITrainerRepository
     private readonly categoryRepository: ICategoryRepository
     private readonly fileUploader: IFileUploader
-    private readonly idGenerator: IdGenerator<string> 
+    private readonly idGenerator: IdGenerator<string>
+    private readonly eventHandler: IEventHandler 
+    
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.trainerRepository = trainerRepository
         this.categoryRepository = categoryRepository
         this.fileUploader = fileUploader
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -78,6 +82,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             date: course.Date.Value,
             lessons: []
         }
+        this.eventHandler.publish( course.pullEvents())
         return Result.success<CreateCourseServiceResponseDto>( responseCourse, 200 )
     }
 

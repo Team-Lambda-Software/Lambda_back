@@ -33,6 +33,7 @@ import { GetSectionCommentsApplicationService } from "src/course/application/ser
 import { GetSectionCommentsServiceEntryDto } from "src/course/application/dto/param/get-section-comments-service-entry.dto"
 import { GetAllCommentsSwaggerResponseDto } from "../dto/response/get-all-comments-swagger-response.dto"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 
 
 
@@ -133,7 +134,7 @@ export class CommentController
     async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user: User )
     {
         const { target, targetType, body } = entryData
-
+        const eventBus = EventBus.getInstance();
         if ( targetType === 'LESSON' )
         {
             const service =
@@ -142,7 +143,8 @@ export class CommentController
                         new LoggingDecorator(
                             new AddCommentToSectionApplicationService(
                                 this.courseRepository,
-                                this.idGenerator
+                                this.idGenerator,
+                                eventBus
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -166,7 +168,8 @@ export class CommentController
                         new LoggingDecorator(
                             new AddCommentToBlogApplicationService(
                                 this.blogRepository,
-                                this.idGenerator
+                                this.idGenerator,
+                                eventBus
                             ),
                             new NativeLogger( this.logger )
                         ),

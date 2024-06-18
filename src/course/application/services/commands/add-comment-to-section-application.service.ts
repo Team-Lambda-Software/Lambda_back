@@ -9,6 +9,7 @@ import { SectionCommentId } from "src/course/domain/entities/section-comment/val
 import { SectionCommentText } from "src/course/domain/entities/section-comment/value-objects/section-comment-text"
 import { SectionCommentDate } from "src/course/domain/entities/section-comment/value-objects/section-comment-date"
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -18,11 +19,13 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
 
     private readonly courseRepository: ICourseRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly eventHandler: IEventHandler
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string> )
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -46,6 +49,7 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
         {
             return Result.fail<SectionComment>( result.Error, result.StatusCode, result.Message )
         }
+        this.eventHandler.publish( course.pullEvents())
         return result
     }
 

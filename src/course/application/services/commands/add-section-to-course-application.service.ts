@@ -11,6 +11,7 @@ import { SectionDescription } from "src/course/domain/entities/section/value-obj
 import { SectionDuration } from "src/course/domain/entities/section/value-objects/section-duration"
 import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
 import { AddSectionToCourseServiceResponseDto } from "../../dto/responses/add-section-to-course-service-response.dto"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -20,12 +21,14 @@ export class AddSectionToCourseApplicationService implements IApplicationService
     private readonly courseRepository: ICourseRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
+    private readonly eventHandler: IEventHandler
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.fileUploader = fileUploader
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -45,10 +48,10 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
         videoUrl = videoUrl + process.env.SAS_TOKEN
         
-        
+        const courseValue = course.Value
         let section: Section
         try{
-            section = course.Value.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
+            section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
         }catch(e){
             return Result.fail<AddSectionToCourseServiceResponseDto>( e.message, 500 , e.message )
         }
@@ -64,6 +67,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
             video: section.Video.Value,
             duration: section.Duration.Value
         }
+        this.eventHandler.publish( courseValue.pullEvents())
         return Result.success<AddSectionToCourseServiceResponseDto>( responseSection, 200 )
     }
 
