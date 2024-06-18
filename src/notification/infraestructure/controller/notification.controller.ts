@@ -36,6 +36,7 @@ import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert";
+import { Cron, CronExpression } from "@nestjs/schedule";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -127,7 +128,19 @@ export class NotificationController {
         return (await service.execute(dataentry)).Value    
     }
 
-    //@Cron(CronExpression.EVERY_DAY_AT_10AM)
+    @Post('tester')  
+    async tester( @Body() dtoTester:{ title: string, body: string }  ) {
+        const findResult = await this.notiAddressRepository.findAllTokens()
+        if ( !findResult.isSuccess() ) return 'no tokens'
+        const listTokens = findResult.Value
+        listTokens.forEach( async e => {
+            const pushMessage = { token: e.token, notification: { title: dtoTester.title, body: dtoTester.body } }    
+            const result = await this.pushNotifier.sendNotification( pushMessage )
+        })
+        return 'tested'  
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_7AM)
     @Get('goodday')  
     async goodDayNotification() {
         const service = new ExceptionDecorator( 
@@ -145,7 +158,7 @@ export class NotificationController {
         return (await service.execute( { userId: 'none' } )).Value    
     }
 
-    //@Cron(CronExpression.EVERY_12_HOURS)
+    @Cron(CronExpression.EVERY_DAY_AT_1PM)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
         const service = new ExceptionDecorator( 
