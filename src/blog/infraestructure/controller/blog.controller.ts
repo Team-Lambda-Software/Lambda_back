@@ -35,6 +35,7 @@ import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -100,6 +101,7 @@ export class BlogController
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
     {
+        const eventBus = EventBus.getInstance();
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -109,7 +111,8 @@ export class BlogController
                             this.idGenerator,
                             this.trainerRepository,
                             this.categoryRepository,
-                            this.fileUploader
+                            this.fileUploader,
+                            eventBus
                         ),
                         new NativeLogger( this.logger )
                     ),

@@ -38,19 +38,19 @@ export class SearchMostPopularBlogsByCategoryApplicationService implements IAppl
 
         for ( const blog of blogs.Value )
         {
-            const blogUsers = await this.blogRepository.findBlogCommentCount( blog.Id )
+            const blogUsers = await this.blogRepository.findBlogCommentCount( blog.Id.Value )
             console.log(blogUsers.Value)
             if ( !blogUsers.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( blogUsers.Error, blogUsers.StatusCode, blogUsers.Message )
             }
-            blogsDict[blog.Id] = {blog, comments: blogUsers.Value}
+            blogsDict[blog.Id.Value] = {blog, comments: blogUsers.Value}
         }
         const sortedblogs = Object.values( blogsDict ).sort( ( a, b ) => b.comments - a.comments ).map( blog => blog.blog )
         const responseblogs: SearchBlogServiceResponseDto[] = []
 
         for (const blog of sortedblogs){
-            const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -61,11 +61,11 @@ export class SearchMostPopularBlogsByCategoryApplicationService implements IAppl
                 return Result.fail<SearchBlogServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseblogs.push({
-                id: blog.Id,
-                title: blog.Title,
-                image: blog.Images[0].Url,
-                date: blog.PublicationDate,
-                category: category.Value.Name,
+                id: blog.Id.Value,
+                title: blog.Title.Value,
+                image: blog.Images[0].Value,
+                date: blog.PublicationDate.Value,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }

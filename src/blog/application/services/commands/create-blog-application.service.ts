@@ -6,9 +6,16 @@ import { ICategoryRepository } from "src/categories/domain/repositories/category
 import { GetBlogServiceResponseDto } from "../../dto/responses/get-blog-service-response.dto"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Blog } from "src/blog/domain/blog"
-import { BlogImage } from "src/blog/domain/entities/blog-image"
 import { CreateBlogServiceEntryDto } from "../../dto/params/create-blog-service-entry.dto"
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
+import { BlogImage } from "src/blog/domain/value-objects/blog-image"
+import { BlogId } from "src/blog/domain/value-objects/blog-id"
+import { BlogTitle } from "src/blog/domain/value-objects/blog-title"
+import { BlogBody } from "src/blog/domain/value-objects/blog-body"
+import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
+import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -21,14 +28,16 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
     private readonly categoryRepository: ICategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
+    private readonly eventHandler: IEventHandler
 
-    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
+    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.trainerRepository = trainerRepository
         this.categoryRepository = categoryRepository
         this.blogRepository = blogRepository
         this.fileUploader = fileUploader
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -43,9 +52,9 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
         for ( const image of data.images ){
             const imageId = await this.idGenerator.generateId()
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
-            images.push( BlogImage.create( imageUrl, imageId ) )
+            images.push( BlogImage.create( imageUrl ) )
         }
-        const blog = Blog.create( await this.idGenerator.generateId(), data.title, data.body, images, new Date(), trainer.Value, data.categoryId, data.tags )
+        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
         {
@@ -57,17 +66,18 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             return Result.fail<GetBlogServiceResponseDto>( category.Error, category.StatusCode, category.Message )
         }
         const responseBlog: GetBlogServiceResponseDto = {
-            title: blog.Title,
-            description: blog.Body,
-            category: category.Value.Name,
-            images: blog.Images.map( image => image.Url ),
+            title: blog.Title.Value,
+            description: blog.Body.Value,
+            category: category.Value.Name.Value,
+            images: blog.Images.map( image => image.Value ),
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
             },
-            tags: blog.Tags,
-            date: blog.PublicationDate
+            tags: blog.Tags.map(tag => tag.Value),
+            date: blog.PublicationDate.Value
         }
+        this.eventHandler.publish( blog.pullEvents())
         return Result.success<GetBlogServiceResponseDto>( responseBlog, 200 )
     }
 

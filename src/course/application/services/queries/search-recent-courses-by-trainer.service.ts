@@ -29,7 +29,7 @@ export class SearchRecentCoursesByTrainerApplicationService implements IApplicat
         const responseCourses: SearchCourseServiceResponseDto[] = []
 
         for (const course of courses.Value){
-            const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchCourseServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -40,11 +40,11 @@ export class SearchRecentCoursesByTrainerApplicationService implements IApplicat
                 return Result.fail<SearchCourseServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseCourses.push({
-                id: course.Id,
-                title: course.Name,
-                image: course.Image,
-                date: course.Date,
-                category: category.Value.Name,
+                id: course.Id.Value,
+                title: course.Name.Value,
+                image: course.Image.Value,
+                date: course.Date.Value,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }

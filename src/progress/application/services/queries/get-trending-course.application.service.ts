@@ -39,7 +39,7 @@ export class GetTrendingCourseApplicationService implements IApplicationService<
         }
         const trendingCourse = trendingCourseResult.Value;
 
-        const returnData = {completionPercent: trendingProgress.CompletionPercent, courseTitle: trendingCourse.Name, courseId: trendingProgress.CourseId, lastTime: lastSeenDate};
+        const returnData = {completionPercent: trendingProgress.CompletionPercent, courseTitle: trendingCourse.Name.Value, courseId: trendingProgress.CourseId, lastTime: lastSeenDate};
         return Result.success<GetTrendingCourseResponseDto>( returnData, 200 );
     }
 

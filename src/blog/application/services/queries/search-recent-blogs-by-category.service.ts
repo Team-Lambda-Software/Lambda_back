@@ -29,7 +29,7 @@ export class SearchRecentBlogsByCategoryApplicationService implements IApplicati
         const responseBlogs: SearchBlogServiceResponseDto[] = []
 
         for (const blog of blogs.Value){
-            const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -40,11 +40,11 @@ export class SearchRecentBlogsByCategoryApplicationService implements IApplicati
                 return Result.fail<SearchBlogServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseBlogs.push({
-                id: blog.Id,
-                title: blog.Title,
-                image: blog.Images[0].Url,
-                date: blog.PublicationDate,
-                category: category.Value.Name,
+                id: blog.Id.Value,
+                title: blog.Title.Value,
+                image: blog.Images[0].Value,
+                date: blog.PublicationDate.Value,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }
