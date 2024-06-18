@@ -6,6 +6,7 @@ import { BlogImage } from "../value-objects/blog-image"
 import { BlogPublicationDate } from "../value-objects/blog-publication-date"
 import { Trainer } from "src/trainer/domain/trainer"
 import { BlogTag } from "../value-objects/blog-tag"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
 
 
 
@@ -17,13 +18,13 @@ export class BlogCreated extends DomainEvent{
         public images: BlogImage[],
         public publicationDate: BlogPublicationDate,
         public trainer: Trainer,
-        public categoryId: string,
+        public categoryId: CategoryId,
         public tags: BlogTag[])
     {
         super()
     }
 
-    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: string, tags: BlogTag[]): BlogCreated
+    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[]): BlogCreated
     {
         return new BlogCreated( id, title, body, images, publicationDate, trainer, categoryId, tags)
     }

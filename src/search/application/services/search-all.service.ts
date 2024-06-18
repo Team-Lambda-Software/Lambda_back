@@ -46,7 +46,7 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
         {
             for ( const course of resultCourses.Value )
             {
-                const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+                const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
                 if ( !category.isSuccess() )
                 {
                     return Result.fail<SearchAllServiceResponseDto>( category.Error, category.StatusCode, category.Message )
@@ -57,11 +57,11 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
                     return Result.fail<SearchAllServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
                 }
                 responseSearch.courses.push( {
-                    id: course.Id,
-                    title: course.Name,
-                    image: course.Image,
-                    date: course.Date,
-                    category: category.Value.Name,
+                    id: course.Id.Value,
+                    title: course.Name.Value,
+                    image: course.Image.Value,
+                    date: course.Date.Value,
+                    category: category.Value.Name.Value,
                     trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
                 } )
             }
@@ -70,7 +70,7 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
         {
             for ( const blog of resultBlogs.Value )
             {
-                const category = await this.categoryRepository.findCategoryById( blog.CategoryId )
+                const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
                 if ( !category.isSuccess() )
                 {
                     return Result.fail<SearchAllServiceResponseDto>( category.Error, category.StatusCode, category.Message )
@@ -85,7 +85,7 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
                     title: blog.Title.Value,
                     image: blog.Images[ 0 ].Value,
                     date: blog.PublicationDate.Value,
-                    category: category.Value.Name,
+                    category: category.Value.Name.Value,
                     trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
                 } )
             }

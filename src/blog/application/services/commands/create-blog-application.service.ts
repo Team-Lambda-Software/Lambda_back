@@ -14,6 +14,8 @@ import { BlogTitle } from "src/blog/domain/value-objects/blog-title"
 import { BlogBody } from "src/blog/domain/value-objects/blog-body"
 import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -26,14 +28,16 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
     private readonly categoryRepository: ICategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
+    private readonly eventHandler: IEventHandler
 
-    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
+    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.trainerRepository = trainerRepository
         this.categoryRepository = categoryRepository
         this.blogRepository = blogRepository
         this.fileUploader = fileUploader
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -50,7 +54,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
             images.push( BlogImage.create( imageUrl ) )
         }
-        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, data.categoryId, data.tags.map(tag => BlogTag.create(tag)) )
+        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
         {
@@ -64,7 +68,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
         const responseBlog: GetBlogServiceResponseDto = {
             title: blog.Title.Value,
             description: blog.Body.Value,
-            category: category.Value.Name,
+            category: category.Value.Name.Value,
             images: blog.Images.map( image => image.Value ),
             trainer: {
                 id: trainer.Value.Id,
@@ -73,6 +77,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             tags: blog.Tags.map(tag => tag.Value),
             date: blog.PublicationDate.Value
         }
+        this.eventHandler.publish( blog.pullEvents())
         return Result.success<GetBlogServiceResponseDto>( responseBlog, 200 )
     }
 

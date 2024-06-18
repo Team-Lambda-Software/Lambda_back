@@ -41,7 +41,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         }
 
         const course = resultCourse.Value
-        const resultSections = await this.courseRepository.findCourseSections( course.Id )
+        const resultSections = await this.courseRepository.findCourseSections( course.Id.Value )
         if ( !resultSections.isSuccess() )
         {
             return Result.fail<GetCourseServiceResponseDto>( resultSections.Error, resultSections.StatusCode, resultSections.Message )
@@ -62,7 +62,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
         //         sectionsProgress.push({ progress: resultSectionProgress.Value, completionPercent: resultSectionProgress.Value.CompletionPercent})
         //     }
         // }
-        const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+        const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
         if ( !category.isSuccess() )
         {
             return Result.fail<GetCourseServiceResponseDto>( category.Error, category.StatusCode, category.Message )
@@ -73,28 +73,28 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
             return Result.fail<GetCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
         let responseCourse: GetCourseServiceResponseDto = {
-            title: course.Name,
-            description: course.Description,
-            category: category.Value.Name,
-            image: course.Image,
+            title: course.Name.Value,
+            description: course.Description.Value,
+            category: category.Value.Name.Value,
+            image: course.Image.Value,
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
             },
             level: course.Level.toString(),
-            durationWeeks: course.WeeksDuration,
-            durationMinutes: course.MinutesDuration,
-            tags: course.Tags,
-            date: course.Date,
+            durationWeeks: course.WeeksDuration.Value,
+            durationMinutes: course.MinutesDuration.Value,
+            tags: course.Tags.map( tag => tag.Value ),
+            date: course.Date.Value,
             lessons: []
         }
         for ( const section of course.Sections )
         {
             responseCourse.lessons.push( {
-                id: section.Id,
-                title: section.Name,
-                content: section.Description,
-                video: section.Video
+                id: section.Id.Value,
+                title: section.Name.Value,
+                content: section.Description.Value,
+                video: section.Video.Value
             } )
         }
 

@@ -9,7 +9,8 @@ export class BlogId implements IValueObject<BlogId>{
     get Value(){ return this.id }
 
     protected constructor ( id: string ){
-        if (id.length < 5)
+        const regex = new RegExp('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+        if (!regex.test(id))
             throw new InvalidBlogIdException()
         this.id = id
     }

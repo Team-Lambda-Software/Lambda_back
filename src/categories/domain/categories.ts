@@ -1,13 +1,18 @@
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { CategoryIcon } from "./entities/category-icon"
+import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
+import { CategoryId } from "./value-objects/category-id"
+import { CategoryName } from "./value-objects/category-title"
+import { CategoryIcon } from "./value-objects/category-image"
+import { CategoryCreated } from "./events/category-created-event"
+import { InvalidCategoryException } from "./exceptions/invalid-category-exception"
+import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
 
-export class Category extends Entity<string>{
+export class Category extends AggregateRoot<CategoryId>{
 
-    private name: string
+    private name: CategoryName
     private icon: CategoryIcon
 
     
-    get Name (): string
+    get Name (): CategoryName
     {
         return this.name
     }
@@ -17,24 +22,30 @@ export class Category extends Entity<string>{
        return this.icon
     }
 
-    protected constructor ( id: string, name: string, icon: CategoryIcon)
+    protected constructor ( id: CategoryId, name: CategoryName, icon: CategoryIcon)
     {
-        super (id)
-        this.name = name
-        this.icon = icon
-        this.ValidState()
+        const categoryCreated: CategoryCreated = CategoryCreated.create(id, name, icon)
+        super (id, categoryCreated)  
     }
 
-    protected ValidState (): void{
-        if ( !this.name )
-            throw new Error( "Categorie must have a name" )
+    protected applyEvent ( event: DomainEvent ): void
+    {
+        switch (event.eventName){
+            case 'CategoryCreated':
+                const categoryCreated: CategoryCreated = event as CategoryCreated
+                this.icon = categoryCreated.icon
+                this.name = categoryCreated.name
+        }
+    }
 
-        if ( !this.icon)
-           throw new Error( 'Categorie must have an icon')
+    protected ensureValidState (): void{
+        if ( !this.name || !this.icon)
+            throw new InvalidCategoryException()
+
     
     }
 
-    static create ( id: string, name: string, icon: CategoryIcon): Category 
+    static create ( id: CategoryId, name: CategoryName, icon: CategoryIcon): Category 
     {
         return new Category(id, name, icon)
     }

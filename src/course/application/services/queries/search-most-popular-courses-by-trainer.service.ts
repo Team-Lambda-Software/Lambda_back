@@ -41,19 +41,19 @@ export class SearchMostPopularCoursesByTrainerApplicationService implements IApp
 
         for ( const course of courses.Value )
         {
-            const courseUsers = await this.progressRepository.findUserCountInCourse( course.Id )
+            const courseUsers = await this.progressRepository.findUserCountInCourse( course.Id.Value )
             console.log(courseUsers.Value)
             if ( !courseUsers.isSuccess() )
             {
                 return Result.fail<SearchCourseServiceResponseDto[]>( courseUsers.Error, courseUsers.StatusCode, courseUsers.Message )
             }
-            coursesDict[course.Id] = {course, users: courseUsers.Value}
+            coursesDict[course.Id.Value] = {course, users: courseUsers.Value}
         }
         const sortedCourses = Object.values( coursesDict ).sort( ( a, b ) => b.users - a.users ).map( course => course.course )
         const responseCourses: SearchCourseServiceResponseDto[] = []
 
         for (const course of sortedCourses){
-            const category = await this.categoryRepository.findCategoryById( course.CategoryId )
+            const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
             if ( !category.isSuccess() )
             {
                 return Result.fail<SearchCourseServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
@@ -64,11 +64,11 @@ export class SearchMostPopularCoursesByTrainerApplicationService implements IApp
                 return Result.fail<SearchCourseServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseCourses.push({
-                id: course.Id,
-                title: course.Name,
-                image: course.Image,
-                date: course.Date,
-                category: category.Value.Name,
+                id: course.Id.Value,
+                title: course.Name.Value,
+                image: course.Image.Value,
+                date: course.Date.Value,
+                category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })
         }
