@@ -42,6 +42,9 @@ import { FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
+import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 
 
 @ApiTags( 'Course' )
@@ -96,7 +99,7 @@ export class CourseController
     @Post( 'create' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Crea un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiOkResponse( { description: 'Crea un curso', type: CreateCourseSwaggerResponseDto } )
     @ApiConsumes( 'multipart/form-data' )
     @ApiBody( {
         schema: {
@@ -121,6 +124,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'image' ) )
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
     {
+        const eventBus = EventBus.getInstance();
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -130,7 +134,8 @@ export class CourseController
                             this.idGenerator,
                             this.trainerRepository,
                             this.categoryRepository,
-                            this.fileUploader
+                            this.fileUploader,
+                            eventBus
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -150,7 +155,7 @@ export class CourseController
     @Post( 'add-section/:courseId' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
     @ApiConsumes( 'multipart/form-data' )
     @ApiBody( {
         schema: {
@@ -172,6 +177,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'file' ) )
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File,@Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
     {
+        const eventBus = EventBus.getInstance();
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -179,7 +185,8 @@ export class CourseController
                         new AddSectionToCourseApplicationService(
                             this.courseRepository,
                             this.idGenerator,
-                            this.fileUploader
+                            this.fileUploader,
+                            eventBus
                         ),
                         new NativeLogger( this.logger )
                     ),

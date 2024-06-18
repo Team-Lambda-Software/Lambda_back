@@ -37,10 +37,10 @@ export class GetSectionCommentsApplicationService implements IApplicationService
                 return Result.fail<GetSectionCommentsServiceResponseDto[]>( user.Error, user.StatusCode, user.Message )
             }
             response.push( {
-                id: comment.Id,
+                id: comment.Id.Value,
                 user: user.Value.Name,
-                body: comment.Text,
-                date: comment.Date
+                body: comment.Text.Value,
+                date: comment.Date.Value
             } )
         }
 

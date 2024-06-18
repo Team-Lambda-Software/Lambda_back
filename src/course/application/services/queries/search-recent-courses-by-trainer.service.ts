@@ -40,10 +40,10 @@ export class SearchRecentCoursesByTrainerApplicationService implements IApplicat
                 return Result.fail<SearchCourseServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
             }
             responseCourses.push({
-                id: course.Id,
-                title: course.Name,
-                image: course.Image,
-                date: course.Date,
+                id: course.Id.Value,
+                title: course.Name.Value,
+                image: course.Image.Value,
+                date: course.Date.Value,
                 category: category.Value.Name.Value,
                 trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
             })

@@ -7,6 +7,7 @@ import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.in
 import { BlogCommentId } from "src/blog/domain/entities/value-objects/blog-comment-id"
 import { BlogCommentText } from "src/blog/domain/entities/value-objects/blog-comment-text"
 import { BlogCommentDate } from "src/blog/domain/entities/value-objects/blog-comment-date"
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
@@ -16,11 +17,13 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
 
     private readonly blogRepository: IBlogRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly eventHandler: IEventHandler
 
-    constructor ( blogRepository: IBlogRepository, idGenerator: IdGenerator<string> )
+    constructor ( blogRepository: IBlogRepository, idGenerator: IdGenerator<string>, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.blogRepository = blogRepository
+        this.eventHandler = eventHandler
     }
 
     // TODO: Search the progress if exists one for that user
@@ -38,6 +41,7 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
         {
             return Result.fail<string>( result.Error, result.StatusCode, result.Message )
         }
+        this.eventHandler.publish( blogValue.pullEvents())
         return Result.success<string>("comentario agregado con exito",200)
     }
 
