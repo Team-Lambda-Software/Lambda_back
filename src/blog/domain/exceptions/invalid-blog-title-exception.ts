@@ -3,5 +3,5 @@ import { DomainException } from "src/common/Domain/domain-exception/domain-excep
 
 
 export class InvalidBlogTitleException extends DomainException{
-    constructor(){super("El titulo del blog tiene que tener entre 5 y 60 caracteres")}
+    constructor(){super("El titulo del blog tiene que tener entre 5 y 120 caracteres")}
 }

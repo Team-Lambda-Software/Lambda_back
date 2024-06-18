@@ -50,15 +50,15 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
 
             arrayResponseData.push({course: courseResult.Value, categoryName: categoryName.Value, progress: progress});
         }
-
+        //! make this a dto
         let returnDataArray:Array< { id: string, title: string, image:string, date: Date, category: string, trainerName: string, completionPercent: number } > = [];
         for (let response of arrayResponseData)
         {
             const returnData = { 
                 id: response.progress.CourseId, 
-                title: response.course.Name, 
-                image: response.course.Image,
-                date: response.course.Date,
+                title: response.course.Name.Value, 
+                image: response.course.Image.Value,
+                date: response.course.Date.Value,
                 category: response.categoryName, 
                 trainerName: response.course.Trainer.FirstName + " " + response.course.Trainer.FirstLastName + " " + response.course.Trainer.SecondLastName,
                 completionPercent: response.progress.CompletionPercent

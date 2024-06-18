@@ -42,6 +42,8 @@ import { FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
+import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
+import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
 
 
 @ApiTags( 'Course' )
@@ -96,7 +98,7 @@ export class CourseController
     @Post( 'create' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Crea un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiOkResponse( { description: 'Crea un curso', type: CreateCourseSwaggerResponseDto } )
     @ApiConsumes( 'multipart/form-data' )
     @ApiBody( {
         schema: {
@@ -150,7 +152,7 @@ export class CourseController
     @Post( 'add-section/:courseId' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: GetCourseSwaggerResponseDto } )
+    @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
     @ApiConsumes( 'multipart/form-data' )
     @ApiBody( {
         schema: {

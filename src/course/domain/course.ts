@@ -1,28 +1,52 @@
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { Section } from "./entities/section"
 import { Trainer } from "src/trainer/domain/trainer"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
+import { CourseId } from "./value-objects/course-id"
+import { CourseName } from "./value-objects/course-name"
+import { CourseDescription } from "./value-objects/course-description"
+import { CourseWeeksDuration } from "./value-objects/course-weeks-duration"
+import { CourseMinutesDuration } from "./value-objects/course-minutes-duration"
+import { CourseLevel } from "./value-objects/course-level"
+import { CourseImage } from "./value-objects/course-image"
+import { CourseTag } from "./value-objects/course-tag"
+import { CourseDate } from "./value-objects/course-date"
+import { InvalidCourseException } from "./exceptions/invalid-course-exception"
+import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
+import { CourseCreated } from "./events/course-created-event"
+import { Section } from "./entities/section/section"
+import { SectionCommentId } from "./entities/section-comment/value-objects/section-comment-id"
+import { SectionComment } from "./entities/section-comment/section-comment"
+import { SectionCommentText } from "./entities/section-comment/value-objects/section-comment-text"
+import { SectionCommentDate } from "./entities/section-comment/value-objects/section-comment-date"
+import { SectionCommentCreated } from "./events/section-comment-created-event"
+import { SectionId } from "./entities/section/value-objects/section-id"
+import { SectionName } from "./entities/section/value-objects/section-name"
+import { SectionDescription } from "./entities/section/value-objects/section-description"
+import { SectionDuration } from "./entities/section/value-objects/section-duration"
+import { SectionVideo } from "./entities/section/value-objects/section-video"
+import { SectionCreated } from "./events/section-created-event"
 
 
 
 
-export class Course extends Entity<string>
+export class Course extends AggregateRoot<CourseId>
 {
+    
 
     private trainer: Trainer
-    private name: string
-    private description: string
-    private weeksDuration: number
-    private minutesDuration: number //esto es lo que significa el tiempo que aparece en el figma?
-    private level: number
+    private name: CourseName
+    private description: CourseDescription
+    private weeksDuration: CourseWeeksDuration
+    private minutesDuration: CourseMinutesDuration //esto es lo que significa el tiempo que aparece en el figma?
+    private level: CourseLevel
     private categoryId: CategoryId
     private sections: Section[]
-    private image: string
-    private tags: string[]
-    private date: Date
+    private image: CourseImage
+    private tags: CourseTag[]
+    private date: CourseDate
     
     
-    get Tags (): string[]
+    get Tags (): CourseTag[]
     {
         return this.tags
     }
@@ -32,27 +56,27 @@ export class Course extends Entity<string>
         return this.trainer
     }
 
-    get Name (): string
+    get Name (): CourseName
     {
         return this.name
     }
 
-    get Description (): string
+    get Description (): CourseDescription
     {
         return this.description
     }
 
-    get WeeksDuration (): number
+    get WeeksDuration (): CourseWeeksDuration
     {
         return this.weeksDuration
     }
 
-    get MinutesDuration (): number
+    get MinutesDuration (): CourseMinutesDuration
     {
         return this.minutesDuration
     }
 
-    get Level (): number
+    get Level (): CourseLevel
     {
         return this.level
     }
@@ -67,58 +91,48 @@ export class Course extends Entity<string>
         return this.sections
     }
 
-    get Image (): string
+    get Image (): CourseImage
     {
         return this.image
     }
 
-    get Date (): Date
+    get Date (): CourseDate
     {
         return this.date
     }
 
-    protected constructor ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: CategoryId, image: string, tags: string[], date: Date)
+    protected constructor ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
     {
-        super( id )
-        this.trainer = trainer
-        this.name = name
-        this.description = description
-        this.weeksDuration = weeksDuration
-        this.minutesDuration = minutesDuration
-        this.level = level
-        this.sections = sections
-        this.categoryId = categoryId
-        this.image = image
-        this.tags = tags
-        this.date = date
-        this.ensureValidState()
+        const courseCreated: CourseCreated = CourseCreated.create( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
+        super( id, courseCreated)
+        
     }
 
-    //las validaciones de aqui que son de los atributos en si van a estar en los value objects en un futuro
+    protected applyEvent ( event: DomainEvent ): void
+    {
+        switch ( event.eventName ){
+            case 'CourseCreated':
+                const courseCreated: CourseCreated = event as CourseCreated
+                this.trainer = courseCreated.trainer
+                this.name = courseCreated.name
+                this.description = courseCreated.description
+                this.weeksDuration = courseCreated.weeksDuration
+                this.minutesDuration = courseCreated.minutesDuration
+                this.level = courseCreated.level
+                this.sections = courseCreated.sections
+                this.categoryId = courseCreated.categoryId
+                this.image = courseCreated.image
+                this.tags = courseCreated.tags
+                this.date = courseCreated.date
+
+                
+        }
+    }
+
     protected ensureValidState (): void
     {
-        if ( !this.trainer )
-            throw new Error( "Course must have a trainer" )
-
-        if ( !this.name )
-            throw new Error( "Course must have a name" )
-
-        if ( !this.level || this.level < 1 || this.level > 5 )
-            throw new Error( "Course must have a valid level" )
-
-        if ( !this.weeksDuration || this.weeksDuration < 1 )
-            throw new Error( "Course must have a valid duration" )
-
-        if ( !this.minutesDuration || this.minutesDuration < 1 )
-            throw new Error( "Course must have a valid duration" )
-
-        if ( !this.categoryId )
-            throw new Error( "Course must have a category" )
-
-        // si hacemos la imagen opcional o no ya lo veremos
-        if ( !this.image )
-            throw new Error( "Course must have an image" )
-
+        if ( !this.trainer || !this.name || !this.description || !this.weeksDuration || !this.minutesDuration || !this.level || !this.sections || !this.categoryId || !this.image || !this.tags || !this.date )
+            throw new InvalidCourseException()
     }
 
     changeSections ( sections: Section[] ): void
@@ -126,7 +140,22 @@ export class Course extends Entity<string>
         this.sections = sections
     }
 
-    static create ( id: string, trainer: Trainer, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: Section[], categoryId: CategoryId, image: string, tags: string[], date: Date): Course
+    public createComment (id: SectionCommentId, userId: string, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{
+        const comment: SectionComment = SectionComment.create(id, userId, text, date, sectionId)
+        const sectionCommentCreated: SectionCommentCreated = SectionCommentCreated.create(id, userId, text, date, sectionId,this.Id)
+        this.onEvent(sectionCommentCreated)
+        return comment
+    }
+
+    public createSection ( id: SectionId, name: SectionName, description: SectionDescription, duration: SectionDuration, video: SectionVideo ): Section{
+        const section: Section = Section.create( id, name, description, duration, video)
+        const sectionCreated: DomainEvent = SectionCreated.create( id, name, description, duration, video, this.Id)
+        this.sections.push(section)
+        this.onEvent(sectionCreated)
+        return section
+    }
+
+    static create ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): Course
     {
         return new Course( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }
