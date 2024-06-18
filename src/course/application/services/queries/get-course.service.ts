@@ -81,7 +81,7 @@ export class GetCourseApplicationService implements IApplicationService<GetCours
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
             },
-            level: course.Level.toString(),
+            level: course.Level.Value.toString(),
             durationWeeks: course.WeeksDuration.Value,
             durationMinutes: course.MinutesDuration.Value,
             tags: course.Tags.map( tag => tag.Value ),
