@@ -11,11 +11,8 @@ export class OdmCategoryEntity extends Document {
   @Prop({required: true}) 
   categoryName: string;
 
-  @Prop({required: true})  
-  description: string;
-
-  @Prop({type: {id: String, url: String},required: true})
-  icon: {id: String, url: String};
+  @Prop({required: true})
+  icon: string;
 
 }
 

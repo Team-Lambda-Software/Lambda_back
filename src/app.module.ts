@@ -17,6 +17,8 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { OdmUserEntity, UserSchema } from './user/infraestructure/entities/odm-entities/odm-user.entity'
 import { TrainerSchema } from './trainer/infraestructure/entities/odm-entities/odm-trainer.entity'
 import { CategorySchema } from './categories/infraesctructure/entities/odm-entities/odm-category.entity'
+import { BlogSchema } from './blog/infraestructure/entities/odm-entities/odm-blog.entity'
+import { BlogCommentSchema } from './blog/infraestructure/entities/odm-entities/odm-blog-comment.entity'
 
 @Module( {
   imports: [
@@ -49,6 +51,18 @@ import { CategorySchema } from './categories/infraesctructure/entities/odm-entit
       {
         name: 'Category',
         schema: CategorySchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'Blog',
+        schema: BlogSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'BlogComment',
+        schema: BlogCommentSchema,
       }
     ])
 
