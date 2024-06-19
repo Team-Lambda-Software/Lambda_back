@@ -30,7 +30,8 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchAllServiceEntryDto ): Promise<Result<SearchAllServiceResponseDto>>
     {
-        const { page = 0, perPage = 10 } = data.pagination
+        let { page = 1, perPage = 10 } = data.pagination
+        page = page * perPage - perPage
         let resultCourses = await this.courseRepository.findCoursesByTagsAndName( data.tags, data.name, { page, perPage } )
         if ( !resultCourses.isSuccess() )
         {

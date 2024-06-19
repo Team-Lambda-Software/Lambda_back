@@ -34,6 +34,7 @@ export class SearchMostPopularCoursesByCategoryApplicationService implements IAp
     async execute ( data: SearchCoursesByCategoryServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
     {
         const coursesDict: {[key: string]: CoursePopularity} = {}
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const courses = await this.courseRepository.findCoursesByCategory( data.categoryId, data.pagination )
         if ( !courses.isSuccess() )
         {

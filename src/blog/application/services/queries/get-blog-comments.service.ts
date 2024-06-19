@@ -21,7 +21,8 @@ export class GetBlogCommentsApplicationService implements IApplicationService<Ge
 
     async execute ( data: GetBlogCommentsServiceEntryDto ): Promise<Result<GetBlogCommentsServiceResponseDto[]>>
     {
-        const { page = 0, perPage = 10 } = data.pagination
+        let { page = 1, perPage = 10 } = data.pagination
+        page = page * perPage - perPage
         const comments = await this.blogRepository.findBlogComments( data.blogId, {page, perPage} )
         if ( !comments.isSuccess() )
         {
