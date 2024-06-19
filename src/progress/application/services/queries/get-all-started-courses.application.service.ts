@@ -24,6 +24,7 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
 
     async execute(data:GetAllStartedCoursesEntryDto): Promise<Result<GetAllStartedCoursesResponseDto>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const arrayProgressResult = await this.progressRepository.findAllStartedCourses(data.userId, data.pagination);
         if (!arrayProgressResult.isSuccess())
         {

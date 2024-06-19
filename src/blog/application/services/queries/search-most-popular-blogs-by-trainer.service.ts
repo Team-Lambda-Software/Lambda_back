@@ -30,6 +30,7 @@ export class SearchMostPopularBlogsByTrainerApplicationService implements IAppli
     async execute ( data: SearchBlogsByTrainerServiceEntryDto ): Promise<Result<SearchBlogServiceResponseDto[]>>
     {
         const blogsDict: {[key: string]: BlogPopularity} = {}
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const blogs = await this.blogRepository.findBlogsByTrainer( data.trainerId, data.pagination )
         if ( !blogs.isSuccess() )
         {
