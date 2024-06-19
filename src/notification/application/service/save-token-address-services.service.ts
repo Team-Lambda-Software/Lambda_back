@@ -8,19 +8,16 @@ import { OrmNotificationAddress } from "src/notification/infraestructure/entitie
 export class SaveTokenAddressApplicationService implements IApplicationService<SaveTokenAddressEntryApplicationDto, any> {
         
     private readonly notiAddressRepository: INotificationAddressRepository
-    private readonly uuidGenerator: IdGenerator<string>
     
     constructor(
         notiAddressRepository: INotificationAddressRepository,
-        uuidGenerator: IdGenerator<string>,
     ){
         this.notiAddressRepository = notiAddressRepository
-        this.uuidGenerator = uuidGenerator
     }
     
     async execute(saveTokenDto: SaveTokenAddressEntryApplicationDto): Promise<Result<any>> {
         const saveResult = await this.notiAddressRepository.saveNotificationAddress(
-            OrmNotificationAddress.create( await this.uuidGenerator.generateId(), saveTokenDto.userId, saveTokenDto.token )
+            OrmNotificationAddress.create( saveTokenDto.userId, saveTokenDto.token )
         )    
         if ( !saveResult.isSuccess() ) return Result.fail( new Error('Something went wrong'), 500, 'Something went wrong' )
         const answer = { userId: saveTokenDto.userId, address: saveTokenDto.token }           

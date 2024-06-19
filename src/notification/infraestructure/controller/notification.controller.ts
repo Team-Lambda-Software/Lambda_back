@@ -185,7 +185,7 @@ export class NotificationController {
         const data = { userId: user.Id, ...saveTokenDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new SaveTokenAddressApplicationService( this.notiAddressRepository, this.uuidGenerator, ),
+                new SaveTokenAddressApplicationService( this.notiAddressRepository ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()   
