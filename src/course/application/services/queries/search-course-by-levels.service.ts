@@ -20,7 +20,8 @@ export class SearchCourseByLevelsApplicationService implements IApplicationServi
     // TODO: Search the progress if exists one for that user
     async execute ( data: SearchCourseByLevelsServiceEntryDto ): Promise<Result<Course[]>>
     {
-        const { page = 0, perPage = 10 } = data.pagination
+        let { page = 1, perPage = 10 } = data.pagination
+        page = page * perPage - perPage
         return await this.courseRepository.findCoursesByLevels( data.levels, { page, perPage } )
     }
 

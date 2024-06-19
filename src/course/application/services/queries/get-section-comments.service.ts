@@ -21,7 +21,8 @@ export class GetSectionCommentsApplicationService implements IApplicationService
 
     async execute ( data: GetSectionCommentsServiceEntryDto ): Promise<Result<GetSectionCommentsServiceResponseDto[]>>
     {
-        const { page = 0, perPage = 10 } = data.pagination
+        let { page = 1, perPage = 10 } = data.pagination
+        page = page * perPage - perPage
         const comments = await this.courseRepository.findSectionComments( data.sectionId, {page, perPage} )
         if ( !comments.isSuccess() )
         {

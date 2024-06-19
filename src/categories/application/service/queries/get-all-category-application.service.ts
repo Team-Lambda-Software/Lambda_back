@@ -19,7 +19,8 @@ export class GetAllCategoriesApplicationService implements IApplicationService<G
 
     async execute ( data: GetAllCategoryServiceEntryDto ): Promise<Result<GetAllCategoriesServiceResponseDto[]>>
     {
-        const {page = 0, perPage = 10} = data.pagination
+        let {page = 1, perPage = 10} = data.pagination
+        page = page * perPage - perPage
         const resultCategories = await this.categoryRepository.findAllCategories({page, perPage})
         if ( !resultCategories.isSuccess() )
         {
