@@ -9,12 +9,12 @@ export class PaginationDto {
     @IsOptional()
     @IsPositive()
     @Type( () => Number ) // enableImplicitConversions: true
-    perPage?: number;
+    perPage?: number = 10;
     
-    @ApiProperty( { required: false, default: 0, minimum: 0 })
+    @ApiProperty( { required: false, default: 1, minimum: 1 })
     @IsOptional()
-    @Min(0)
+    @Min(1)
     @Type( () => Number ) // enableImplicitConversions: true
-    page?: number;
+    page?: number = 1;
 
 }
