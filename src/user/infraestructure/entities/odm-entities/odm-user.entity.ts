@@ -21,6 +21,9 @@ export class OdmUserEntity extends Document {
   @Prop({ required: false, unique: true })
   phone?: string;
 
+  @Prop({ required: false, unique: false, default: 'CLIENT'})
+  type: string;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(OdmUserEntity);

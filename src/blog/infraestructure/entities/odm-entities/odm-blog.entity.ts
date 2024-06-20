@@ -17,10 +17,10 @@ export class OdmBlogEntity extends Document {
   @Prop({required: true})  
   publication_date: Date;
 
-  @Prop({type: mongoose.Schema.Types.Mixed, ref: 'Category', required: true})
+  @Prop({type: mongoose.Schema.Types.Mixed, required: true})
   category: OdmCategoryEntity;
 
-  @Prop({type: mongoose.Schema.Types.Mixed, ref: 'Trainer', required: true})
+  @Prop({type: mongoose.Schema.Types.Mixed, required: true})
   trainer: OdmTrainerEntity;
 
   @Prop({type: [{id: String, url: String}],required: true})

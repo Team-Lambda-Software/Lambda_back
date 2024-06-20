@@ -43,7 +43,7 @@ export class CreateCourseEntryDto {
     @IsArray()
     @ArrayMinSize( 1 )
     @IsString( { each: true } )
-    @Transform(({ value }) => (Array.isArray(value) ? value : Array(value)))
+    @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
     tags: string[]
 
 }

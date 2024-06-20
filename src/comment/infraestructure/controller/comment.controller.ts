@@ -34,6 +34,14 @@ import { GetSectionCommentsServiceEntryDto } from "src/course/application/dto/pa
 import { GetAllCommentsSwaggerResponseDto } from "../dto/response/get-all-comments-swagger-response.dto"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { OdmBlogEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog.entity"
+import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
+import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
+import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
+import { BlogCommentCreated } from "src/blog/domain/events/blog-comment-created-event"
+import { BlogComment } from "src/blog/domain/entities/blog-comment"
 
 
 
@@ -47,8 +55,12 @@ export class CommentController
     private readonly userRepository: OrmUserRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
+    private readonly odmBlogRepository: OdmBlogRepository
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, 
+            @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
+            @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
+            @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity> )
     {
         this.courseRepository =
             new OrmCourseRepository(
@@ -75,7 +87,12 @@ export class CommentController
         this.userRepository = new OrmUserRepository( 
             new OrmUserMapper(),
             dataSource )
-
+        
+        this.odmBlogRepository = new OdmBlogRepository(
+            blogModel,
+            categoryModel,
+            trainerModel
+        )
 
     }
 
@@ -162,6 +179,10 @@ export class CommentController
             return
         } else
         {
+            const eventBus = EventBus.getInstance();
+            eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
+                this.odmBlogRepository.createBlogComment(BlogComment.create(event.id, event.userId, event.text, event.date, event.blogId))
+            })
             const service =
                 new ExceptionDecorator(
                     new AuditingDecorator(

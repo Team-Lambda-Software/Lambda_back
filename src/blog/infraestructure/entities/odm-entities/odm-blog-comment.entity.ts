@@ -14,10 +14,10 @@ export class OdmBlogCommentEntity extends Document {
   @Prop({required: true})  
   date: Date;
 
-  @Prop({type: mongoose.Schema.Types.Mixed, ref: 'Blog', required: true})
+  @Prop({type: mongoose.Schema.Types.Mixed, required: true})
   blog: OdmBlogEntity;
 
-  @Prop({type: mongoose.Schema.Types.Mixed, ref: 'User', required: true})
+  @Prop({type: mongoose.Schema.Types.Mixed, required: true})
   user: OdmUserEntity;
 
 }

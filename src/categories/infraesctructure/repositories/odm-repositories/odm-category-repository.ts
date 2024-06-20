@@ -1,42 +1,47 @@
 import { Category } from "src/categories/domain/categories"
-import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Model } from "mongoose"
 import { OdmCategoryEntity } from "../../entities/odm-entities/odm-category.entity"
-import { OdmCategoryMapper } from "../../mappers/odm-mappers/odm-category-mapper"
 
 
 
-export class OdmCategoryRepository implements ICategoryRepository{
+export class OdmCategoryRepository{
 
-    private readonly ormCategoryMapper: OdmCategoryMapper
     private readonly categoryModel: Model<OdmCategoryEntity>
-    constructor ( odmCategoryMapper: OdmCategoryMapper, categoryModel: Model<OdmCategoryEntity> )
+    constructor ( categoryModel: Model<OdmCategoryEntity> )
     {
-        this.ormCategoryMapper = odmCategoryMapper
         this.categoryModel = categoryModel
 
     }
 
-    async saveCategory ( category: Category ): Promise<Result<Category>>
+    async saveCategory ( category: Category ): Promise<void>
     {
-        try {
-            const categoryPersistence = await this.ormCategoryMapper.fromDomainToPersistence( category )
-            await this.categoryModel.create( categoryPersistence )    
-            return Result.success<Category>( await this.ormCategoryMapper.fromPersistenceToDomain( categoryPersistence ), 201 )
-        } catch ( error ) {
-            return Result.fail<Category>( error, error.code, error.message )
-        }
+
+        const odmCategory = new this.categoryModel({
+            id: category.Id.Value,
+            categoryName: category.Name.Value,
+            icon: category.Icon.Value
+        })
+        await this.categoryModel.create( odmCategory )    
+            
+
     }
 
     findCategoryById ( id: string ): Promise<Result<Category>>
     {
         throw new Error( "Method not implemented." )
     }
-    findAllCategories ( pagination: PaginationDto ): Promise<Result<Category[]>>
+    async findAllCategories ( pagination: PaginationDto ): Promise<Result<OdmCategoryEntity[]>>
     {
-        throw new Error( "Method not implemented." )
+        try{
+            const {page, perPage} = pagination
+            console.log(page, perPage)
+            const categories = await this.categoryModel.find().skip(page).limit(perPage)
+            return Result.success<OdmCategoryEntity[]>( categories, 200 )
+        }catch (error){
+            return Result.fail<OdmCategoryEntity[]>( error, 500, "Internal Server Error" )
+        }
     }
 
 }

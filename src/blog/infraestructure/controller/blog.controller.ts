@@ -15,15 +15,9 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { SearchBlogsByCategoryServiceEntryDto } from "src/blog/application/dto/params/search-blogs-by-category-service-entry.dto"
-import { SearchMostPopularBlogsByCategoryApplicationService } from "src/blog/application/services/queries/search-most-popular-blogs-by-category.service"
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
-import { SearchRecentBlogsByCategoryApplicationService } from "src/blog/application/services/queries/search-recent-blogs-by-category.service"
-import { SearchBlogsByTrainerServiceEntryDto } from "src/blog/application/dto/params/search-blogs-by-trainer-service-entry.dto"
-import { SearchMostPopularBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-most-popular-blogs-by-trainer.service"
-import { SearchRecentBlogsByTrainerApplicationService } from "src/blog/application/services/queries/search-recent-blogs-by-trainer.service"
 import { SearchBlogQueryParametersDto } from "../dto/queryParameters/search-blog-query-parameters.dto"
 import { CreateBlogEntryDto } from "../dto/entry/create-blog-entry.dto"
 import { CreateBlogApplicationService } from "src/blog/application/services/commands/create-blog-application.service"
@@ -36,6 +30,20 @@ import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploade
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
+import { OdmBlogRepository } from "../repositories/odm-repository/odm-blog-repository"
+import { BlogCreated } from "src/blog/domain/events/blog-created-event"
+import { Blog } from "src/blog/domain/blog"
+import { Model } from "mongoose"
+import { OdmBlogEntity } from "../entities/odm-entities/odm-blog.entity"
+import { InjectModel } from "@nestjs/mongoose"
+import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
+import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
+import { SearchRecentBlogsByCategoryService } from "../query-services/services/search-recent-blogs-by-category.service"
+import { SearchBlogsByCategoryServiceEntryDto } from "../query-services/dto/params/search-blogs-by-category-service-entry.dto"
+import { SearchMostPopularBlogsByCategoryService } from "../query-services/services/search-most-popular-blogs-by-category.service"
+import { SearchBlogsByTrainerServiceEntryDto } from "../query-services/dto/params/search-blogs-by-trainer-service-entry.dto"
+import { SearchMostPopularBlogsByTrainerService } from "../query-services/services/search-most-popular-blogs-by-trainer.service"
+import { SearchRecentBlogsByTrainerService } from "../query-services/services/search-recent-blogs-by-trainer.service"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -46,10 +54,14 @@ export class BlogController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly odmBlogRepository: OdmBlogRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+        @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
+        @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
+        @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity> )
     {
         this.blogRepository =
             new OrmBlogRepository(
@@ -71,6 +83,12 @@ export class BlogController
         )
         this.idGenerator = new UuidGenerator()
         this.fileUploader = new AzureFileUploader()
+
+        this.odmBlogRepository = new OdmBlogRepository(
+            blogModel,
+            categoryModel,
+            trainerModel
+        )
     }
 
 
@@ -102,6 +120,9 @@ export class BlogController
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
     {
         const eventBus = EventBus.getInstance();
+        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+            this.odmBlogRepository.saveBlog(Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags))
+        })
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -172,10 +193,8 @@ export class BlogController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchMostPopularBlogsByCategoryApplicationService(
-                                this.blogRepository,
-                                this.categoryRepository,
-                                this.trainerRepository
+                            new SearchMostPopularBlogsByCategoryService(
+                                this.odmBlogRepository
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -189,10 +208,8 @@ export class BlogController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchRecentBlogsByCategoryApplicationService(
-                                this.blogRepository,
-                                this.categoryRepository,
-                                this.trainerRepository
+                            new SearchRecentBlogsByCategoryService(
+                                this.odmBlogRepository
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -212,10 +229,8 @@ export class BlogController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchMostPopularBlogsByTrainerApplicationService(
-                            this.blogRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
+                        new SearchMostPopularBlogsByTrainerService(
+                            this.odmBlogRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -229,10 +244,8 @@ export class BlogController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchRecentBlogsByTrainerApplicationService(
-                            this.blogRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
+                        new SearchRecentBlogsByTrainerService(
+                            this.odmBlogRepository
                         ),
                         new NativeLogger( this.logger )
                     ),

@@ -1,42 +1,107 @@
-import { Category } from "src/categories/domain/categories"
-import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
+import { Blog } from "src/blog/domain/blog"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Model } from "mongoose"
-import { OdmCategoryEntity } from "../../entities/odm-entities/odm-category.entity"
-import { OdmCategoryMapper } from "../../mappers/odm-mappers/odm-category-mapper"
+import { OdmBlogEntity } from "../../entities/odm-entities/odm-blog.entity"
+import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
+import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
+import { BlogComment } from "src/blog/domain/entities/blog-comment"
+import { OdmBlogCommentEntity } from "../../entities/odm-entities/odm-blog-comment.entity"
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 
 
 
-export class OdmCategoryRepository implements ICategoryRepository{
+export class OdmBlogRepository{
 
-    private readonly ormCategoryMapper: OdmCategoryMapper
+    private readonly blogModel: Model<OdmBlogEntity>
     private readonly categoryModel: Model<OdmCategoryEntity>
-    constructor ( odmCategoryMapper: OdmCategoryMapper, categoryModel: Model<OdmCategoryEntity> )
+    private readonly trainerModel: Model<OdmTrainerEntity>
+    private readonly blogCommentModel: Model<OdmBlogCommentEntity>
+    private readonly userModel: Model<OdmUserEntity>
+    constructor ( blogModel: Model<OdmBlogEntity>, categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>)
     {
-        this.ormCategoryMapper = odmCategoryMapper
+        this.blogModel = blogModel
         this.categoryModel = categoryModel
+        this.trainerModel = trainerModel
 
     }
 
-    async saveCategory ( category: Category ): Promise<Result<Category>>
+    async saveBlog ( blog: Blog ): Promise<void>
     {
-        try {
-            const categoryPersistence = await this.ormCategoryMapper.fromDomainToPersistence( category )
-            await this.categoryModel.create( categoryPersistence )    
-            return Result.success<Category>( await this.ormCategoryMapper.fromPersistenceToDomain( categoryPersistence ), 201 )
-        } catch ( error ) {
-            return Result.fail<Category>( error, error.code, error.message )
+
+        const blogTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: blog.Trainer.Id } )
+        const blogCategory: OdmCategoryEntity = await this.categoryModel.findOne( { id: blog.CategoryId.Value } )
+        const blogPersistence = new this.blogModel({
+            id: blog.Id.Value,
+            title: blog.Title.Value,
+            body: blog.Body.Value,
+            publication_date: blog.PublicationDate.Value,
+            category: blogCategory,
+            trainer: blogTrainer,
+            images: blog.Images.map( image => ( { url: image.Value } ) ),
+            tags: blog.Tags.map( tag => tag.Value )
+        })
+        await this.blogModel.create( blogPersistence )    
+    }
+
+    async createBlogComment (blogComment: BlogComment): Promise<void>
+    {
+        const blog = await this.blogModel.findOne( { id: blogComment.BlogId.Value } )
+        const user = await this.userModel.findOne( { id: blogComment.UserId } )
+        const odmBlogComment = new this.blogCommentModel({
+            id: blogComment.Id.Value,
+            text: blogComment.Text.Value,
+            date: blogComment.Date.Value,
+            blog: blog,
+            user: user
+        })
+        await this.blogCommentModel.create( odmBlogComment )
+    }
+
+    async findBlogsByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+    {
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.find( { "category.id": categoryId} ).skip(page).limit(perPage).sort( { publication_date: -1 } )
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
         }
     }
 
-    findCategoryById ( id: string ): Promise<Result<Category>>
+    async findBlogsByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.find( { "trainer.id": trainerId } ).skip(page).limit(perPage).sort( { publication_date: -1 } )
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
+    async findBlogCommentCount ( blogId: string ): Promise<Result<number>>
+    {
+        try{
+            const comments = await this.blogCommentModel.find( { "blog.id": blogId } )
+            return Result.success<number>( comments.length, 200 )
+        }catch (error){
+            return Result.fail<number>( error, 500, "Internal Server Error" )
+        }
+    }
+
+    findBlogById ( id: string ): Promise<Result<Blog>>
     {
         throw new Error( "Method not implemented." )
     }
-    findAllCategories ( pagination: PaginationDto ): Promise<Result<Category[]>>
+    async findAllBlogs ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
     {
-        throw new Error( "Method not implemented." )
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.find().skip(page).limit(perPage).sort( { publication_date: -1 } )
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        } catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
     }
 
 }

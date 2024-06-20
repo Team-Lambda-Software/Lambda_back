@@ -11,10 +11,8 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { User } from "src/user/domain/user"
 import { PaginationDto } from '../../../common/Infraestructure/dto/entry/pagination.dto';
-import { GetAllCategoriesApplicationService } from "src/categories/application/service/queries/get-all-category-application.service"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { CreateCategoryEntryDto } from "../dto/entry/create-category-entry.dto"
-import { OdmCategoryMapper } from "../mappers/odm-mappers/odm-category-mapper"
 import { OdmCategoryRepository } from "../repositories/odm-repositories/odm-category-repository"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
@@ -23,6 +21,7 @@ import { Category } from "src/categories/domain/categories"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CategoryName } from "src/categories/domain/value-objects/category-title"
 import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
+import { GetAllCategoriesService } from "../query-services/services/get-all-category.service"
 
 @ApiTags( 'Category' )
 @Controller( 'category' )
@@ -32,7 +31,7 @@ export class CategoryController
     private readonly categoryRepository: OrmCategoryRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly logger: Logger = new Logger( "CategorieController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, @Inject( 'MongoDataSource' ) private readonly mongoDataSource: DataSource, @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity> )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity> )
     {
         this.categoryRepository =
             new OrmCategoryRepository(
@@ -40,7 +39,6 @@ export class CategoryController
                 dataSource
             )
         this.odmCategoryRepository = new OdmCategoryRepository(
-            new OdmCategoryMapper(categoryModel),
             categoryModel
         )
 
@@ -54,25 +52,14 @@ export class CategoryController
         const getAllCategoriesService = 
         new ExceptionDecorator( 
             new LoggingDecorator( 
-                new GetAllCategoriesApplicationService( 
-                    this.categoryRepository 
+                new GetAllCategoriesService( 
+                    this.odmCategoryRepository
                 ), 
                 new NativeLogger( this.logger ) 
             ),
             new HttpExceptionHandler() 
         )
         return ( await getAllCategoriesService.execute( { userId: user.Id , pagination} ) ).Value
-    }
-
-
-    @Post('')
-    @ApiBearerAuth()
-    @UseGuards( JwtAuthGuard )
-    @ApiOkResponse( { description: 'crear una categoria',type: GetCategorieSwaggerResponseDto } )
-    async createCategory ( @GetUser() user: User, @Body() category: CreateCategoryEntryDto )
-    {
-
-        return (await this.odmCategoryRepository.saveCategory( Category.create( CategoryId.create(category.id), CategoryName.create(category.categoryName), CategoryIcon.create(category.icon)) )).Value
     }
 
 
