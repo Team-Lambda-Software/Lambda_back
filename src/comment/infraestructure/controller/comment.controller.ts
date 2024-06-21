@@ -53,6 +53,11 @@ import { BlogImage } from "src/blog/domain/value-objects/blog-image"
 import { Trainer } from "src/trainer/domain/trainer"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity"
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
+import { SectionCommentCreated } from "src/course/domain/events/section-comment-created-event"
+import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
 
 
 
@@ -67,13 +72,16 @@ export class CommentController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly odmBlogRepository: OdmBlogRepository
+    private readonly odmCourseRepository: OdmCourseRepository
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, 
             @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
             @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
             @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
             @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
-            @InjectModel('User') private userModel: Model<OdmUserEntity>)
+            @InjectModel('User') private userModel: Model<OdmUserEntity>,
+            @InjectModel('SectionComment') private sectionCommentModel: Model<OdmSectionCommentEntity>,
+            @InjectModel('Course') private courseModel: Model<OdmCourseEntity> )
     {
         this.courseRepository =
             new OrmCourseRepository(
@@ -109,6 +117,13 @@ export class CommentController
             userModel
         )
 
+        this.odmCourseRepository = new OdmCourseRepository(
+            courseModel,
+            sectionCommentModel,
+            categoryModel,
+            trainerModel,
+            userModel
+        )
     }
 
     @Get( 'many' )
@@ -168,6 +183,9 @@ export class CommentController
         const eventBus = EventBus.getInstance();
         if ( targetType === 'LESSON' )
         {
+            eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
+                this.odmCourseRepository.addCommentToSection(SectionComment.create(event.id, event.userId, event.text, event.date, event.sectionId))
+            })
             const service =
                 new ExceptionDecorator(
                     new AuditingDecorator(

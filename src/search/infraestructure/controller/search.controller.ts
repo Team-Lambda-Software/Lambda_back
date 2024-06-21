@@ -32,34 +32,29 @@ import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-
 import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
 import { OdmBlogCommentEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog-comment.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity"
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 
 @ApiTags( 'Search' )
 @Controller( 'search' )
 export class SearchController
 {
 
-    private readonly courseRepository: OrmCourseRepository
     private readonly blogRepository: OdmBlogRepository
-    private readonly categoryRepository: OrmCategoryRepository
-    private readonly trainerRepository: OrmTrainerRepository
+    private readonly courseRepository: OdmCourseRepository
+
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) dataSource: DataSource,
             @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
             @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
             @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
             @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
-            @InjectModel('User') private userModel: Model<OdmUserEntity> )
+            @InjectModel('User') private userModel: Model<OdmUserEntity>,
+            @InjectModel('SectionComment') private sectionCommentModel: Model<OdmSectionCommentEntity>,
+            @InjectModel('Course') private courseModel: Model<OdmCourseEntity> )
     {
-        this.courseRepository =
-            new OrmCourseRepository(
-                new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
-                ),
-                new OrmSectionMapper(),
-                new OrmSectionCommentMapper(),
-                dataSource
-            )
+        this.courseRepository = new OdmCourseRepository( courseModel, sectionCommentModel, categoryModel, trainerModel, userModel)
         this.blogRepository =
             new OdmBlogRepository(
                 blogModel,
@@ -68,16 +63,6 @@ export class SearchController
                 blogCommentModel,
                 userModel
             )
-
-        this.categoryRepository = new OrmCategoryRepository(
-            new OrmCategoryMapper(),
-            dataSource )
-
-        this.trainerRepository = new OrmTrainerRepository(
-            new OrmTrainerMapper(),
-            dataSource
-        )
-
 
     }
 
@@ -101,9 +86,7 @@ export class SearchController
                 new LoggingDecorator(
                     new SearchAllService(
                         this.courseRepository,
-                        this.blogRepository,
-                        this.categoryRepository,
-                        this.trainerRepository
+                        this.blogRepository
                     ),
                     new NativeLogger( this.logger )
                 ),
