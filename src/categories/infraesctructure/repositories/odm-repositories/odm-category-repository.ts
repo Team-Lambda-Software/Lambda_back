@@ -41,7 +41,7 @@ export class OdmCategoryRepository{
     {
         try{
             const {page, perPage} = pagination
-            console.log(page, perPage)
+            // console.log(page, perPage)
             const categories = await this.categoryModel.find().skip(page).limit(perPage)
             return Result.success<OdmCategoryEntity[]>( categories, 200 )
         }catch (error){

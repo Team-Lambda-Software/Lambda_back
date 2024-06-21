@@ -133,7 +133,7 @@ export class AuthController {
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
         this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
         this.secretCodes.push( result.Value )
-        console.log( this.secretCodes )
+        // console.log( this.secretCodes )
         return { date: result.Value.date }
     }
 
