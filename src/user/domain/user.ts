@@ -1,89 +1,94 @@
-/* eslint-disable prettier/prettier */
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
-import { ProgressCourse } from "src/progress/domain/entities/progress-course"
-import { ProgressSection } from "src/progress/domain/entities/progress-section"
-import { ProgressVideo } from "src/progress/domain/entities/progress-video"
-import { Trainer } from "src/trainer/domain/trainer"
+import { UserName } from './value-objects/user-name';
+import { UserPhone } from './value-objects/user-phone';
+import { UserId } from './value-objects/user-id';
+import { AggregateRoot } from 'src/common/Domain/aggregate-root/aggregate-root';
+import { DomainEvent } from 'src/common/Domain/domain-event/domain-event';
+import { UserCreated } from './events/user-created-event';
+import { UserEmail } from './value-objects/user-email';
+import { InvalidUser } from './exceptions/invalid-user';
+import { UserNameModified } from './events/user-name-modified-event';
+import { UserPhoneModified } from './events/user-phone-modified-event';
+import { UserEmailModified } from './events/user-email-modified-event';
 
+export class User extends AggregateRoot<UserId> {
+  private name: UserName;
+  private email: UserEmail;
+  private phone: UserPhone;
+  //TODO: Add fields for the stadistics, courses made, etc.
 
-export class User extends Entity<string>
-{
+  protected constructor(
+    id: UserId,
+    name: UserName,
+    phone: UserPhone,
+    email: UserEmail,
+  ) {
+    const userCreated: UserCreated = UserCreated.create(
+      id,
+      name,
+      phone,
+      email
+    )
+    super(id, userCreated)
+  }
 
-    private name: string
-    private phone: string
-    private trainers: Trainer[]
-    private progressVideo:ProgressVideo[]
-    private progressCourse: ProgressCourse[]
-    private progressSection: ProgressSection[]
-    private image: string
-    //TODO: Add fields for the stadistics, courses made, etc.
-
-    private constructor ( id: string, name: string, phone: string, image?: string, trainers?: Trainer[], progressCourse?: ProgressCourse[], progressSection?: ProgressSection[], progressVideo?: ProgressVideo[])
-    {
-        super( id )
-        this.name = name
-        this.phone = phone
-        this.trainers = trainers
-        this.progressCourse = progressCourse
-        this.progressSection = progressSection
-        this.progressVideo = progressVideo
-        this.image = image
+  protected applyEvent(event: DomainEvent): void {
+    switch (event.eventName) {
+      case 'UserCreated':
+        const userCreated: UserCreated = event as UserCreated
+        this.name = userCreated.userName
+        this.phone = userCreated.userPhone
+        this.email = userCreated.userEmail
+      case 'UserNameModified':
+        const userNameModified: UserNameModified = event as UserNameModified
+        this.name = userNameModified.userName
+      case 'UserPhoneModified':
+        const userPhoneModified: UserPhoneModified = event as UserPhoneModified
+        this.phone = userPhoneModified.userPhone
+      case 'UserEmailModified':
+        const userEmailModified: UserEmailModified = event as UserEmailModified
+        this.email = userEmailModified.email
     }
+  }
+  protected ensureValidState(): void {
+    if (!this.name || !this.phone || !this.email)
+      throw new InvalidUser("El usuario tiene que ser valido")
+  }
 
-    get Name (): string
-    {
-        return this.name
-    }
+  get Name(): UserName {
+    return this.name;
+  }
 
-    get Image (): string
-    {
-        return this.image
-    }
+  get Email(): UserEmail{
+    return this.email
+  }
 
-    get Phone (): string
-    {
-        return this.phone
-    }
+  get Phone(): UserPhone {
+    return this.phone;
+  }
 
-    get Trainers (): Trainer[]
-    {
-        return this.trainers
-    }
+  static create(
+    id: UserId,
+    name: UserName,
+    phone: UserPhone,
+    email: UserEmail,
+  ): User {
+    return new User(
+      id,
+      name,
+      phone,
+      email
+    );
+  }
 
-    get ProgressCourse(): ProgressCourse[]
-    {
-        return this.progressCourse
-    }
+  public updateName(name: UserName): void {
+    this.onEvent(UserNameModified.create(this.Id, name))
+  }
 
-    get ProgressSection(): ProgressSection[]
-    {
-        return this.progressSection
-    }
+  public updateEmail(email: UserEmail): void {
+    this.onEvent(UserEmailModified.create(this.Id, email))
+  }
 
-    get ProgressVideo(): ProgressVideo[]
-    {
-        return this.progressVideo
-    }
-
-    static create ( id: string, name: string, phone: string, image?: string): User
-    {
-        return new User( id, name, phone, image)
-    }
-
-    public updateName ( name: string ): void
-    {
-        this.name = name
-    }
-
-    public updateImage ( image: string ): void
-    {
-        this.image = image
-    }
-
-    public updatePhone (phone: string): void
-    {
-        this.phone = phone
-    }
-
-
+  public updatePhone(phone: UserPhone): void {
+    this.onEvent(UserPhoneModified.create(this.Id, phone))
+  }
 }

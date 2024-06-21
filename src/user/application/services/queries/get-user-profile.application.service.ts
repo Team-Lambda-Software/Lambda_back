@@ -33,23 +33,27 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
             return Result.fail<GetUserProfileServiceResponseDto>(resultUser.Error, resultUser.StatusCode, resultUser.Message)
         }
         const user = resultUser.Value
-
+        
         const resultProgressCourses = await this.progressCourseRepository.findAllStartedCourses(user.Id, {perPage, page})
+        let progressCourses: ProgressCourse[]
         if (!resultProgressCourses.isSuccess()){
-            return Result.fail<GetUserProfileServiceResponseDto>(resultProgressCourses.Error, resultProgressCourses.StatusCode, resultProgressCourses.Message)
+            progressCourses = []
+            //return Result.fail<GetUserProfileServiceResponseDto>(resultProgressCourses.Error, resultProgressCourses.StatusCode, resultProgressCourses.Message)
+        }else{
+            progressCourses = resultProgressCourses.Value
         }
-        const progressCourses = resultProgressCourses.Value
         const courses: Course[] = []
         const resultProgressCourse: {progress: ProgressCourse, completionPercent: number}[] = []
-        for (const progressCourse of progressCourses){
-            const resultCourse = await this.courseRespository.findCourseById(progressCourse.CourseId)
-            if (!resultCourse.isSuccess()){
-                return Result.fail<GetUserProfileServiceResponseDto>(resultCourse.Error, resultCourse.StatusCode, resultCourse.Message)
+        if(progressCourses.length > 0){
+            for (const progressCourse of progressCourses){
+                const resultCourse = await this.courseRespository.findCourseById(progressCourse.CourseId)
+                if (!resultCourse.isSuccess()){
+                    return Result.fail<GetUserProfileServiceResponseDto>(resultCourse.Error, resultCourse.StatusCode, resultCourse.Message)
+                }
+                resultProgressCourse.push({progress: progressCourse, completionPercent: progressCourse.CompletionPercent})
+                courses.push(resultCourse.Value)
             }
-            resultProgressCourse.push({progress: progressCourse, completionPercent: progressCourse.CompletionPercent})
-            courses.push(resultCourse.Value)
         }
-
         return Result.success<GetUserProfileServiceResponseDto>({user, courses, coursesProgress: resultProgressCourse}, 200)
     }
 
