@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, Post, Query, UseGuards } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Post, Query, UseGuards } from "@nestjs/common"
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
@@ -44,6 +44,15 @@ import { OdmBlogCommentEntity } from "src/blog/infraestructure/entities/odm-enti
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { GetBlogCommentsServiceEntryDto } from "src/blog/infraestructure/query-services/dto/params/get-blog-comments-service-entry.dto"
 import { GetBlogCommentsService } from "src/blog/infraestructure/query-services/services/get-blog-comments.service"
+import { Blog } from "src/blog/domain/blog"
+import { BlogId } from "src/blog/domain/value-objects/blog-id"
+import { BlogTitle } from "src/blog/domain/value-objects/blog-title"
+import { BlogBody } from "src/blog/domain/value-objects/blog-body"
+import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
+import { BlogImage } from "src/blog/domain/value-objects/blog-image"
+import { Trainer } from "src/trainer/domain/trainer"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
 
 
 
@@ -204,9 +213,14 @@ export class CommentController
                     ),
                     new HttpExceptionHandler()
                 )
-
+            const blog = await this.odmBlogRepository.findBlogById(target)
+            if (!blog){
+                throw new NotFoundException('No se encontro el blog')
+            }
+            const resultBlog = blog.Value
             const data: AddCommentToBlogServiceEntryDto = {
-                blogId: target, userId: user.Id,
+                blog: Blog.create(BlogId.create(resultBlog.id), BlogTitle.create(resultBlog.title), BlogBody.create(resultBlog.body), resultBlog.images.map(image => BlogImage.create(image.url)), BlogPublicationDate.create(resultBlog.publication_date), Trainer.create(resultBlog.trainer.id, resultBlog.trainer.first_name, resultBlog.trainer.first_last_name, resultBlog.trainer.second_last_name, resultBlog.trainer.email, resultBlog.trainer.phone, resultBlog.trainer.followers.map(follower => follower.id), resultBlog.trainer.latitude, resultBlog.trainer.longitude), CategoryId.create(resultBlog.category.id), resultBlog.tags.map(tag => BlogTag.create(tag))), 
+                userId: user.Id,
                 comment: body
             }
             const result = await service.execute( data )
