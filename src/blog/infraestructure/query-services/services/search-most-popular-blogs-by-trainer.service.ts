@@ -39,7 +39,7 @@ export class SearchMostPopularBlogsByTrainerService implements IApplicationServi
         {
             const blogUsers = await this.blogRepository.findBlogCommentCount( blog.id )
             
-            console.log(blogUsers.Value)
+            // console.log(blogUsers.Value)
             if ( !blogUsers.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( blogUsers.Error, blogUsers.StatusCode, blogUsers.Message )

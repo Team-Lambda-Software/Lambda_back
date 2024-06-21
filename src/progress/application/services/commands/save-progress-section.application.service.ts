@@ -16,10 +16,10 @@ export class SaveSectionProgressApplicationService implements IApplicationServic
     async execute(data: SaveSectionProgressServiceEntryDto): Promise<Result<ProgressSection>>
     {
         //TEST
-            console.log("Getting previous progress...");
+            // console.log("Getting previous progress...");
         const progressResult = await this.progressRepository.getSectionProgressById(data.userId, data.sectionId);
         //TEST
-            console.log("Progress obtained!");
+            // console.log("Progress obtained!");
         if (!progressResult.isSuccess())
         {
             return Result.fail<ProgressSection>(progressResult.Error, progressResult.StatusCode, progressResult.Message);

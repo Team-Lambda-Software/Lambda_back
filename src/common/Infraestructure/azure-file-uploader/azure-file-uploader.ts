@@ -14,7 +14,7 @@ export class AzureFileUploader implements IFileUploader {
 	private async getBlobClient(imageName: string): Promise<BlockBlobClient> {
         const blobService = await this.getBlobServiceInstance(); 
 		const containerName = process.env.CONTAINER_NAME; 
-        console.log(containerName)
+        // console.log(containerName)
 		const containerClient = blobService.getContainerClient(containerName); 
 		const blockBlobClient = containerClient.getBlockBlobClient(imageName); 
 
@@ -25,7 +25,7 @@ export class AzureFileUploader implements IFileUploader {
         const extension = file.name.split('.').pop(); 
         const file_name = fileName + '.' + extension; 
         const blockBlobClient = await this.getBlobClient(file_name);
-        console.log('Uploading file to Azure Blob Storage 2');
+        // console.log('Uploading file to Azure Blob Storage 2');
         const fileUrl = blockBlobClient.url; 
         await blockBlobClient.uploadData(await file.arrayBuffer()); 
         

@@ -68,19 +68,19 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             if ( progressSection ) //Progress exists on DB
             {
                 //TEST
-                    console.log("Previous progress found. Printing ORM and Domain");
+                    // console.log("Previous progress found. Printing ORM and Domain");
                     progressSection.completion_percent = <number>progressSection.completion_percent;
                     progressSection.video_second = <number>progressSection.video_second;
-                    console.log(progressSection);
+                    // console.log(progressSection);
                 //Create domain progress
                 domainProgress = await this.ormProgressSectionMapper.fromPersistenceToDomain(progressSection);
                 //TEST
-                    console.log(domainProgress);
+                    // console.log(domainProgress);
             }
             else
             {
                 //TEST
-                    console.log("Generating new uuid... No previous progress found");
+                    // console.log("Generating new uuid... No previous progress found");
                 //Progress not found. Return result as "newly-started" section
                 const newId:string = await this.uuidGenerator.generateId();
                 domainProgress = ProgressSection.create(newId, sectionId);
@@ -165,13 +165,13 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         try
         {
             //TEST
-                console.log("Saving section progress");
+                // console.log("Saving section progress");
             const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId);
             //TEST
-                console.log("Mapper done");
+                // console.log("Mapper done");
             await this.ormProgressSectionRepository.save( ormProgress );
             //TEST
-                console.log("ORM saving done");
+                // console.log("ORM saving done");
 
             return Result.success<ProgressSection>( progress, 200 );
         }

@@ -82,7 +82,7 @@ export class OdmCourseRepository {
             if (name) {
                 query["name"] = { $regex: name, $options: 'i' };
             }
-            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1 } )
+            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1} )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
@@ -101,7 +101,7 @@ export class OdmCourseRepository {
     async findSectionComments ( sectionId: string, pagination: PaginationDto): Promise<Result<OdmSectionCommentEntity[]>>{
         try{
             const {page, perPage} = pagination
-            const comments = await this.sectionCommentModel.find( { "section.id": sectionId } ).skip(page).limit(perPage).sort( { date: -1 } )
+            const comments = await this.sectionCommentModel.find( { "section.id": sectionId } ).skip(page).limit(perPage).sort( { date: -1, id: -1} )
             return Result.success<OdmSectionCommentEntity[]>( comments, 200 )
         }catch (error){
             return Result.fail<OdmSectionCommentEntity[]>( error, 500, error.detail )
@@ -115,7 +115,7 @@ export class OdmCourseRepository {
             if (categoryId) {
                 query["category.id"] = categoryId;
             }
-            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1 } )
+            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1 } )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
@@ -129,7 +129,7 @@ export class OdmCourseRepository {
             if (trainerId) {
                 query["trainer.id"] = trainerId;
             }
-            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1 } )
+            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1 } )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
