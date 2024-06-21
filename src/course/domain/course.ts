@@ -104,7 +104,7 @@ export class Course extends AggregateRoot<CourseId>
     protected constructor ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
     {
         const courseCreated: CourseCreated = CourseCreated.create( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
-        super( id )
+        super( id, courseCreated)
         
     }
 

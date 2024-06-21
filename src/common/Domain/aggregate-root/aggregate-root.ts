@@ -7,6 +7,11 @@ import { IValueObject } from "../value-object/value-object.interface"
 export abstract class AggregateRoot<T extends IValueObject<T>> extends Entity<T> {
     protected events: DomainEvent[] = []
 
+    protected constructor(id: T, event: DomainEvent) {
+        super(id);
+        this.onEvent(event);
+    }
+
     protected onEvent(event: DomainEvent): void {
         this.applyEvent(event)
         this.ensureValidState()
