@@ -26,6 +26,6 @@ export class CreateBlogEntryDto {
     @IsArray()
     @ArrayMinSize( 1 )
     @IsString( { each: true } )
-    @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
+    @Transform(({ value }) => (Array.isArray(value) ? value : Array(value)))
     tags: string[]
 }

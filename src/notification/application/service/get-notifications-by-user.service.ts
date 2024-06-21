@@ -15,7 +15,6 @@ export class GetManyNotificationByUserApplicationService implements IApplication
 
     async execute(data: GetNotificationsUserDtoEntryAplicationDto): Promise<Result<any>> {
         let {userId,...dataPagination}=data;
-        dataPagination.page = dataPagination.page * dataPagination.perPage - dataPagination.perPage
         const notificationResult= await this.notiAlertRepository.findManyNotificationsByIdUser(userId,dataPagination)
         if (!notificationResult.isSuccess()) return Result.fail( new Error('´Something went wrong'), 500, '´Something went wrong' );
         return (notificationResult)

@@ -10,7 +10,6 @@ import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
 import { OrmBlogMapper } from "../../mappers/orm-mappers/orm-blog-mapper"
 import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto'
 import { OrmBlogTags } from "../../entities/orm-entities/orm-blog-tags"
-import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 
 
 
@@ -23,7 +22,6 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
     private readonly ormBlogCommentRepository: Repository<OrmBlogComment>
     private readonly ormImageRepository: Repository<OrmBlogImage>
     private readonly ormTagsRepository: Repository<OrmBlogTags>
-    private readonly uuidGenerator: UuidGenerator
     constructor ( ormBlogMapper: OrmBlogMapper, ormBlogCommentMapper: OrmBlogCommentMapper, dataSource: DataSource )
     {
         super( OrmBlog, dataSource.createEntityManager() )
@@ -32,7 +30,6 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         this.ormBlogCommentRepository = dataSource.getRepository( OrmBlogComment )
         this.ormImageRepository = dataSource.getRepository( OrmBlogImage )
         this.ormTagsRepository = dataSource.getRepository( OrmBlogTags )
-        this.uuidGenerator = new UuidGenerator()
     }
     async findBlogsByTagsAndTitle ( tags: string[], title: string, pagination: PaginationDto ): Promise<Result<Blog[]>>
     {
@@ -66,12 +63,12 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         {
 
             const newBlog = await this.ormBlogMapper.fromDomainToPersistence( blog )
-            const tags = this.ormTagsRepository.create( blog.Tags.map( tag => { return { name: tag.Value } } ) )
+            const tags = this.ormTagsRepository.create( blog.Tags.map( tag => { return { name: tag } } ) )
             await this.ormTagsRepository.save( tags )
             await this.save( newBlog )
             for ( const image of blog.Images )
             {
-                const newImage = this.ormImageRepository.create( { url: image.Value, blog_id: newBlog.id } )
+                const newImage = this.ormImageRepository.create( { id: image.Id, url: image.Url, blog_id: newBlog.id } )
                 await this.ormImageRepository.save( newImage )
             }
             return Result.success<Blog>( blog, 200 )

@@ -16,6 +16,6 @@ export class SearchQueryParametersDto extends PaginationDto {
     @IsOptional()
     @IsArray()
     @IsString({each: true})
-    @Transform(({ value }) => (Array.isArray(value) ? value : value.split(',')))
+    @Transform(({ value }) => (Array.isArray(value) ? value : Array(value)))
     tag?: string[]
 }

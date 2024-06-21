@@ -4,79 +4,70 @@ import { ICourseRepository } from "src/course/domain/repositories/course-reposit
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { Course } from "src/course/domain/course"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
+import { GetCourseServiceResponseDto } from "../../dto/responses/get-course-service-response.dto"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { CourseId } from "src/course/domain/value-objects/course-id"
-import { CourseName } from "src/course/domain/value-objects/course-name"
-import { CourseDescription } from "src/course/domain/value-objects/course-description"
-import { CourseWeeksDuration } from "src/course/domain/value-objects/course-weeks-duration"
-import { CourseMinutesDuration } from "src/course/domain/value-objects/course-minutes-duration"
-import { CourseLevel } from "src/course/domain/value-objects/course-level"
-import { CourseImage } from "src/course/domain/value-objects/course-image"
-import { CourseTag } from "src/course/domain/value-objects/course-tag"
-import { CourseDate } from "src/course/domain/value-objects/course-date"
-import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
-import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 
 
 
-export class CreateCourseApplicationService implements IApplicationService<CreateCourseServiceEntryDto, CreateCourseServiceResponseDto>
+export class CreateCourseApplicationService implements IApplicationService<CreateCourseServiceEntryDto, GetCourseServiceResponseDto>
 {
 
     private readonly courseRepository: ICourseRepository
     private readonly trainerRepository: ITrainerRepository
+    private readonly categoryRepository: ICategoryRepository
     private readonly fileUploader: IFileUploader
-    private readonly idGenerator: IdGenerator<string>
-    private readonly eventHandler: IEventHandler 
-    
+    private readonly idGenerator: IdGenerator<string> 
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.trainerRepository = trainerRepository
+        this.categoryRepository = categoryRepository
         this.fileUploader = fileUploader
-        this.eventHandler = eventHandler
     }
 
-    async execute ( data: CreateCourseServiceEntryDto ): Promise<Result<CreateCourseServiceResponseDto>>
+    // TODO: Search the progress if exists one for that user
+    async execute ( data: CreateCourseServiceEntryDto ): Promise<Result<GetCourseServiceResponseDto>>
     {
         const trainer = await this.trainerRepository.findTrainerById( data.trainerId )
         if ( !trainer.isSuccess() )
         {
-            return Result.fail<CreateCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
+            return Result.fail<GetCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
         }
         
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainer.Value, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], data.category.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
+        const course = Course.create( await this.idGenerator.generateId(), trainer.Value, data.name, data.description, data.weeksDuration, data.minutesDuration, data.level, [], data.categoryId, imageUrl, data.tags, new Date() )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
-            return Result.fail<CreateCourseServiceResponseDto>( result.Error, result.StatusCode, result.Message )
+            return Result.fail<GetCourseServiceResponseDto>( result.Error, result.StatusCode, result.Message )
         }
-
-        const responseCourse: CreateCourseServiceResponseDto = {
-            id: course.Id.Value,
-            title: course.Name.Value,
-            description: course.Description.Value,
-            category: data.category.Name.Value,
+        const category = await this.categoryRepository.findCategoryById( data.categoryId )
+        if ( !category.isSuccess() )
+        {
+            return Result.fail<GetCourseServiceResponseDto>( category.Error, category.StatusCode, category.Message )
+        }
+        const responseCourse: GetCourseServiceResponseDto = {
+            title: course.Name,
+            description: course.Description,
+            category: category.Value.Name,
             image: imageUrl,
             trainer: {
                 id: trainer.Value.Id,
                 name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
             },
-            level: course.Level.Value.toString(),
-            durationWeeks: course.WeeksDuration.Value,
-            durationMinutes: course.MinutesDuration.Value,
-            tags: course.Tags.map( tag => tag.Value),
-            date: course.Date.Value,
+            level: course.Level.toString(),
+            durationWeeks: course.WeeksDuration,
+            durationMinutes: course.MinutesDuration,
+            tags: course.Tags,
+            date: course.Date,
             lessons: []
         }
-        this.eventHandler.publish( course.pullEvents())
-        return Result.success<CreateCourseServiceResponseDto>( responseCourse, 200 )
+        return Result.success<GetCourseServiceResponseDto>( responseCourse, 200 )
     }
 
     get name (): string

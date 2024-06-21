@@ -4,7 +4,6 @@ import { ProgressCourse } from "src/progress/domain/entities/progress-course";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
 
-//!Think about the name, this needs to refer to a use case
 //Syncs the course's completion-percent and is-completed with the data existent from its sections
 export class SyncCourseProgressApplicationService implements IApplicationService<SyncProgressCourseEntryDto, ProgressCourse>
 {

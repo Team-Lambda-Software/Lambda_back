@@ -1,9 +1,7 @@
 import { IMapper } from "src/common/Application/mapper/mapper.interface"
 import { Category } from "src/categories/domain/categories"
 import { OrmCategory } from "../../entities/orm-entities/orm-category"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { CategoryName } from "src/categories/domain/value-objects/category-title"
-import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
+import { CategoryIcon } from "src/categories/domain/entities/category-icon"
 
 export class OrmCategoryMapper implements IMapper<Category, OrmCategory>
 {
@@ -13,7 +11,7 @@ export class OrmCategoryMapper implements IMapper<Category, OrmCategory>
     }
     async fromPersistenceToDomain ( persistence: OrmCategory ): Promise<Category>
     {
-        const categorie: Category = Category.create( CategoryId.create(persistence.id), CategoryName.create(persistence.categoryName), CategoryIcon.create( persistence.icon.url))
+        const categorie: Category = Category.create( persistence.id, persistence.categoryName, CategoryIcon.create( persistence.icon.url, persistence.icon.id))
         return categorie
     }
 }

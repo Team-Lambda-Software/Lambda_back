@@ -1,10 +1,6 @@
 import { IMapper } from "src/common/Application/mapper/mapper.interface"
+import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comment"
-import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
-import { SectionCommentId } from "src/course/domain/entities/section-comment/value-objects/section-comment-id"
-import { SectionCommentText } from '../../../domain/entities/section-comment/value-objects/section-comment-text';
-import { SectionCommentDate } from "src/course/domain/entities/section-comment/value-objects/section-comment-date"
-import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
 
 
 
@@ -12,11 +8,11 @@ export class OrmSectionCommentMapper implements IMapper<SectionComment, OrmSecti
 {
     async fromDomainToPersistence ( domain: SectionComment ): Promise<OrmSectionComment>
     {
-        return OrmSectionComment.create( domain.Id.Value, domain.Text.Value, domain.UserId, domain.SectionId.Value, domain.Date.Value)
+        return OrmSectionComment.create( domain.Id, domain.Text, domain.UserId, domain.SectionId, domain.Date)
     }
     async fromPersistenceToDomain ( persistence: OrmSectionComment ): Promise<SectionComment>
     {
-        return SectionComment.create( SectionCommentId.create(persistence.id), persistence.user_id, SectionCommentText.create(persistence.text), SectionCommentDate.create(persistence.date), SectionId.create(persistence.section_id) )
+        return SectionComment.create( persistence.id, persistence.user_id, persistence.text, persistence.date, persistence.section_id )
     }
 
 }

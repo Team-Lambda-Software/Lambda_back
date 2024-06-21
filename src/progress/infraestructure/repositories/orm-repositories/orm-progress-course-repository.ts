@@ -11,6 +11,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 //? Couple with OrmCourseRepository to get all info from courses and fully construct progress' objects
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
 import { Course } from "src/course/domain/course";
+import { Section } from "src/course/domain/entities/section";
 //import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video";
 import { skip } from "node:test";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
@@ -124,7 +125,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             //Fetch associated section progress' entities from course's sections
             for (let section of sections)
             {
-                let target:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id.Value);
+                let target:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
                 if (target.isSuccess()) //Progress found or created from scratch
                 {
                     domainProgress.saveSection(<ProgressSection>(target.Value));
@@ -240,7 +241,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                     //Fetch associated section progress' entities from course's sections
                     for (let section of sections)
                     {
-                        let target = await this.getSectionProgressById(userId, section.Id.Value);
+                        let target = await this.getSectionProgressById(userId, section.Id);
                         if (target.isSuccess()) //Progress found or created from scratch
                         {
                             course.saveSection(target.Value);
@@ -278,7 +279,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             let skipCount:number = pagination.page;
             for (let section of course.Sections)
             {
-                let progressResult:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id.Value);
+                let progressResult:Result<ProgressSection> = await this.getSectionProgressById(userId, section.Id);
                 if (!progressResult.isSuccess())
                 {
                     return Result.fail<ProgressSection[]>(new Error(progressResult.Message), progressResult.StatusCode, progressResult.Message);

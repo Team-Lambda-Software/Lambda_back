@@ -1,5 +1,6 @@
 import { Result } from "src/common/Domain/result-handler/Result"
 import { Course } from "src/course/domain/course"
+import { Section } from "src/course/domain/entities/section"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { DataSource, Repository } from 'typeorm'
 import { OrmCourse } from "../../entities/orm-entities/orm-course"
@@ -7,11 +8,10 @@ import { OrmCourseMapper } from "../../mappers/orm-mappers/orm-course-mapper"
 import { OrmSection } from "../../entities/orm-entities/orm-section"
 import { OrmSectionComment } from "../../entities/orm-entities/orm-section-comment"
 import { OrmSectionMapper } from '../../mappers/orm-mappers/orm-section-mapper'
+import { SectionComment } from "src/course/domain/entities/section-comment"
 import { OrmSectionCommentMapper } from '../../mappers/orm-mappers/orm-section-comment-mapper'
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OrmCourseTags } from "../../entities/orm-entities/orm-course-tags"
-import { Section } from "src/course/domain/entities/section/section"
-import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
 
 
 
@@ -38,23 +38,6 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         this.ormCommentRepository = dataSource.getRepository( OrmSectionComment )
         this.ormTagRepistory = dataSource.getRepository( OrmCourseTags )
 
-    }
-    async findCourseBySectionId ( sectionId: string ): Promise<Result<Course>>
-    {
-        try
-        {
-            const section = await this.ormSectionRepository.findOneBy( { id: sectionId } )
-            const course = await this.findOneBy( { id: section.course_id } )
-            if ( course )
-            {
-                course.date.setHours( course.date.getHours() - 4 )
-                return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( course ), 200 )
-            }
-            return Result.fail<Course>( new Error( 'Course not found' ), 404, 'Course not found' )
-        } catch ( error )
-        {
-            return Result.fail<Course>( new Error( error.message ), error.code, error.message )
-        }
     }
     async findCoursesByTagsAndName ( tags: string[], name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
@@ -144,7 +127,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
         try
         {
             const newCourse = await this.ormCourseMapper.fromDomainToPersistence( course )
-            await this.ormTagRepistory.save( course.Tags.map( tag => OrmCourseTags.create( tag.Value ) ) )
+            await this.ormTagRepistory.save( course.Tags.map( tag => OrmCourseTags.create( tag ) ) )
             const savedCourse = await this.save( newCourse )
             return Result.success<Course>( course, 200 )
         } catch ( error )
@@ -237,7 +220,7 @@ export class OrmCourseRepository extends Repository<OrmCourse> implements ICours
             const course = await this.findOneBy( { id } )
             if ( course )
             {
-                course.date.setHours( course.date.getHours() - 4 )
+
                 return Result.success<Course>( await this.ormCourseMapper.fromPersistenceToDomain( course ), 200 )
             }
             return Result.fail<Course>( new Error( 'Course not found' ), 404, 'Course not found' )

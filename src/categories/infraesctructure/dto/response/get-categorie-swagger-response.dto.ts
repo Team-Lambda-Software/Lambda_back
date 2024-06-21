@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Category } from "src/categories/domain/categories"
+import { CategoryIcon } from "src/categories/domain/entities/category-icon"
 
 export class GetCategorieSwaggerResponseDto
 {
