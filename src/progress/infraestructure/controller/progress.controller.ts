@@ -113,10 +113,10 @@ export class ProgressController {
         );
 
         //TEST
-            console.log("Initiating SaveSectionProgressService");
+            // console.log("Initiating SaveSectionProgressService");
         const sectionUpdateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
         //TEST
-            console.log("Service successful");
+            // console.log("Service successful");
         if (sectionUpdateResult.isSuccess())
         {
             const courseSyncResult = await syncCourseProgressService.execute(syncCourseProgressDto);
