@@ -31,19 +31,9 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
     // TODO: Search the progress if exists one for that user
     async execute ( data: AddCommentToSectionServiceEntryDto ): Promise<Result<SectionComment>>
     {
-        const sectionResult = await this.courseRepository.findSectionById( data.sectionId )
-        if ( !sectionResult.isSuccess() )
-        {
-            return Result.fail<SectionComment>( sectionResult.Error, sectionResult.StatusCode, sectionResult.Message )
-        }
-        const section: Section = sectionResult.Value
-        const courseResult= await this.courseRepository.findCourseBySectionId( data.sectionId )
-        if ( !courseResult.isSuccess() )
-        {
-            return Result.fail<SectionComment>( courseResult.Error, courseResult.StatusCode, courseResult.Message )
-        }
-        const course = courseResult.Value
-        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), data.userId, SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), SectionId.create(data.sectionId) )
+        const section: Section = data.section
+        const course = data.course
+        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), data.userId, SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), data.section.Id )
         const result = await this.courseRepository.addCommentToSection( comment )
         if ( !result.isSuccess() )
         {

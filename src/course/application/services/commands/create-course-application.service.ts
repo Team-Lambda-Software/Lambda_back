@@ -27,23 +27,20 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
 
     private readonly courseRepository: ICourseRepository
     private readonly trainerRepository: ITrainerRepository
-    private readonly categoryRepository: ICategoryRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
     private readonly eventHandler: IEventHandler 
     
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.trainerRepository = trainerRepository
-        this.categoryRepository = categoryRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
     }
 
-    // TODO: Search the progress if exists one for that user
     async execute ( data: CreateCourseServiceEntryDto ): Promise<Result<CreateCourseServiceResponseDto>>
     {
         const trainer = await this.trainerRepository.findTrainerById( data.trainerId )
@@ -54,22 +51,18 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
         
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainer.Value, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], CategoryId.create(data.categoryId), CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
+        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainer.Value, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], data.category.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
             return Result.fail<CreateCourseServiceResponseDto>( result.Error, result.StatusCode, result.Message )
         }
-        const category = await this.categoryRepository.findCategoryById( data.categoryId )
-        if ( !category.isSuccess() )
-        {
-            return Result.fail<CreateCourseServiceResponseDto>( category.Error, category.StatusCode, category.Message )
-        }
+
         const responseCourse: CreateCourseServiceResponseDto = {
             id: course.Id.Value,
             title: course.Name.Value,
             description: course.Description.Value,
-            category: category.Value.Name.Value,
+            category: data.category.Name.Value,
             image: imageUrl,
             trainer: {
                 id: trainer.Value.Id,
