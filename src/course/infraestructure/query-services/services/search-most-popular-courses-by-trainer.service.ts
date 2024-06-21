@@ -41,7 +41,7 @@ export class SearchMostPopularCoursesByTrainerService implements IApplicationSer
         for ( const course of courses.Value )
         {
             const courseUsers = await this.progressRepository.findUserCountInCourse( course.id )
-            console.log(courseUsers.Value)
+            // console.log(courseUsers.Value)
             if ( !courseUsers.isSuccess() )
             {
                 return Result.fail<SearchCourseServiceResponseDto[]>( courseUsers.Error, courseUsers.StatusCode, courseUsers.Message )
