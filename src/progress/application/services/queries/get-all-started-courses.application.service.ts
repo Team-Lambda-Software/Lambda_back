@@ -24,6 +24,7 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
 
     async execute(data:GetAllStartedCoursesEntryDto): Promise<Result<GetAllStartedCoursesResponseDto>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const arrayProgressResult = await this.progressRepository.findAllStartedCourses(data.userId, data.pagination);
         if (!arrayProgressResult.isSuccess())
         {
@@ -41,24 +42,24 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
             }
             const course = courseResult.Value;
 
-            const categoryResult = await this.categoryRepository.findCategoryById(course.CategoryId);
+            const categoryResult = await this.categoryRepository.findCategoryById(course.CategoryId.Value);
             if (!categoryResult.isSuccess())
             {
                 return Result.fail<GetAllStartedCoursesResponseDto>(categoryResult.Error, categoryResult.StatusCode, categoryResult.Message);
             }
             const categoryName = categoryResult.Value.Name;
 
-            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName, progress: progress});
+            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName.Value, progress: progress});
         }
-
+        //! make this a dto
         let returnDataArray:Array< { id: string, title: string, image:string, date: Date, category: string, trainerName: string, completionPercent: number } > = [];
         for (let response of arrayResponseData)
         {
             const returnData = { 
                 id: response.progress.CourseId, 
-                title: response.course.Name, 
-                image: response.course.Image,
-                date: response.course.Date,
+                title: response.course.Name.Value, 
+                image: response.course.Image.Value,
+                date: response.course.Date.Value,
                 category: response.categoryName, 
                 trainerName: response.course.Trainer.FirstName + " " + response.course.Trainer.FirstLastName + " " + response.course.Trainer.SecondLastName,
                 completionPercent: response.progress.CompletionPercent
