@@ -45,6 +45,18 @@ import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-
 import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
 import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
+import { OdmCourseRepository } from '../repositories/odm-repositories/odm-course-repository'
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { OdmCourseEntity } from "../entities/odm-entities/odm-course.entity"
+import { OdmSectionCommentEntity } from "../entities/odm-entities/odm-section-comment.entity"
+import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
+import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { CourseCreated } from "src/course/domain/events/course-created-event"
+import { Course } from "src/course/domain/course"
+import { SectionCreated } from "src/course/domain/events/section-created-event"
+import { Section } from "src/course/domain/entities/section/section"
 
 
 @ApiTags( 'Course' )
@@ -57,10 +69,16 @@ export class CourseController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
+    private readonly odmCourseRepository: OdmCourseRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+        @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
+        @InjectModel( 'SectionComment' ) private readonly sectionCommentModel: Model<OdmSectionCommentEntity>,
+        @InjectModel( 'Category' ) private readonly categoryModel: Model<OdmCategoryEntity>,
+        @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
+        @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
         this.courseRepository =
             new OrmCourseRepository(
@@ -94,6 +112,8 @@ export class CourseController
 
         this.fileUploader = new AzureFileUploader()
 
+        this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
+
     }
 
     @Post( 'create' )
@@ -124,7 +144,12 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'image' ) )
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
     {
-        const eventBus = EventBus.getInstance();
+        const eventBus = EventBus.getInstance()
+        
+        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
+            this.odmCourseRepository.saveCourse( Course.create( event.id, event.trainer, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date))
+        })
+
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -144,10 +169,11 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
-            return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
+        if ( ![ 'png', 'jpg', 'jpeg' ].includes( image.originalname.split( '.' ).pop() ) )
+        {
+            return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
         }
-        const newImage = new File( [image.buffer], image.originalname, {type: image.mimetype})
+        const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id } )
         return result.Value
     }
@@ -165,7 +191,7 @@ export class CourseController
                 description: { type: 'string' },
                 duration: { type: 'integer' },
                 paragraph: { type: 'string' },
-                
+
                 file: {
                     type: 'string',
                     format: 'binary',
@@ -175,9 +201,14 @@ export class CourseController
     } )
     @UseInterceptors( FileExtender )
     @UseInterceptors( FileInterceptor( 'file' ) )
-    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File,@Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
+    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
     {
-        const eventBus = EventBus.getInstance();
+        const eventBus = EventBus.getInstance()
+
+        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
+            this.odmCourseRepository.addSectionToCourse( courseId, Section.create(event.id, event.name, event.description, event.duration, event.video) )
+        })
+
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -197,14 +228,16 @@ export class CourseController
             )
         let fileType = null
         let newFile = null
-        if ( file ){
-            newFile = new File( [file.buffer], file.originalname, {type: file.mimetype})
-            if ( !['mp4'].includes(file.originalname.split('.').pop())){
-                return Result.fail( new Error("Invalid file format (videos in mp4, images in png, jpg or jpeg)"), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
+        if ( file )
+        {
+            newFile = new File( [ file.buffer ], file.originalname, { type: file.mimetype } )
+            if ( ![ 'mp4' ].includes( file.originalname.split( '.' ).pop() ) )
+            {
+                return Result.fail( new Error( "Invalid file format (videos in mp4, images in png, jpg or jpeg)" ), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
             }
         }
-        
-        const result = await service.execute( {file: newFile ,...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
         return result.Value
     }
 

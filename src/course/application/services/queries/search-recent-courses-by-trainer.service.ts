@@ -21,6 +21,7 @@ export class SearchRecentCoursesByTrainerApplicationService implements IApplicat
     }
     async execute ( data: SearchCoursesByTrainerServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const courses = await this.courseRepository.findCoursesByTrainer( data.trainerId, data.pagination )
         if ( !courses.isSuccess() )
         {

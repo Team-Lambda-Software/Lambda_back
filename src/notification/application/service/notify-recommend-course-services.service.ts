@@ -45,12 +45,12 @@ export class NotifyRecommendCourseApplicationService implements IApplicationServ
         const course = listCourses[ran]
 
         listTokens.forEach( async e => {
-            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.Name }}
+            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.Name.Value}}
             const result = await this.pushNotifier.sendNotification( pushMessage )
             //if ( result.isSuccess() ) {
             this.notiAlertRepository.saveNotificationAlert(
                 OrmNotificationAlert.create(
-                    await this.uuidGenerator.generateId(), e.user_id, 'Recommendation of the day', 'We recommend you ' + course.Name, false, new Date() )
+                    await this.uuidGenerator.generateId(), e.user_id, 'Recommendation of the day', 'We recommend you ' + course.Name.Value, false, new Date() )
             )
         })
         return Result.success('recommend push sended', 200)
