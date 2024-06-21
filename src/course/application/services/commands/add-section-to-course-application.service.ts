@@ -34,12 +34,6 @@ export class AddSectionToCourseApplicationService implements IApplicationService
     // TODO: Search the progress if exists one for that user
     async execute ( data: AddSectionToCourseServiceEntryDto ): Promise<Result<AddSectionToCourseServiceResponseDto>>
     {
-        const course = await this.courseRepository.findCourseById( data.courseId )
-        if ( !course.isSuccess() )
-        {
-            return Result.fail<AddSectionToCourseServiceResponseDto>( course.Error, course.StatusCode, course.Message )
-        }
-        console.log(course.Value)
         let videoId = null
         let videoUrl: string = null
         
@@ -48,14 +42,14 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
         videoUrl = videoUrl + process.env.SAS_TOKEN
         
-        const courseValue = course.Value
+        const courseValue = data.course
         let section: Section
         try{
             section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
         }catch(e){
             return Result.fail<AddSectionToCourseServiceResponseDto>( e.message, 500 , e.message )
         }
-        const result = await this.courseRepository.addSectionToCourse( data.courseId, section )
+        const result = await this.courseRepository.addSectionToCourse( data.course.Id.Value, section )
         if ( !result.isSuccess() )
         {
             return Result.fail<AddSectionToCourseServiceResponseDto>( result.Error, result.StatusCode, result.Message )

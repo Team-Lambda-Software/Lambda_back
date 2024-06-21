@@ -28,9 +28,14 @@ export class OdmCategoryRepository{
 
     }
 
-    findCategoryById ( id: string ): Promise<Result<Category>>
+    async findCategoryById ( id: string ): Promise<Result<OdmCategoryEntity>>
     {
-        throw new Error( "Method not implemented." )
+        try{
+            const category = await this.categoryModel.findOne({id})
+            return Result.success<OdmCategoryEntity>( category, 200 )
+        }catch (error){
+            return Result.fail<OdmCategoryEntity>( error, 500, "Internal Server Error" )
+        }
     }
     async findAllCategories ( pagination: PaginationDto ): Promise<Result<OdmCategoryEntity[]>>
     {
