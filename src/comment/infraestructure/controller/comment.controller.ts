@@ -160,8 +160,7 @@ export class CommentController
                 new ExceptionDecorator(
                     new LoggingDecorator(
                         new GetSectionCommentsService(
-                            this.courseRepository,
-                            this.userRepository
+                            this.odmCourseRepository
                         ),
                         new NativeLogger( this.logger )
                     ),

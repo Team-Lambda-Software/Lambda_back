@@ -4,19 +4,18 @@ import { IUserRepository } from "src/user/domain/repositories/user-repository.in
 import { GetSectionCommentsServiceEntryDto } from "../dto/param/get-section-comments-service-entry.dto"
 import { GetSectionCommentsServiceResponseDto } from "../dto/responses/get-section-comments-service-response.dto"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
+import { OdmCourseRepository } from "../../repositories/odm-repositories/odm-course-repository"
 
 
 
 
 export class GetSectionCommentsService implements IApplicationService<GetSectionCommentsServiceEntryDto, GetSectionCommentsServiceResponseDto[]> 
 {
-    private readonly courseRepository: ICourseRepository
-    private readonly userRepository: IUserRepository
+    private readonly courseRepository: OdmCourseRepository
 
-    constructor ( courseRepository: ICourseRepository, userRepository: IUserRepository)
+    constructor ( courseRepository: OdmCourseRepository)
     {
         this.courseRepository = courseRepository
-        this.userRepository = userRepository
     }
 
     async execute ( data: GetSectionCommentsServiceEntryDto ): Promise<Result<GetSectionCommentsServiceResponseDto[]>>
@@ -32,16 +31,11 @@ export class GetSectionCommentsService implements IApplicationService<GetSection
 
         for ( const comment of comments.Value )
         {
-            const user = await this.userRepository.findUserById( comment.UserId )
-            if ( !user.isSuccess() )
-            {
-                return Result.fail<GetSectionCommentsServiceResponseDto[]>( user.Error, user.StatusCode, user.Message )
-            }
             response.push( {
-                id: comment.Id.Value,
-                user: user.Value.Name,
-                body: comment.Text.Value,
-                date: comment.Date.Value
+                id: comment.id,
+                user: comment.user.name,
+                body: comment.text,
+                date: comment.date
             } )
         }
 

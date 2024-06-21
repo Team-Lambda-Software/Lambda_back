@@ -97,4 +97,14 @@ export class OdmCourseRepository {
             return Result.fail<OdmCourseEntity>( error, 500, error.detail )
         }
     }
+
+    async findSectionComments ( sectionId: string, pagination: PaginationDto): Promise<Result<OdmSectionCommentEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const comments = await this.sectionCommentModel.find( { "section.id": sectionId } ).skip(page).limit(perPage).sort( { date: -1 } )
+            return Result.success<OdmSectionCommentEntity[]>( comments, 200 )
+        }catch (error){
+            return Result.fail<OdmSectionCommentEntity[]>( error, 500, error.detail )
+        }
+    }
 }
