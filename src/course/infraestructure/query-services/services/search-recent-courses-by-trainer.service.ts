@@ -1,13 +1,13 @@
 import { ICourseRepository } from 'src/course/domain/repositories/course-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
-import { SearchCoursesByCategoryServiceEntryDto } from '../../dto/param/search-courses-by-category-service-entry.dto'
 import { Result } from 'src/common/Domain/result-handler/Result'
-import { SearchCourseServiceResponseDto } from '../../dto/responses/search-course-service-response.dto'
+import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
 import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
 import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
+import { SearchCoursesByTrainerServiceEntryDto } from '../dto/param/search-courses-by-trainer-service-entry.dto'
 
 
-export class SearchRecentCoursesByCategoryApplicationService implements IApplicationService<SearchCoursesByCategoryServiceEntryDto, SearchCourseServiceResponseDto[]>{
+export class SearchRecentCoursesByTrainerService implements IApplicationService<SearchCoursesByTrainerServiceEntryDto, SearchCourseServiceResponseDto[]>{
     private readonly courseRepository: ICourseRepository
     private readonly categoryRepository: ICategoryRepository
     private readonly trainerRepository: ITrainerRepository
@@ -19,10 +19,10 @@ export class SearchRecentCoursesByCategoryApplicationService implements IApplica
         this.trainerRepository = trainerRepository
 
     }
-    async execute ( data: SearchCoursesByCategoryServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
+    async execute ( data: SearchCoursesByTrainerServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
     {
         data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
-        const courses = await this.courseRepository.findCoursesByCategory( data.categoryId, data.pagination )
+        const courses = await this.courseRepository.findCoursesByTrainer( data.trainerId, data.pagination )
         if ( !courses.isSuccess() )
         {
             return Result.fail<SearchCourseServiceResponseDto[]>( courses.Error, courses.StatusCode, courses.Message )

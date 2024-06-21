@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
-import { GetCourseApplicationService } from "src/course/application/services/queries/get-course.service"
 import { DataSource } from "typeorm"
 import { OrmCourseRepository } from "../repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
@@ -21,15 +20,9 @@ import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/or
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 //import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { SearchCourseQueryParametersDto } from "../dto/queryParameters/search-course-query-parameters.dto"
-import { SearchCoursesByCategoryServiceEntryDto } from "src/course/application/dto/param/search-courses-by-category-service-entry.dto"
-import { SearchMostPopularCoursesByCategoryApplicationService } from "src/course/application/services/queries/search-most-popular-courses-by-category.service"
-import { SearchRecentCoursesByCategoryApplicationService } from "src/course/application/services/queries/search-recent-courses-by-category.service"
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
-import { SearchCoursesByTrainerServiceEntryDto } from "src/course/application/dto/param/search-courses-by-trainer-service-entry.dto"
-import { SearchMostPopularCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-most-popular-courses-by-trainer.service"
-import { SearchRecentCoursesByTrainerApplicationService } from "src/course/application/services/queries/search-recent-courses-by-trainer.service"
 import { CreateCourseApplicationService } from "src/course/application/services/commands/create-course-application.service"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
@@ -57,6 +50,13 @@ import { CourseCreated } from "src/course/domain/events/course-created-event"
 import { Course } from "src/course/domain/course"
 import { SectionCreated } from "src/course/domain/events/section-created-event"
 import { Section } from "src/course/domain/entities/section/section"
+import { GetCourseService } from "../query-services/services/get-course.service"
+import { SearchCoursesByCategoryServiceEntryDto } from "../query-services/dto/param/search-courses-by-category-service-entry.dto"
+import { SearchMostPopularCoursesByCategoryService } from "../query-services/services/search-most-popular-courses-by-category.service"
+import { SearchRecentCoursesByCategoryService } from "../query-services/services/search-recent-courses-by-category.service"
+import { SearchCoursesByTrainerServiceEntryDto } from "../query-services/dto/param/search-courses-by-trainer-service-entry.dto"
+import { SearchMostPopularCoursesByTrainerService } from "../query-services/services/search-most-popular-courses-by-trainer.service"
+import { SearchRecentCoursesByTrainerService } from "../query-services/services/search-recent-courses-by-trainer.service"
 
 
 @ApiTags( 'Course' )
@@ -250,11 +250,8 @@ export class CourseController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetCourseApplicationService(
-                        this.courseRepository,
-                        this.progressRepository,
-                        this.categoryRepository,
-                        this.trainerRepository
+                    new GetCourseService(
+                        this.odmCourseRepository
                     ),
                     new NativeLogger( this.logger )
                 ),
@@ -280,7 +277,7 @@ export class CourseController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchMostPopularCoursesByCategoryApplicationService(
+                            new SearchMostPopularCoursesByCategoryService(
                                 this.courseRepository,
                                 this.progressRepository,
                                 this.categoryRepository,
@@ -298,7 +295,7 @@ export class CourseController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchRecentCoursesByCategoryApplicationService(
+                            new SearchRecentCoursesByCategoryService(
                                 this.courseRepository,
                                 this.categoryRepository,
                                 this.trainerRepository
@@ -321,7 +318,7 @@ export class CourseController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchMostPopularCoursesByTrainerApplicationService(
+                        new SearchMostPopularCoursesByTrainerService(
                             this.courseRepository,
                             this.progressRepository,
                             this.categoryRepository,
@@ -339,7 +336,7 @@ export class CourseController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchRecentCoursesByTrainerApplicationService(
+                        new SearchRecentCoursesByTrainerService(
                             this.courseRepository,
                             this.categoryRepository,
                             this.trainerRepository

@@ -27,8 +27,6 @@ import { AddCommentToBlogServiceEntryDto } from "src/blog/application/dto/params
 import { GetAllCommentsQueryParametersDto } from "../dto/queryParameters/get-all-comments-query-parameters.dto"
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository"
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper"
-import { GetSectionCommentsApplicationService } from "src/course/application/services/queries/get-section-comments.service"
-import { GetSectionCommentsServiceEntryDto } from "src/course/application/dto/param/get-section-comments-service-entry.dto"
 import { GetAllCommentsSwaggerResponseDto } from "../dto/response/get-all-comments-swagger-response.dto"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
@@ -58,6 +56,8 @@ import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entitie
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 import { SectionCommentCreated } from "src/course/domain/events/section-comment-created-event"
 import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
+import { GetSectionCommentsServiceEntryDto } from "src/course/infraestructure/query-services/dto/param/get-section-comments-service-entry.dto"
+import { GetSectionCommentsService } from "src/course/infraestructure/query-services/services/get-section-comments.service"
 
 
 
@@ -159,7 +159,7 @@ export class CommentController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new GetSectionCommentsApplicationService(
+                        new GetSectionCommentsService(
                             this.courseRepository,
                             this.userRepository
                         ),

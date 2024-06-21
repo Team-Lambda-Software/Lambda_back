@@ -88,4 +88,13 @@ export class OdmCourseRepository {
             return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
         }
     }
+
+    async findCourseById ( courseId: string ): Promise<Result<OdmCourseEntity>>{
+        try{
+            const course = await this.courseModel.findOne( { id: courseId } )
+            return Result.success<OdmCourseEntity>( course, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity>( error, 500, error.detail )
+        }
+    }
 }

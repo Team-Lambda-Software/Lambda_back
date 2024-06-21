@@ -2,12 +2,12 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Course } from "src/course/domain/course"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
-import { SearchCourseByLevelsServiceEntryDto } from "../../dto/param/search-course-by-levels-service-entry.dto"
+import { SearchCourseByLevelsServiceEntryDto } from "../dto/param/search-course-by-levels-service-entry.dto"
 
 
 
 
-export class SearchCourseByLevelsApplicationService implements IApplicationService<SearchCourseByLevelsServiceEntryDto, Course[]>
+export class SearchCourseByLevelsService implements IApplicationService<SearchCourseByLevelsServiceEntryDto, Course[]>
 {
 
     private readonly courseRepository: ICourseRepository

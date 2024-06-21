@@ -1,14 +1,14 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
-import { GetSectionCommentsServiceEntryDto } from "../../dto/param/get-section-comments-service-entry.dto"
-import { GetSectionCommentsServiceResponseDto } from "../../dto/responses/get-section-comments-service-response.dto"
+import { GetSectionCommentsServiceEntryDto } from "../dto/param/get-section-comments-service-entry.dto"
+import { GetSectionCommentsServiceResponseDto } from "../dto/responses/get-section-comments-service-response.dto"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 
 
 
 
-export class GetSectionCommentsApplicationService implements IApplicationService<GetSectionCommentsServiceEntryDto, GetSectionCommentsServiceResponseDto[]> 
+export class GetSectionCommentsService implements IApplicationService<GetSectionCommentsServiceEntryDto, GetSectionCommentsServiceResponseDto[]> 
 {
     private readonly courseRepository: ICourseRepository
     private readonly userRepository: IUserRepository
