@@ -72,13 +72,7 @@ export class UserController {
   constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
     this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
-    this.userRepository = new OrmUserRepository(
-      new OrmUserMapper(),
-      this.fileUploader,
-      this.idGenerator,
-      this.encryptor,
-      dataSource
-    )
+    this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
     this.courseRepository =
       new OrmCourseRepository(
@@ -111,11 +105,11 @@ export class UserController {
     type: UpdateUserProfileSwaggerResponseDto,
   })
   async updateUser(@GetUser() user: User, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
-    //let image: File = null
-    //if (updateEntryDTO.image) {
-    //  image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
-    //}
-    const userUpdateDto: UpdateUserProfileServiceEntryDto = { userId: user.Id.Id,...updateEntryDTO, }
+    let image: File = null
+    if (updateEntryDTO.image) {
+      image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
+    }
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
@@ -145,7 +139,6 @@ export class UserController {
     return Respuesta
   }
 
-  /*
   @Post('/follow/:trainerID')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

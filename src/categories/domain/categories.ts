@@ -25,7 +25,7 @@ export class Category extends AggregateRoot<CategoryId>{
     protected constructor ( id: CategoryId, name: CategoryName, icon: CategoryIcon)
     {
         const categoryCreated: CategoryCreated = CategoryCreated.create(id, name, icon)
-        super (id, categoryCreated)  
+        super (id)  
     }
 
     protected applyEvent ( event: DomainEvent ): void
