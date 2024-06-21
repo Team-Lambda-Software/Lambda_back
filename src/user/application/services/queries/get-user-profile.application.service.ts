@@ -34,7 +34,7 @@ export class GetUserProfileApplicationService implements IApplicationService<Get
         }
         const user = resultUser.Value
         
-        const resultProgressCourses = await this.progressCourseRepository.findAllStartedCourses(user.Id, {perPage, page})
+        const resultProgressCourses = await this.progressCourseRepository.findAllStartedCourses(user.Id.Id, {perPage, page})
         let progressCourses: ProgressCourse[]
         if (!resultProgressCourses.isSuccess()){
             progressCourses = []

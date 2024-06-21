@@ -77,7 +77,7 @@ export class TrainerController {
                 ),
                 new HttpExceptionHandler()
             );
-        const result = await service.execute( {userId: user.Id, trainerId:id} );
+        const result = await service.execute( {userId: user.Id.Id, trainerId:id} );
         const value = result.Value;
         //Map the fields of the DTO to the fields of the swagger response
         return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
@@ -91,7 +91,7 @@ export class TrainerController {
     {
         let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>; //to-do Maybe this should return some primitive type or DTO instead of trainer?
 
-        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.Id);
+        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.Id.Id);
         if (doesFollowResult.isSuccess())
         {
             const doesFollow = doesFollowResult.Value;
@@ -113,6 +113,6 @@ export class TrainerController {
             ),
             new HttpExceptionHandler()
         );
-        await service.execute({userId: user.Id, trainerId: id})
+        await service.execute({userId: user.Id.Id, trainerId: id})
     }
 }

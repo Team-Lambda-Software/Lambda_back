@@ -155,7 +155,7 @@ export class BlogController
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.Id } )
+        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.Id.Id } )
         return result.Value
     }
 
@@ -176,7 +176,7 @@ export class BlogController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { blogId: id, userId: user.Id } )
+        const result = await service.execute( { blogId: id, userId: user.Id.Id } )
         return result.Value
     }
 
@@ -189,7 +189,7 @@ export class BlogController
 
         if ( ( searchBlogParams.category || ( !searchBlogParams.category && !searchBlogParams.trainer ) ) )
         {
-            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.Id.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
             if ( searchBlogParams.filter == 'POPULAR' )
             {
@@ -225,7 +225,7 @@ export class BlogController
 
         }
 
-        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.Id.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
         if ( searchBlogParams.filter == 'POPULAR' )
         {
