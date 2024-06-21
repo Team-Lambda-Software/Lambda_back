@@ -87,12 +87,12 @@ export class ProgressController {
         const saveSectionProgressDto:SaveSectionProgressServiceEntryDto = {
             courseId: saveDTO.courseId,
             sectionId: saveDTO.lessonId,
-            userId: user.Id,
+            userId: user.Id.Id,
             isCompleted: saveDTO.markAsCompleted,
             videoSecond: saveDTO.time
         };
         const syncCourseProgressDto:SyncProgressCourseEntryDto = {
-            userId: user.Id,
+            userId: user.Id.Id,
             courseId: saveDTO.courseId
         };
 
@@ -131,7 +131,7 @@ export class ProgressController {
     async getCourseProgress ( @Param('courseId', ParseUUIDPipe) courseId:string, @GetUser()user:User )
     {
         const getAllSectionsEntryDto:GetAllSectionsFromCourseEntryDto = {
-            userId: user.Id,
+            userId: user.Id.Id,
             courseId: courseId
         }
 
@@ -163,7 +163,7 @@ export class ProgressController {
     //Gets "trending" (latest) course seen by the user
     async getTrendingCourse(@GetUser() user:User)
     {
-        const getTrendingDto = {userId: user.Id};
+        const getTrendingDto = {userId: user.Id.Id};
 
         const getTrendingApplicationService = new ExceptionDecorator(
             new LoggingDecorator(

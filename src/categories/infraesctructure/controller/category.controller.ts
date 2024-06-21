@@ -12,15 +12,10 @@ import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.d
 import { User } from "src/user/domain/user"
 import { PaginationDto } from '../../../common/Infraestructure/dto/entry/pagination.dto';
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { CreateCategoryEntryDto } from "../dto/entry/create-category-entry.dto"
 import { OdmCategoryRepository } from "../repositories/odm-repositories/odm-category-repository"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmCategoryEntity } from "../entities/odm-entities/odm-category.entity"
-import { Category } from "src/categories/domain/categories"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { CategoryName } from "src/categories/domain/value-objects/category-title"
-import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { GetAllCategoriesService } from "../query-services/services/get-all-category.service"
 
 @ApiTags( 'Category' )
@@ -59,7 +54,7 @@ export class CategoryController
             ),
             new HttpExceptionHandler() 
         )
-        return ( await getAllCategoriesService.execute( { userId: user.Id , pagination} ) ).Value
+        return ( await getAllCategoriesService.execute( { userId: user.Id.Id , pagination} ) ).Value
     }
 
 

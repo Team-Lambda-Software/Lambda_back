@@ -185,7 +185,7 @@ export class CourseController
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
 
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id, category: resultCategory} )
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id.Id, category: resultCategory} )
         return result.Value
     }
 
@@ -255,7 +255,7 @@ export class CourseController
 
             const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.Id } )
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.Id.Id } )
         return result.Value
     }
 
@@ -275,7 +275,7 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { courseId: id, userId: user.Id } )
+        const result = await service.execute( { courseId: id, userId: user.Id.Id } )
         return result.Value
     }
 
@@ -288,7 +288,7 @@ export class CourseController
 
         if ( ( searchCourseParams.category || ( !searchCourseParams.category && !searchCourseParams.trainer ) ) )
         {
-            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.Id.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
             if ( searchCourseParams.filter == 'POPULAR' )
             {
@@ -325,7 +325,7 @@ export class CourseController
 
         }
 
-        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.Id.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
         if ( searchCourseParams.filter == 'POPULAR' )
         {

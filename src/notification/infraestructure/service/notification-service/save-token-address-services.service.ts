@@ -1,11 +1,11 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { SaveTokenAddressEntryApplicationDto } from "../dto/save-token-address-entry.application";
-import { INotificationAddressRepository } from "../interfaces/notification-address-repository.interface";
-import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
+import { INotificationAddressRepository } from "../../../application/repositories/notification-address-repository.interface";import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { OrmNotificationAddress } from "src/notification/infraestructure/entities/orm-entities/orm-notification-address";
+import { SaveTokenAddressEntryApplicationDto } from "./dto/entry/save-token-address-entry.application";
+import { SaveTokenDtoResponse } from "./dto/response/save-token-response";
 
-export class SaveTokenAddressApplicationService implements IApplicationService<SaveTokenAddressEntryApplicationDto, any> {
+export class SaveTokenAddressInfraService implements IApplicationService<SaveTokenAddressEntryApplicationDto, SaveTokenDtoResponse> {
         
     private readonly notiAddressRepository: INotificationAddressRepository
     

@@ -1,4 +1,4 @@
-import { ApplicationServiceEntryDto } from '../../../common/Application/application-services/dto/application-service-entry.dto';
+import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 
 export class GetNotificationsUserDtoEntryAplicationDto implements ApplicationServiceEntryDto {
     userId: string;

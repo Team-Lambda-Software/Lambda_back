@@ -140,7 +140,7 @@ export class CommentController
             const data: GetBlogCommentsServiceEntryDto = {
                 blogId: getCommentsQueryParams.blog,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id
+                userId: user.Id.Id
             } 
             const service =
                 new ExceptionDecorator(
@@ -158,7 +158,7 @@ export class CommentController
             const data: GetSectionCommentsServiceEntryDto = {
                 sectionId: getCommentsQueryParams.lesson,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id
+                userId: user.Id.Id
             } 
             const service =
                 new ExceptionDecorator(
@@ -220,7 +220,7 @@ export class CommentController
             const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
             const data: AddCommentToSectionServiceEntryDto = {
-                section: resultSection, userId: user.Id,
+                section: resultSection, userId: user.Id.Id,
                 comment: body, course: resultCourse
             }
             const result = await service.execute( data )
@@ -254,7 +254,7 @@ export class CommentController
             const resultBlog = blog.Value
             const data: AddCommentToBlogServiceEntryDto = {
                 blog: await this.odmBlogMapper.fromPersistenceToDomain(resultBlog), 
-                userId: user.Id,
+                userId: user.Id.Id,
                 comment: body
             }
             const result = await service.execute( data )

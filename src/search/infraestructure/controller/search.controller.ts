@@ -80,7 +80,7 @@ export class SearchController
         if ( !searchQueryParametersDto.tag ){
             searchQueryParametersDto.tag = []
         }
-        const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.Id, pagination: pagination, name: searchQueryParametersDto.term, tags: searchQueryParametersDto.tag }
+        const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.Id.Id, pagination: pagination, name: searchQueryParametersDto.term, tags: searchQueryParametersDto.tag }
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(

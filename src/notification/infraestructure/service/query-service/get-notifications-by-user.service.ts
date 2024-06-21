@@ -1,10 +1,11 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { INotificationAlertRepository } from "src/notification/application/interfaces/notification-alert-repository.interface"
-import { GetNotificationsUserDtoEntryAplicationDto } from "../dto/get-notifications-by-user.aplication.dto"
+import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface"
+import { GetNotificationsUserDtoEntryAplicationDto } from "./dto/entry/get-notifications-by-user.aplication.dto"
+import { OrmNotificationAlert } from "../../entities/orm-entities/orm-notification-alert"
 
-export class GetManyNotificationByUserApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
+export class GetManyNotificationByUserInfraService implements IApplicationService<ApplicationServiceEntryDto, OrmNotificationAlert[]> {
     private readonly notiAlertRepository: INotificationAlertRepository
 
     constructor(
@@ -13,7 +14,7 @@ export class GetManyNotificationByUserApplicationService implements IApplication
         this.notiAlertRepository = notiAlertRepository
     }
 
-    async execute(data: GetNotificationsUserDtoEntryAplicationDto): Promise<Result<any>> {
+    async execute(data: GetNotificationsUserDtoEntryAplicationDto): Promise<Result<OrmNotificationAlert[]>> {
         let {userId,...dataPagination}=data;
         dataPagination.page = dataPagination.page * dataPagination.perPage - dataPagination.perPage
         const notificationResult= await this.notiAlertRepository.findManyNotificationsByIdUser(userId,dataPagination)
