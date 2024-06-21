@@ -1,4 +1,5 @@
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
+import { Course } from "src/course/domain/course"
 
 
 
@@ -8,5 +9,5 @@ export interface AddSectionToCourseServiceEntryDto extends ApplicationServiceEnt
     description: string
     duration: number
     file: File
-    courseId: string
+    course: Course
 }

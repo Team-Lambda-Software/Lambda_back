@@ -1,3 +1,4 @@
+import { Category } from "src/categories/domain/categories"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 
 
@@ -10,7 +11,7 @@ export interface CreateCourseServiceEntryDto extends ApplicationServiceEntryDto
     weeksDuration: number
     minutesDuration: number
     level: number
-    categoryId: string
+    category: Category
     tags: string[]
     image: File
 }
