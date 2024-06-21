@@ -32,7 +32,7 @@ export class Blog extends AggregateRoot<BlogId>{
     protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[])
     {
         const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate,trainer, categoryId, tags)
-        super( id )
+        super( id, blogCreated)
     }
 
     protected applyEvent ( event: DomainEvent ): void
