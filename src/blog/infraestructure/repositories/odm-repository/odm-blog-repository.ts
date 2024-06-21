@@ -18,11 +18,13 @@ export class OdmBlogRepository{
     private readonly trainerModel: Model<OdmTrainerEntity>
     private readonly blogCommentModel: Model<OdmBlogCommentEntity>
     private readonly userModel: Model<OdmUserEntity>
-    constructor ( blogModel: Model<OdmBlogEntity>, categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>)
+    constructor ( blogModel: Model<OdmBlogEntity>, categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>, blogCommentModel: Model<OdmBlogCommentEntity>, userModel: Model<OdmUserEntity>)
     {
         this.blogModel = blogModel
         this.categoryModel = categoryModel
         this.trainerModel = trainerModel
+        this.blogCommentModel = blogCommentModel
+        this.userModel = userModel
 
     }
 
@@ -79,6 +81,16 @@ export class OdmBlogRepository{
         }
     }
 
+    async findBlogComments ( blogId: string, pagination: PaginationDto ): Promise<Result<OdmBlogCommentEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const comments = await this.blogCommentModel.find( { "blog.id": blogId } ).skip(page).limit(perPage).sort( { date: -1 } )
+            return Result.success<OdmBlogCommentEntity[]>( comments, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogCommentEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
     async findBlogCommentCount ( blogId: string ): Promise<Result<number>>
     {
         try{
@@ -89,9 +101,15 @@ export class OdmBlogRepository{
         }
     }
 
-    findBlogById ( id: string ): Promise<Result<Blog>>
+    async findBlogById ( id: string ): Promise<Result<OdmBlogEntity>>
     {
-        throw new Error( "Method not implemented." )
+        try{
+            const blog = await this.blogModel.findOne( { id: id } )
+            return Result.success<OdmBlogEntity>( blog, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity>( error, 500, "Internal Server Error" )
+        }
+
     }
     async findAllBlogs ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
     {
@@ -100,6 +118,23 @@ export class OdmBlogRepository{
             const blogs = await this.blogModel.find().skip(page).limit(perPage).sort( { publication_date: -1 } )
             return Result.success<OdmBlogEntity[]>( blogs, 200 )
         } catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
+    async findBlogsByTagsAndTitle ( searchTags: string[], title: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const query = {};
+            if (searchTags.length) {
+                query["tags"] = { $in: searchTags };
+            }
+            if (title) {
+                query["title"] = { $regex: title, $options: 'i' };
+            }
+            const blogs = await this.blogModel.find( query ).skip(page).limit(perPage).sort( { publication_date: -1 } )
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
             return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
         }
     }

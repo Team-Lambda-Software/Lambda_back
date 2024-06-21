@@ -16,7 +16,7 @@ import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { User } from "src/user/domain/user"
-import { DataSource } from "typeorm"
+import { DataSource, In } from "typeorm"
 import { AddCommentEntryDto } from "../dto/entry/add-comment-entry.dto"
 import { AddCommentToSectionServiceEntryDto } from "src/course/application/dto/param/add-comment-to-section-service-entry.dto"
 import { AddCommentToBlogApplicationService } from "src/blog/application/services/commands/add-comment-to-blog-application.service"
@@ -25,8 +25,6 @@ import { OrmBlogMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-
 import { OrmBlogCommentMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-comment-mapper"
 import { AddCommentToBlogServiceEntryDto } from "src/blog/application/dto/params/add-comment-to-blog-service-entry.dto"
 import { GetAllCommentsQueryParametersDto } from "../dto/queryParameters/get-all-comments-query-parameters.dto"
-import { GetBlogCommentsServiceEntryDto } from "src/blog/application/dto/params/get-blog-comments-service-entry.dto"
-import { GetBlogCommentsApplicationService } from "src/blog/application/services/queries/get-blog-comments.service"
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository"
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper"
 import { GetSectionCommentsApplicationService } from "src/course/application/services/queries/get-section-comments.service"
@@ -42,6 +40,10 @@ import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entit
 import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
 import { BlogCommentCreated } from "src/blog/domain/events/blog-comment-created-event"
 import { BlogComment } from "src/blog/domain/entities/blog-comment"
+import { OdmBlogCommentEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog-comment.entity"
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { GetBlogCommentsServiceEntryDto } from "src/blog/infraestructure/query-services/dto/params/get-blog-comments-service-entry.dto"
+import { GetBlogCommentsService } from "src/blog/infraestructure/query-services/services/get-blog-comments.service"
 
 
 
@@ -60,7 +62,9 @@ export class CommentController
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, 
             @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
             @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
-            @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity> )
+            @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
+            @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
+            @InjectModel('User') private userModel: Model<OdmUserEntity>)
     {
         this.courseRepository =
             new OrmCourseRepository(
@@ -91,7 +95,9 @@ export class CommentController
         this.odmBlogRepository = new OdmBlogRepository(
             blogModel,
             categoryModel,
-            trainerModel
+            trainerModel,
+            blogCommentModel,
+            userModel
         )
 
     }
@@ -111,9 +117,8 @@ export class CommentController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new GetBlogCommentsApplicationService(
-                            this.blogRepository,
-                            this.userRepository
+                        new GetBlogCommentsService(
+                            this.odmBlogRepository
                         ),
                         new NativeLogger( this.logger )
                     ),

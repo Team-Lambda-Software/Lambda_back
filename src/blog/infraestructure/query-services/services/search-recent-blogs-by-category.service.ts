@@ -19,6 +19,7 @@ export class SearchRecentBlogsByCategoryService implements IApplicationService<S
     }
     async execute ( data: SearchBlogsByCategoryServiceEntryDto ): Promise<Result<SearchBlogServiceResponseDto[]>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         let blogs
         if ( !data.categoryId )
             blogs = await this.blogRepository.findAllBlogs( data.pagination )

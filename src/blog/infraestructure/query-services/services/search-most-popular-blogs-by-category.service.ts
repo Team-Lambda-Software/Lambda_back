@@ -27,8 +27,13 @@ export class SearchMostPopularBlogsByCategoryService implements IApplicationServ
     }
     async execute ( data: SearchBlogsByCategoryServiceEntryDto ): Promise<Result<SearchBlogServiceResponseDto[]>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const blogsDict: {[key: string]: BlogPopularity} = {}
-        const blogs = await this.blogRepository.findBlogsByCategory( data.categoryId, data.pagination )
+        let blogs
+        if ( !data.categoryId )
+            blogs = await this.blogRepository.findAllBlogs( data.pagination )
+        else
+            blogs = await this.blogRepository.findBlogsByCategory( data.categoryId, data.pagination )
         if ( !blogs.isSuccess() )
         {
             return Result.fail<SearchBlogServiceResponseDto[]>( blogs.Error, blogs.StatusCode, blogs.Message )
@@ -37,7 +42,6 @@ export class SearchMostPopularBlogsByCategoryService implements IApplicationServ
         for ( const blog of blogs.Value )
         {
             const blogUsers = await this.blogRepository.findBlogCommentCount( blog.id )
-            console.log(blogUsers.Value)
             if ( !blogUsers.isSuccess() )
             {
                 return Result.fail<SearchBlogServiceResponseDto[]>( blogUsers.Error, blogUsers.StatusCode, blogUsers.Message )

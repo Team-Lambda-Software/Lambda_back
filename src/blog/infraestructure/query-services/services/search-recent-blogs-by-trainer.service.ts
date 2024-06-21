@@ -18,6 +18,7 @@ export class SearchRecentBlogsByTrainerService implements IApplicationService<Se
     }
     async execute ( data: SearchBlogsByTrainerServiceEntryDto ): Promise<Result<SearchBlogServiceResponseDto[]>>
     {
+        data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
         const blogs = await this.blogRepository.findBlogsByTrainer( data.trainerId, data.pagination )
         if ( !blogs.isSuccess() )
         {

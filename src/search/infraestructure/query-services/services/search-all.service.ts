@@ -6,19 +6,20 @@ import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
+import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
 
 
 
 
-export class SearchAllApplicationService implements IApplicationService<SearchAllServiceEntryDto, SearchAllServiceResponseDto>
+export class SearchAllService implements IApplicationService<SearchAllServiceEntryDto, SearchAllServiceResponseDto>
 {
 
     private readonly courseRepository: ICourseRepository
-    private readonly blogRepository: IBlogRepository
+    private readonly blogRepository: OdmBlogRepository
     private readonly categoryRepository: ICategoryRepository
     private readonly trainerRepository: ITrainerRepository
 
-    constructor ( courseRepository: ICourseRepository, blogRepository: IBlogRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository)
+    constructor ( courseRepository: ICourseRepository, blogRepository: OdmBlogRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository)
     {
         this.courseRepository = courseRepository
         this.blogRepository = blogRepository
@@ -71,23 +72,13 @@ export class SearchAllApplicationService implements IApplicationService<SearchAl
         {
             for ( const blog of resultBlogs.Value )
             {
-                const category = await this.categoryRepository.findCategoryById( blog.CategoryId.Value )
-                if ( !category.isSuccess() )
-                {
-                    return Result.fail<SearchAllServiceResponseDto>( category.Error, category.StatusCode, category.Message )
-                }
-                const trainer = await this.trainerRepository.findTrainerById( blog.Trainer.Id )
-                if ( !trainer.isSuccess() )
-                {
-                    return Result.fail<SearchAllServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
-                }
                 responseSearch.blogs.push( {
-                    id: blog.Id.Value,
-                    title: blog.Title.Value,
-                    image: blog.Images[ 0 ].Value,
-                    date: blog.PublicationDate.Value,
-                    category: category.Value.Name.Value,
-                    trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
+                    id: blog.id,
+                    title: blog.title,
+                    image: blog.images[ 0 ].url,
+                    date: blog.publication_date,
+                    category: blog.category.categoryName,
+                    trainer: blog.trainer.first_name + ' ' + blog.trainer.first_last_name + ' ' + blog.trainer.second_last_name,
                 } )
             }
         }

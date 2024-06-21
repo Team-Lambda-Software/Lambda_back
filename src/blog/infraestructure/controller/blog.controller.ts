@@ -6,7 +6,6 @@ import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmBlogRepository } from "../repositories/orm-repositories/orm-blog-repository"
 import { OrmBlogMapper } from "../mappers/orm-mappers/orm-blog-mapper"
 import { OrmBlogCommentMapper } from "../mappers/orm-mappers/orm-blog-comment-mapper"
-import { GetBlogApplicationService } from "src/blog/application/services/queries/get-blog.service"
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetBlogSwaggerResponseDto } from "../dto/response/get-blog-swagger-response.dto"
 import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swagger-response.dto"
@@ -44,6 +43,9 @@ import { SearchMostPopularBlogsByCategoryService } from "../query-services/servi
 import { SearchBlogsByTrainerServiceEntryDto } from "../query-services/dto/params/search-blogs-by-trainer-service-entry.dto"
 import { SearchMostPopularBlogsByTrainerService } from "../query-services/services/search-most-popular-blogs-by-trainer.service"
 import { SearchRecentBlogsByTrainerService } from "../query-services/services/search-recent-blogs-by-trainer.service"
+import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.entity"
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { GetBlogService } from "../query-services/services/get-blog.service"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -61,7 +63,9 @@ export class BlogController
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
         @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
-        @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity> )
+        @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
+        @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
+        @InjectModel('User') private userModel: Model<OdmUserEntity>)
     {
         this.blogRepository =
             new OrmBlogRepository(
@@ -87,7 +91,9 @@ export class BlogController
         this.odmBlogRepository = new OdmBlogRepository(
             blogModel,
             categoryModel,
-            trainerModel
+            trainerModel,
+            blogCommentModel,
+            userModel
         )
     }
 
@@ -95,7 +101,7 @@ export class BlogController
     @Post( 'create' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Crea un blog', type: GetBlogSwaggerResponseDto } )
+    @ApiOkResponse( { description: 'Crea un blog' } )
     @ApiConsumes( 'multipart/form-data' )
     @ApiBody( {
         schema: {
@@ -131,7 +137,6 @@ export class BlogController
                             this.blogRepository,
                             this.idGenerator,
                             this.trainerRepository,
-                            this.categoryRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -164,10 +169,8 @@ export class BlogController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetBlogApplicationService(
-                        this.blogRepository,
-                        this.categoryRepository,
-                        this.trainerRepository
+                    new GetBlogService(
+                        this.odmBlogRepository
                     ),
                     new NativeLogger( this.logger )
                 ),
