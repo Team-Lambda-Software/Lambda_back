@@ -88,4 +88,70 @@ export class OdmCourseRepository {
             return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
         }
     }
+
+    async findCourseById ( courseId: string ): Promise<Result<OdmCourseEntity>>{
+        try{
+            const course = await this.courseModel.findOne( { id: courseId } )
+            return Result.success<OdmCourseEntity>( course, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity>( error, 500, error.detail )
+        }
+    }
+
+    async findSectionComments ( sectionId: string, pagination: PaginationDto): Promise<Result<OdmSectionCommentEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const comments = await this.sectionCommentModel.find( { "section.id": sectionId } ).skip(page).limit(perPage).sort( { date: -1 } )
+            return Result.success<OdmSectionCommentEntity[]>( comments, 200 )
+        }catch (error){
+            return Result.fail<OdmSectionCommentEntity[]>( error, 500, error.detail )
+        }
+    }
+
+    async findCoursesByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const query = {};
+            if (categoryId) {
+                query["category.id"] = categoryId;
+            }
+            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1 } )
+            return Result.success<OdmCourseEntity[]>( courses, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
+        }
+    }	
+
+    async findCoursesByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const query = {};
+            if (trainerId) {
+                query["trainer.id"] = trainerId;
+            }
+            const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1 } )
+            return Result.success<OdmCourseEntity[]>( courses, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
+        }
+    }
+
+    async findSectionById ( sectionId: string ): Promise<Result<{id: string, name: string, duration: number, description: string, video: string}>>{
+        try{
+            const course = await this.courseModel.findOne( { 'sections.id': sectionId } )
+            const section = course.sections.find( section => section.id === sectionId )
+            return Result.success<{id: string, name: string, duration: number, description: string, video: string}>( section, 200 )
+        }catch (error){
+            return Result.fail<{id: string, name: string, duration: number, description: string, video: string}>( error, 500, error.detail )
+        }
+    }
+
+    async findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>{
+        try{
+            const course = await this.courseModel.findOne( { 'sections.id': sectionId } )
+            return Result.success<OdmCourseEntity>( course, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity>( error, 500, error.detail )
+        }
+    }
 }

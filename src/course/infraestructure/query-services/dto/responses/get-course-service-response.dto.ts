@@ -24,8 +24,7 @@ export interface GetCourseServiceResponseDto {
         id: string
         title: string
         content: string
-        video?: string
-        image?: string
+        video: string
     }[]
 
 }
