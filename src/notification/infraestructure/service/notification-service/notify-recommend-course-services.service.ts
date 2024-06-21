@@ -2,15 +2,15 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { INotificationAddressRepository } from "../interfaces/notification-address-repository.interface";
-import { INotificationAlertRepository } from "../interfaces/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../../../application/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../../application/repositories/notification-alert-repository.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { randomInt } from "crypto";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
 import { OrmNotificationAlert } from "src/notification/infraestructure/entities/orm-entities/orm-notification-alert";
 
-export class NotifyRecommendCourseApplicationService implements IApplicationService<ApplicationServiceEntryDto, any> {
+export class NotifyRecommendCourseInfraService implements IApplicationService<ApplicationServiceEntryDto, any> {
     
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository

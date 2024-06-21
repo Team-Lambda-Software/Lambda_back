@@ -1,8 +1,7 @@
 import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
-import { SaveTokenDto } from "../dto/entry/save-token.infraestructure.dto";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
-import { OrmNotificationAddressRepository } from "../repositories/orm-notification-repository";
+import { OrmNotificationAddressRepository } from "../repositories/address-notification/orm-notification-address-repository";
 import { DataSource } from "typeorm";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
@@ -10,33 +9,33 @@ import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { OrmNotificationAlertRepository } from "../repositories/orm-notification-alert-repository";
+import { OrmNotificationAlertRepository } from "../repositories/alert-notification/orm-notification-alert-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { SaveTokenAddressApplicationService } from "src/notification/application/service/save-token-address-services.service";
-import { NotifyGoodDayApplicationService } from "src/notification/application/service/notify-good-day-services.service";
-import { NotifyRecommendCourseApplicationService } from "src/notification/application/service/notify-recommend-course-services.service";
+import { SaveTokenAddressInfraService } from "src/notification/infraestructure/service/notification-service/save-token-address-services.service";
+import { NotifyGoodDayInfraService } from "src/notification/infraestructure/service/notification-service/notify-good-day-services.service";
+import { NotifyRecommendCourseInfraService } from "src/notification/infraestructure/service/notification-service/notify-recommend-course-services.service";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
-import { SaveTokenSwaggerResponseDto } from "../dto/response/save-token-address-swagger-response.dto";
+import { SaveTokenSwaggerResponseDto } from "./dto/response/save-token-address-swagger-response.dto";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { INotificationAddressRepository } from "src/notification/application/interfaces/notification-address-repository.interface";
-import { INotificationAlertRepository } from "src/notification/application/interfaces/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "src/notification/application/repositories/notification-address-repository.interface";
+import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
-import { GetNotificationsUserDto } from "../dto/entry/get-notifications-by-user.entry.dto";
-import { GetManyNotificationByUserApplicationService } from "src/notification/application/service/get-notifications-by-user.service";
-import { GetNumberNotificationNotSeenByUserApplicationService } from "src/notification/application/service/get-notifications-count-not-readed.service";
-import { GetNotificationsUserSwaggerResponse } from "../dto/response/get-notifications-by-user.response.dto";
-import { GetNotReadedNotificationSwaggerResponse } from "../dto/response/get-not-readed.response.dto";
-import { GetNotificationByIdApplicationService } from "src/notification/application/service/get-notification-by-notification-id.service";
-import { GetNotificationByNotificationIdSwaggerResponse } from "../dto/response/get-notification-by-id.response";
+import { GetManyNotificationByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-by-user.service";
+import { GetNumberNotificationNotSeenByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-count-not-readed.service";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { GetNotificationByIdInfraService } from "../service/query-service/get-notification-by-notification-id.service";
+import { GetNotificationsUserDto } from "./dto/entry/get-notifications-by-user.entry.dto";
+import { GetNotReadedNotificationSwaggerResponse } from "./dto/response/get-not-readed.response.dto";
+import { GetNotificationByNotificationIdSwaggerResponse } from "./dto/response/get-notification-by-id.response";
+import { GetNotificationsUserSwaggerResponse } from "./dto/response/get-notifications-by-user.response.dto";
+import { SaveTokenDto } from "./dto/entry/save-token.infraestructure.dto";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -75,7 +74,7 @@ export class NotificationController {
     async getUserNotificationsNotReaded( @GetUser() user ) {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetNumberNotificationNotSeenByUserApplicationService(
+                new GetNumberNotificationNotSeenByUserInfraService(
                     this.notiAlertRepository
                 ),
                 new NativeLogger(this.logger)
@@ -97,7 +96,7 @@ export class NotificationController {
         let dataentry = { notificationId: id, userId: user.Id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetNotificationByIdApplicationService(
+                new GetNotificationByIdInfraService(
                     this.notiAlertRepository
                 ),
                 new NativeLogger(this.logger)
@@ -118,7 +117,7 @@ export class NotificationController {
         let dataentry={ ...getNotifications, userId:user.Id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetManyNotificationByUserApplicationService(
+                new GetManyNotificationByUserInfraService(
                     this.notiAlertRepository
                 ),
                 new NativeLogger(this.logger)
@@ -145,7 +144,7 @@ export class NotificationController {
     async goodDayNotification() {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new NotifyGoodDayApplicationService(
+                new NotifyGoodDayInfraService(
                     this.notiAlertRepository,
                     this.notiAddressRepository,
                     this.uuidGenerator,
@@ -163,7 +162,7 @@ export class NotificationController {
     async recommendCoursesRandomNotification() {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new NotifyRecommendCourseApplicationService(   
+                new NotifyRecommendCourseInfraService(   
                     this.notiAlertRepository,
                     this.notiAddressRepository,
                     this.courseRepository,
@@ -185,7 +184,7 @@ export class NotificationController {
         const data = { userId: user.Id, ...saveTokenDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new SaveTokenAddressApplicationService( this.notiAddressRepository ),
+                new SaveTokenAddressInfraService( this.notiAddressRepository ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()   
