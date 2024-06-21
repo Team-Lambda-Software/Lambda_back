@@ -7,6 +7,7 @@ import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.in
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 
 
 
@@ -14,18 +15,13 @@ import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-rep
 export class SearchAllService implements IApplicationService<SearchAllServiceEntryDto, SearchAllServiceResponseDto>
 {
 
-    private readonly courseRepository: ICourseRepository
+    private readonly courseRepository: OdmCourseRepository
     private readonly blogRepository: OdmBlogRepository
-    private readonly categoryRepository: ICategoryRepository
-    private readonly trainerRepository: ITrainerRepository
 
-    constructor ( courseRepository: ICourseRepository, blogRepository: OdmBlogRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository)
+    constructor ( courseRepository: OdmCourseRepository, blogRepository: OdmBlogRepository)
     {
         this.courseRepository = courseRepository
         this.blogRepository = blogRepository
-        this.categoryRepository = categoryRepository
-        this.trainerRepository = trainerRepository
-
     }
 
     // TODO: Search the progress if exists one for that user
@@ -48,23 +44,13 @@ export class SearchAllService implements IApplicationService<SearchAllServiceEnt
         {
             for ( const course of resultCourses.Value )
             {
-                const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
-                if ( !category.isSuccess() )
-                {
-                    return Result.fail<SearchAllServiceResponseDto>( category.Error, category.StatusCode, category.Message )
-                }
-                const trainer = await this.trainerRepository.findTrainerById( course.Trainer.Id )
-                if ( !trainer.isSuccess() )
-                {
-                    return Result.fail<SearchAllServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
-                }
                 responseSearch.courses.push( {
-                    id: course.Id.Value,
-                    title: course.Name.Value,
-                    image: course.Image.Value,
-                    date: course.Date.Value,
-                    category: category.Value.Name.Value,
-                    trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
+                    id: course.id,
+                    title: course.name,
+                    image: course.image,
+                    date: course.date,
+                    category: course.category.categoryName,
+                    trainer: course.trainer.first_name + ' ' + course.trainer.first_last_name + ' ' + course.trainer.second_last_name,
                 } )
             }
         }

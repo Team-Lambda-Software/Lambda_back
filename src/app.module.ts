@@ -19,6 +19,8 @@ import { TrainerSchema } from './trainer/infraestructure/entities/odm-entities/o
 import { CategorySchema } from './categories/infraesctructure/entities/odm-entities/odm-category.entity'
 import { BlogSchema } from './blog/infraestructure/entities/odm-entities/odm-blog.entity'
 import { BlogCommentSchema } from './blog/infraestructure/entities/odm-entities/odm-blog-comment.entity'
+import { CourseSchema } from './course/infraestructure/entities/odm-entities/odm-course.entity'
+import { SectionCommentSchema } from './course/infraestructure/entities/odm-entities/odm-section-comment.entity'
 
 @Module( {
   imports: [
@@ -63,6 +65,18 @@ import { BlogCommentSchema } from './blog/infraestructure/entities/odm-entities/
       {
         name: 'BlogComment',
         schema: BlogCommentSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'Course',
+        schema: CourseSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'SectionComment',
+        schema: SectionCommentSchema,
       }
     ])
 
