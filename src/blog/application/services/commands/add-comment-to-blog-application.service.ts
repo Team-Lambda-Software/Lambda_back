@@ -29,12 +29,7 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
     // TODO: Search the progress if exists one for that user
     async execute ( data: AddCommentToBlogServiceEntryDto ): Promise<Result<string>>
     {
-        const blog = await this.blogRepository.findBlogById( data.blogId )
-        if ( !blog.isSuccess() )
-        {
-            return Result.fail<string>( blog.Error, blog.StatusCode, blog.Message )
-        }
-        const blogValue = blog.Value
+        const blogValue = data.blog
         const comment = blogValue.createComment( BlogCommentId.create(await this.idGenerator.generateId()), data.userId, BlogCommentText.create(data.comment), BlogCommentDate.create(new Date()) )
         const result = await this.blogRepository.addCommentToBlog( comment )
         if ( !result.isSuccess() )

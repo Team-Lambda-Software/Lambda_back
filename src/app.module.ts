@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { ormDatabaseProvider } from './common/Infraestructure/providers/db-providers/db-provider'
+import { odmDataBaseProviders, ormDatabaseProvider } from './common/Infraestructure/providers/db-providers/db-provider'
 import { UserController } from './user/infraestructure/controller/user.controller'
 import { AuthController } from './auth/infraestructure/controller/auth.controller';
 import { JwtModule } from '@nestjs/jwt';
@@ -13,17 +13,58 @@ import { CategoryController } from './categories/infraesctructure/controller/cat
 import { SearchController } from './search/infraestructure/controller/search.controller'
 import { ProgressController } from './progress/infraestructure/controller/progress.controller'
 import { CommentController } from './comment/infraestructure/controller/comment.controller'
+import { MongooseModule } from '@nestjs/mongoose'
+import { OdmUserEntity, UserSchema } from './user/infraestructure/entities/odm-entities/odm-user.entity'
+import { TrainerSchema } from './trainer/infraestructure/entities/odm-entities/odm-trainer.entity'
+import { CategorySchema } from './categories/infraesctructure/entities/odm-entities/odm-category.entity'
+import { BlogSchema } from './blog/infraestructure/entities/odm-entities/odm-blog.entity'
+import { BlogCommentSchema } from './blog/infraestructure/entities/odm-entities/odm-blog-comment.entity'
 
 @Module( {
   imports: [
+
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_DB,
+      {
+        dbName: 'lambdaMongoDb',
+      }),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: {
         expiresIn: '48h'
       }
-    })
+    }),
+    MongooseModule.forFeature([
+      {
+        name: 'User',
+        schema: UserSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'Trainer',
+        schema: TrainerSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'Category',
+        schema: CategorySchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'Blog',
+        schema: BlogSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'BlogComment',
+        schema: BlogCommentSchema,
+      }
+    ])
 
   ],
   controllers: [
@@ -39,7 +80,8 @@ import { CommentController } from './comment/infraestructure/controller/comment.
     CommentController
   ],
   providers: [     
-    ormDatabaseProvider
+    ormDatabaseProvider,
+    odmDataBaseProviders
   ],
 })
 

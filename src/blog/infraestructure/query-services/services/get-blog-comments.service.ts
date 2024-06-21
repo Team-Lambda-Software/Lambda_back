@@ -1,22 +1,21 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { GetBlogCommentsServiceEntryDto } from "../../dto/params/get-blog-comments-service-entry.dto"
-import { GetBlogCommentsServiceResponseDto } from "../../dto/responses/get-blog-comments-service-response.dto"
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
+import { GetBlogCommentsServiceEntryDto } from "../dto/params/get-blog-comments-service-entry.dto"
+import { GetBlogCommentsServiceResponseDto } from "../dto/responses/get-blog-comments-service-response.dto"
+import { OdmBlogRepository } from "../../repositories/odm-repository/odm-blog-repository"
 
 
 
 
-export class GetBlogCommentsApplicationService implements IApplicationService<GetBlogCommentsServiceEntryDto, GetBlogCommentsServiceResponseDto[]> 
+export class GetBlogCommentsService implements IApplicationService<GetBlogCommentsServiceEntryDto, GetBlogCommentsServiceResponseDto[]> 
 {
-    private readonly blogRepository: IBlogRepository
-    private readonly userRepository: IUserRepository
+    private readonly blogRepository: OdmBlogRepository
 
-    constructor ( blogRepository: IBlogRepository, userRepository: IUserRepository)
+    constructor ( blogRepository: OdmBlogRepository)
     {
         this.blogRepository = blogRepository
-        this.userRepository = userRepository
     }
 
     async execute ( data: GetBlogCommentsServiceEntryDto ): Promise<Result<GetBlogCommentsServiceResponseDto[]>>
@@ -32,16 +31,11 @@ export class GetBlogCommentsApplicationService implements IApplicationService<Ge
 
         for ( const comment of comments.Value )
         {
-            const user = await this.userRepository.findUserById( comment.UserId )
-            if ( !user.isSuccess() )
-            {
-                return Result.fail<GetBlogCommentsServiceResponseDto[]>( user.Error, user.StatusCode, user.Message )
-            }
             response.push( {
-                id: comment.Id.Value,
-                user: user.Value.Name,
-                body: comment.Text.Value,
-                date: comment.Date.Value
+                id: comment.id,
+                user: comment.user.name,
+                body: comment.text,
+                date: comment.date
             } )
         }
 
