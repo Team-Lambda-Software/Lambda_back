@@ -109,7 +109,7 @@ export class UserController {
     if (updateEntryDTO.image) {
       image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
     }
-    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id }
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id.Id }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
@@ -148,7 +148,7 @@ export class UserController {
     type: FolloUnfollowSwaggerResponseDto,
   })
   async followTrainer(@Param('trainerID') id: string, @GetUser() user: User) {
-    const userTrainerFollowDTO = { userId: user.Id, trainerId: id };
+    const userTrainerFollowDTO = { userId: user.Id.Id, trainerId: id };
 
     const followService = new ExceptionDecorator(
       new LoggingDecorator(
