@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
-import { DataSource } from "typeorm"
+import { DataSource, Not } from "typeorm"
 import { OrmCourseRepository } from "../repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
@@ -57,6 +57,12 @@ import { SearchRecentCoursesByCategoryService } from "../query-services/services
 import { SearchCoursesByTrainerServiceEntryDto } from "../query-services/dto/param/search-courses-by-trainer-service-entry.dto"
 import { SearchMostPopularCoursesByTrainerService } from "../query-services/services/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerService } from "../query-services/services/search-recent-courses-by-trainer.service"
+import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
+import { Category } from "src/categories/domain/categories"
+import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { CategoryName } from "src/categories/domain/value-objects/category-title"
+import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
+import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 
 
 @ApiTags( 'Course' )
@@ -67,11 +73,12 @@ export class CourseController
     private readonly courseRepository: OrmCourseRepository
     private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
-    private readonly categoryRepository: OrmCategoryRepository
+    private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly odmCourseRepository: OdmCourseRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
+    private readonly odmCourseMapper: OdmCourseMapper
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
@@ -99,10 +106,6 @@ export class CourseController
                 new UuidGenerator() )
         this.auditingRepository = new OrmAuditingRepository( dataSource )
 
-        this.categoryRepository = new OrmCategoryRepository(
-            new OrmCategoryMapper(),
-            dataSource )
-
         this.trainerRepository = new OrmTrainerRepository(
             new OrmTrainerMapper(),
             dataSource
@@ -114,6 +117,7 @@ export class CourseController
 
         this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
 
+        this.odmCourseMapper = new OdmCourseMapper()
     }
 
     @Post( 'create' )
@@ -158,7 +162,6 @@ export class CourseController
                             this.courseRepository,
                             this.idGenerator,
                             this.trainerRepository,
-                            this.categoryRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -174,7 +177,15 @@ export class CourseController
             return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
         }
         const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id } )
+        const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
+        if ( !category.isSuccess() )
+        {
+            throw new NotFoundException( category.Error )
+        }
+        const resultCategory = Category.create(CategoryId.create(category.Value.id), 
+        CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
+
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id, category: resultCategory} )
         return result.Value
     }
 
@@ -237,7 +248,14 @@ export class CourseController
             }
         }
 
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.Id } )
+        const course = await this.odmCourseRepository.findCourseBySectionId( courseId )
+            if (!course){
+                throw new NotFoundException('No se encontro el curso')
+            }
+
+            const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
+
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.Id } )
         return result.Value
     }
 
@@ -278,10 +296,8 @@ export class CourseController
                     new ExceptionDecorator(
                         new LoggingDecorator(
                             new SearchMostPopularCoursesByCategoryService(
-                                this.courseRepository,
-                                this.progressRepository,
-                                this.categoryRepository,
-                                this.trainerRepository
+                                this.odmCourseRepository,
+                                this.progressRepository
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -296,9 +312,7 @@ export class CourseController
                     new ExceptionDecorator(
                         new LoggingDecorator(
                             new SearchRecentCoursesByCategoryService(
-                                this.courseRepository,
-                                this.categoryRepository,
-                                this.trainerRepository
+                                this.odmCourseRepository,
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -319,10 +333,8 @@ export class CourseController
                 new ExceptionDecorator(
                     new LoggingDecorator(
                         new SearchMostPopularCoursesByTrainerService(
-                            this.courseRepository,
-                            this.progressRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
+                            this.odmCourseRepository,
+                            this.progressRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -337,9 +349,7 @@ export class CourseController
                 new ExceptionDecorator(
                     new LoggingDecorator(
                         new SearchRecentCoursesByTrainerService(
-                            this.courseRepository,
-                            this.categoryRepository,
-                            this.trainerRepository
+                            this.odmCourseRepository
                         ),
                         new NativeLogger( this.logger )
                     ),

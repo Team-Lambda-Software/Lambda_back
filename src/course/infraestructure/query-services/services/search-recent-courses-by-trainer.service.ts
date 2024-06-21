@@ -2,21 +2,16 @@ import { ICourseRepository } from 'src/course/domain/repositories/course-reposit
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
 import { Result } from 'src/common/Domain/result-handler/Result'
 import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
-import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
-import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
 import { SearchCoursesByTrainerServiceEntryDto } from '../dto/param/search-courses-by-trainer-service-entry.dto'
+import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
 
 
 export class SearchRecentCoursesByTrainerService implements IApplicationService<SearchCoursesByTrainerServiceEntryDto, SearchCourseServiceResponseDto[]>{
-    private readonly courseRepository: ICourseRepository
-    private readonly categoryRepository: ICategoryRepository
-    private readonly trainerRepository: ITrainerRepository
+    private readonly courseRepository: OdmCourseRepository
 
-    constructor ( courseRepository: ICourseRepository, categoryRepository: ICategoryRepository, trainerRepository: ITrainerRepository)
+    constructor ( courseRepository: OdmCourseRepository)
     {
         this.courseRepository = courseRepository
-        this.categoryRepository = categoryRepository
-        this.trainerRepository = trainerRepository
 
     }
     async execute ( data: SearchCoursesByTrainerServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
@@ -30,23 +25,14 @@ export class SearchRecentCoursesByTrainerService implements IApplicationService<
         const responseCourses: SearchCourseServiceResponseDto[] = []
 
         for (const course of courses.Value){
-            const category = await this.categoryRepository.findCategoryById( course.CategoryId.Value )
-            if ( !category.isSuccess() )
-            {
-                return Result.fail<SearchCourseServiceResponseDto[]>( category.Error, category.StatusCode, category.Message )
-            }
-            const trainer = await this.trainerRepository.findTrainerById( course.Trainer.Id )
-            if ( !trainer.isSuccess() )
-            {
-                return Result.fail<SearchCourseServiceResponseDto[]>( trainer.Error, trainer.StatusCode, trainer.Message )
-            }
+            
             responseCourses.push({
-                id: course.Id.Value,
-                title: course.Name.Value,
-                image: course.Image.Value,
-                date: course.Date.Value,
-                category: category.Value.Name.Value,
-                trainer: trainer.Value.FirstName + ' ' + trainer.Value.FirstLastName + ' ' + trainer.Value.SecondLastName,
+                id: course.id,
+                title: course.name,
+                image: course.image,
+                date: course.date,
+                category: course.category.categoryName,
+                trainer: course.trainer.first_name + ' ' + course.trainer.first_last_name + ' ' + course.trainer.second_last_name,
             })
         }
 
