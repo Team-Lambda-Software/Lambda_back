@@ -9,6 +9,7 @@ import { ProgressSection } from "src/progress/domain/entities/progress-section"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 import { OdmCourseRepository } from "../../repositories/odm-repositories/odm-course-repository"
+import { CourseQueryRepository } from "../../repositories/course-query-repository.interface"
 
 
 
@@ -16,10 +17,10 @@ import { OdmCourseRepository } from "../../repositories/odm-repositories/odm-cou
 export class GetCourseService implements IApplicationService<GetCourseServiceEntryDto, GetCourseServiceResponseDto>
 {
 
-    private readonly courseRepository: OdmCourseRepository
+    private readonly courseRepository: CourseQueryRepository
 
 
-    constructor ( courseRepository: OdmCourseRepository )
+    constructor ( courseRepository: CourseQueryRepository )
     {
 
         this.courseRepository = courseRepository

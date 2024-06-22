@@ -25,6 +25,7 @@ import { SectionDescription } from "./entities/section/value-objects/section-des
 import { SectionDuration } from "./entities/section/value-objects/section-duration"
 import { SectionVideo } from "./entities/section/value-objects/section-video"
 import { SectionCreated } from "./events/section-created-event"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -140,7 +141,7 @@ export class Course extends AggregateRoot<CourseId>
         this.sections = sections
     }
 
-    public createComment (id: SectionCommentId, userId: string, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{
+    public createComment (id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{
         const comment: SectionComment = SectionComment.create(id, userId, text, date, sectionId)
         const sectionCommentCreated: SectionCommentCreated = SectionCommentCreated.create(id, userId, text, date, sectionId,this.Id)
         this.onEvent(sectionCommentCreated)

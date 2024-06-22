@@ -4,6 +4,7 @@ import { BlogCommentText } from "./value-objects/blog-comment-text"
 import { BlogCommentDate } from "./value-objects/blog-comment-date"
 import { BlogId } from "../value-objects/blog-id"
 import { InvalidBlogCommentException } from "./exceptions/invalid-blog-comment-exception"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -11,7 +12,7 @@ import { InvalidBlogCommentException } from "./exceptions/invalid-blog-comment-e
 export class BlogComment extends Entity<BlogCommentId>
 {
 
-    private userId: string
+    private userId: UserId
     private text: BlogCommentText
     private date: BlogCommentDate
     private blogId: BlogId
@@ -36,7 +37,7 @@ export class BlogComment extends Entity<BlogCommentId>
         return this.blogId
     }
 
-    protected constructor ( id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId )
+    protected constructor ( id: BlogCommentId, userId: UserId, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId )
     {
         super( id )
         this.userId = userId
@@ -53,7 +54,7 @@ export class BlogComment extends Entity<BlogCommentId>
 
     }
 
-    static create ( id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId ): BlogComment
+    static create ( id: BlogCommentId, userId: UserId, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId ): BlogComment
     {
         return new BlogComment( id, userId, text, date, blogId)
     }

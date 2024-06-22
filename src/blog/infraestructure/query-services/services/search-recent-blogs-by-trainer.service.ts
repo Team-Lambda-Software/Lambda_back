@@ -6,12 +6,13 @@ import { ICategoryRepository } from 'src/categories/domain/repositories/category
 import { SearchBlogsByTrainerServiceEntryDto } from '../dto/params/search-blogs-by-trainer-service-entry.dto'
 import { SearchBlogServiceResponseDto } from '../dto/responses/search-blog-service-response.dto'
 import { OdmBlogRepository } from '../../repositories/odm-repository/odm-blog-repository'
+import { BlogQueryRepository } from '../../repositories/blog-query-repository.interface'
 
 
 export class SearchRecentBlogsByTrainerService implements IApplicationService<SearchBlogsByTrainerServiceEntryDto, SearchBlogServiceResponseDto[]>{
-    private readonly blogRepository: OdmBlogRepository
+    private readonly blogRepository: BlogQueryRepository
 
-    constructor ( blogRepository: OdmBlogRepository)
+    constructor ( blogRepository: BlogQueryRepository)
     {
         this.blogRepository = blogRepository
 

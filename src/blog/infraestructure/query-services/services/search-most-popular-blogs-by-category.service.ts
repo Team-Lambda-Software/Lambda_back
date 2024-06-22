@@ -9,6 +9,7 @@ import { SearchBlogsByCategoryServiceEntryDto } from '../dto/params/search-blogs
 import { SearchBlogServiceResponseDto } from '../dto/responses/search-blog-service-response.dto'
 import { OdmBlogRepository } from '../../repositories/odm-repository/odm-blog-repository'
 import { OdmBlogEntity } from '../../entities/odm-entities/odm-blog.entity'
+import { BlogQueryRepository } from '../../repositories/blog-query-repository.interface'
 
 interface BlogPopularity {
     blog: OdmBlogEntity
@@ -18,9 +19,9 @@ interface BlogPopularity {
 
 
 export class SearchMostPopularBlogsByCategoryService implements IApplicationService<SearchBlogsByCategoryServiceEntryDto, SearchBlogServiceResponseDto[]>{
-    private readonly blogRepository: OdmBlogRepository
+    private readonly blogRepository: BlogQueryRepository
 
-    constructor ( blogRepository: OdmBlogRepository)
+    constructor ( blogRepository: BlogQueryRepository)
     {
         this.blogRepository = blogRepository
 

@@ -10,6 +10,7 @@ import { SectionCommentText } from "src/course/domain/entities/section-comment/v
 import { SectionCommentDate } from "src/course/domain/entities/section-comment/value-objects/section-comment-date"
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -33,7 +34,7 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
     {
         const section: Section = data.section
         const course = data.course
-        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), data.userId, SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), data.section.Id )
+        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), data.section.Id )
         const result = await this.courseRepository.addCommentToSection( comment )
         if ( !result.isSuccess() )
         {

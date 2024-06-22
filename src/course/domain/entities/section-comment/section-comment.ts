@@ -4,6 +4,7 @@ import { SectionCommentText } from "./value-objects/section-comment-text"
 import { SectionCommentDate } from "./value-objects/section-comment-date"
 import { InvalidSectionCommentException } from "./exceptions/invalid-section-comment-exception"
 import { SectionId } from "../section/value-objects/section-id"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -11,7 +12,7 @@ import { SectionId } from "../section/value-objects/section-id"
 export class SectionComment extends Entity<SectionCommentId>
 {
 
-    private userId: string
+    private userId: UserId
     private text: SectionCommentText
     private date: SectionCommentDate
     private sectionId: SectionId
@@ -36,7 +37,7 @@ export class SectionComment extends Entity<SectionCommentId>
         return this.sectionId
     }
 
-    protected constructor ( id: SectionCommentId, userId: string, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId )
+    protected constructor ( id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId )
     {
         super( id )
         this.userId = userId
@@ -53,7 +54,7 @@ export class SectionComment extends Entity<SectionCommentId>
 
     }
 
-    static create ( id: SectionCommentId, userId: string, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId ): SectionComment
+    static create ( id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId ): SectionComment
     {
         return new SectionComment( id, userId, text, date, sectionId)
     }
