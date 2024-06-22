@@ -1,5 +1,6 @@
 import { Category } from "src/categories/domain/categories"
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
+import { CategoryQueryRepository } from "src/categories/infraesctructure/repositories/category-query-repository.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 

@@ -10,11 +10,11 @@ export class UserObjectMother {
      
     static async createNormalUser(){
         const idGenerator = new UuidGenerator()
-
+        
         const normalUser = User.create(
             UserId.create(await idGenerator.generateId()), 
             UserName.create('John Doe Doe'),
-            UserPhone.create('+58 123 123 123'),
+            UserPhone.create('+58 123 123'),
             UserEmail.create('bKQkZ@example.com')
         )
         
