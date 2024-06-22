@@ -9,11 +9,12 @@ import { Section } from "src/course/domain/entities/section/section"
 import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
+import { CourseQueryRepository } from "../course-query-repository.interface"
 
 
 
 
-export class OdmCourseRepository {
+export class OdmCourseRepository implements CourseQueryRepository{
 
     private readonly courseModel: Model<OdmCourseEntity>
     private readonly sectionCommentModel: Model<OdmSectionCommentEntity>

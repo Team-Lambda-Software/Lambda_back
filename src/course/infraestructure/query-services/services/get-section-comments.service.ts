@@ -5,15 +5,16 @@ import { GetSectionCommentsServiceEntryDto } from "../dto/param/get-section-comm
 import { GetSectionCommentsServiceResponseDto } from "../dto/responses/get-section-comments-service-response.dto"
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { OdmCourseRepository } from "../../repositories/odm-repositories/odm-course-repository"
+import { CourseQueryRepository } from "../../repositories/course-query-repository.interface"
 
 
 
 
 export class GetSectionCommentsService implements IApplicationService<GetSectionCommentsServiceEntryDto, GetSectionCommentsServiceResponseDto[]> 
 {
-    private readonly courseRepository: OdmCourseRepository
+    private readonly courseRepository: CourseQueryRepository
 
-    constructor ( courseRepository: OdmCourseRepository)
+    constructor ( courseRepository: CourseQueryRepository)
     {
         this.courseRepository = courseRepository
     }
