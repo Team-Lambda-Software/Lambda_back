@@ -134,13 +134,13 @@ export class CommentController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Obtiene todos los comentarios de donde lo solicites', type: GetAllCommentsSwaggerResponseDto, isArray: true} )
-    async getComments (@GetUser() user: User, @Query() getCommentsQueryParams: GetAllCommentsQueryParametersDto)
+    async getComments (@GetUser() user, @Query() getCommentsQueryParams: GetAllCommentsQueryParametersDto)
     {
         if (getCommentsQueryParams.blog){
             const data: GetBlogCommentsServiceEntryDto = {
                 blogId: getCommentsQueryParams.blog,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id.Id
+                userId: user.id
             } 
             const service =
                 new ExceptionDecorator(
@@ -158,7 +158,7 @@ export class CommentController
             const data: GetSectionCommentsServiceEntryDto = {
                 sectionId: getCommentsQueryParams.lesson,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id.Id
+                userId: user.id
             } 
             const service =
                 new ExceptionDecorator(
@@ -180,7 +180,7 @@ export class CommentController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega un comentario' } )
-    async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user: User )
+    async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user )
     {
         const { target, targetType, body } = entryData
         const eventBus = EventBus.getInstance();
@@ -220,7 +220,7 @@ export class CommentController
             const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
             const data: AddCommentToSectionServiceEntryDto = {
-                section: resultSection, userId: user.Id.Id,
+                section: resultSection, userId: user.id,
                 comment: body, course: resultCourse
             }
             const result = await service.execute( data )
@@ -254,7 +254,7 @@ export class CommentController
             const resultBlog = blog.Value
             const data: AddCommentToBlogServiceEntryDto = {
                 blog: await this.odmBlogMapper.fromPersistenceToDomain(resultBlog), 
-                userId: user.Id.Id,
+                userId: user.id,
                 comment: body
             }
             const result = await service.execute( data )

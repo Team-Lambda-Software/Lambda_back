@@ -123,7 +123,7 @@ export class BlogController
         },
     } )
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
-    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
+    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
         const eventBus = EventBus.getInstance();
         eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
@@ -155,7 +155,7 @@ export class BlogController
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.Id.Id } )
+        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
         return result.Value
     }
 
@@ -164,7 +164,7 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto } )
-    async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user: User )
+    async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user )
     {
         const service =
             new ExceptionDecorator(
@@ -176,7 +176,7 @@ export class BlogController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { blogId: id, userId: user.Id.Id } )
+        const result = await service.execute( { blogId: id, userId: user.id } )
         return result.Value
     }
 
@@ -184,12 +184,12 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los blogs', type: SearchBlogsSwaggerResponseDto, isArray: true } )
-    async searchBlogs ( @GetUser() user: User, @Query() searchBlogParams: SearchBlogQueryParametersDto )
+    async searchBlogs ( @GetUser() user, @Query() searchBlogParams: SearchBlogQueryParametersDto )
     {
 
         if ( ( searchBlogParams.category || ( !searchBlogParams.category && !searchBlogParams.trainer ) ) )
         {
-            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.Id.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
             if ( searchBlogParams.filter == 'POPULAR' )
             {
@@ -225,7 +225,7 @@ export class BlogController
 
         }
 
-        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.Id.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
         if ( searchBlogParams.filter == 'POPULAR' )
         {

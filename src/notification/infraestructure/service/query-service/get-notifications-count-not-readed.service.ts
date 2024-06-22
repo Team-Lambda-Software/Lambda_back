@@ -1,14 +1,14 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface"
 import { GetCountNotReadedDtoResponse } from "./dto/response/get-count-not-readed-response"
+import { OdmNotificationAlertRepository } from "../../repositories/alert-notification/odm-notification-alert-repository"
 
 export class GetNumberNotificationNotSeenByUserInfraService implements IApplicationService<ApplicationServiceEntryDto, GetCountNotReadedDtoResponse> {
-    private readonly notiAlertRepository: INotificationAlertRepository
+    private readonly notiAlertRepository: OdmNotificationAlertRepository
 
     constructor(
-        notiAlertRepository: INotificationAlertRepository,
+        notiAlertRepository: OdmNotificationAlertRepository,
     ){
         this.notiAlertRepository = notiAlertRepository
     }

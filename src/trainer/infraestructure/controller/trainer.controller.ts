@@ -65,7 +65,7 @@ export class TrainerController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve informacion sobre un entrenador, todos sus seguidores, cursos y blogs que haya creado; dado su id.', type: GetTrainerProfileSwaggerResponseDto})
-    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user:User)
+    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         const service = 
             new ExceptionDecorator(
@@ -77,7 +77,7 @@ export class TrainerController {
                 ),
                 new HttpExceptionHandler()
             );
-        const result = await service.execute( {userId: user.Id.Id, trainerId:id} );
+        const result = await service.execute( {userId: user.id, trainerId:id} );
         const value = result.Value;
         //Map the fields of the DTO to the fields of the swagger response
         return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
@@ -87,11 +87,11 @@ export class TrainerController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
-    async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user:User)
+    async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>; //to-do Maybe this should return some primitive type or DTO instead of trainer?
 
-        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.Id.Id);
+        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
         if (doesFollowResult.isSuccess())
         {
             const doesFollow = doesFollowResult.Value;
@@ -113,6 +113,6 @@ export class TrainerController {
             ),
             new HttpExceptionHandler()
         );
-        await service.execute({userId: user.Id.Id, trainerId: id})
+        await service.execute({userId: user.id, trainerId: id})
     }
 }

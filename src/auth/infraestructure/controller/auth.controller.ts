@@ -66,11 +66,11 @@ export class AuthController {
     @ApiBearerAuth()
     async currentUser( @GetUser() user ) {        
         return {
-            id: user.Id,
-            email: user.Email,
-            name: user.Name,
-            phone: user.Phone,
-            image: user.Image
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            image: user.image
         } 
     }
 
@@ -133,7 +133,6 @@ export class AuthController {
         const result = await getCodeUpdatePasswordApplicationService.execute(data)
         this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
         this.secretCodes.push( result.Value )
-        // console.log( this.secretCodes )
         return { date: result.Value.date }
     }
 
