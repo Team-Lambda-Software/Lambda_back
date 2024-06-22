@@ -5,6 +5,7 @@ import { IdGenerator } from "src/common/Application/Id-generator/id-generator.in
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { INotificationAddressRepository } from "../../repositories/interface/notification-address-repository.interface";
 import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface";
+import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
 
 export class NotifyGoodDayInfraService implements IApplicationService<ApplicationServiceEntryDto, any> {
     private readonly notiAddressRepository: INotificationAddressRepository
@@ -37,9 +38,8 @@ export class NotifyGoodDayInfraService implements IApplicationService<Applicatio
                 date: new Date(), 
                 user_readed: false 
             })
-            console.log(e)
-            //const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Good new day!', body: 'be Happy, my budy' } }    
-            //const result = await this.pushNotifier.sendNotification( pushMessage )
+            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Good new day!', body: 'be Happy, my budy' } }    
+            const result = await this.pushNotifier.sendNotification( pushMessage )
             //if ( result.isSuccess() ) {}
         })
         return Result.success('good day push sended', 200)
