@@ -42,7 +42,7 @@ export class CategoryController
     @ApiBearerAuth()
     @UseGuards( JwtAuthGuard )
     @ApiOkResponse( { description: 'obtener todas las categorias',type: GetCategorieSwaggerResponseDto, isArray: true } )
-    async getAllCategories ( @GetUser() user: User, @Query() pagination: PaginationDto)
+    async getAllCategories ( @GetUser() user, @Query() pagination: PaginationDto)
     {
         const getAllCategoriesService = 
         new ExceptionDecorator( 
@@ -54,7 +54,7 @@ export class CategoryController
             ),
             new HttpExceptionHandler() 
         )
-        return ( await getAllCategoriesService.execute( { userId: user.Id.Id , pagination} ) ).Value
+        return ( await getAllCategoriesService.execute( { userId: user.id , pagination} ) ).Value
     }
 
 
