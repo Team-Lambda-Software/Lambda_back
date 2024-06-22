@@ -24,7 +24,6 @@ import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.d
 import { GetManyNotificationByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-by-user.service";
 import { GetNumberNotificationNotSeenByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-count-not-readed.service";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { OrmNotificationAlert } from "../entities/orm-entities/orm-notification-alert";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { GetNotificationByIdInfraService } from "../service/query-service/get-notification-by-notification-id.service";
 import { GetNotificationsUserDto } from "./dto/entry/get-notifications-by-user.entry.dto";
@@ -32,19 +31,21 @@ import { GetNotReadedNotificationSwaggerResponse } from "./dto/response/get-not-
 import { GetNotificationByNotificationIdSwaggerResponse } from "./dto/response/get-notification-by-id.response";
 import { GetNotificationsUserSwaggerResponse } from "./dto/response/get-notifications-by-user.response.dto";
 import { SaveTokenDto } from "./dto/entry/save-token.infraestructure.dto";
-import { OdmNotificationAlertRepository } from "../repositories/alert-notification/odm-notification-alert-repository";
-import { OdmNotificationAddressRepository } from "../repositories/address-notification/odm-notification-address-repository";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { OdmNotificationAddressEntity } from "../entities/odm-entities/odm-notification-address.entity";
 import { OdmNotificationAlertEntity } from "../entities/odm-entities/odm-notification-alert.entity";
+import { INotificationAlertRepository } from "../repositories/interface/notification-alert-repository.interface";
+import { INotificationAddressRepository } from "../repositories/interface/notification-address-repository.interface";
+import { OdmNotificationAddressRepository } from "../repositories/odm-notification-address-repository";
+import { OdmNotificationAlertRepository } from "../repositories/odm-notification-alert-repository";
 
 @ApiTags('Notification')
 @Controller('notifications')
 export class NotificationController {
  
-    private readonly notiAddressRepository: OdmNotificationAddressRepository
-    private readonly notiAlertRepository: OdmNotificationAlertRepository
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly logger: Logger

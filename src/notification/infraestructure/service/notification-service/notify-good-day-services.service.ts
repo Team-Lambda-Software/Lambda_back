@@ -3,19 +3,17 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
-import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
-import { OrmNotificationAlert } from "src/notification/infraestructure/entities/orm-entities/orm-notification-alert";
-import { OdmNotificationAddressRepository } from "../../repositories/address-notification/odm-notification-address-repository";
-import { OdmNotificationAlertRepository } from "../../repositories/alert-notification/odm-notification-alert-repository";
+import { INotificationAddressRepository } from "../../repositories/interface/notification-address-repository.interface";
+import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface";
 
 export class NotifyGoodDayInfraService implements IApplicationService<ApplicationServiceEntryDto, any> {
-    private readonly notiAddressRepository: OdmNotificationAddressRepository
-    private readonly notiAlertRepository: OdmNotificationAlertRepository
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private uuidGenerator: IdGenerator<string>
     private pushNotifier: INotifier
     constructor(
-        notiAddressRepository: OdmNotificationAddressRepository,
-        notiAlertRepository: OdmNotificationAlertRepository,
+        notiAddressRepository: INotificationAddressRepository,
+        notiAlertRepository: INotificationAlertRepository,
         uuidGenerator: IdGenerator<string>,
         pushNotifier: INotifier
     ){

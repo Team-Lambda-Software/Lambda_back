@@ -2,14 +2,14 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result";
 import { SaveTokenAddressEntryApplicationDto } from "./dto/entry/save-token-address-entry.application";
 import { SaveTokenDtoResponse } from "./dto/response/save-token-response";
-import { OdmNotificationAddressRepository } from "../../repositories/address-notification/odm-notification-address-repository";
+import { INotificationAddressRepository } from "../../repositories/interface/notification-address-repository.interface";
 
 export class SaveTokenAddressInfraService implements IApplicationService<SaveTokenAddressEntryApplicationDto, SaveTokenDtoResponse> {
         
-    private readonly notiAddressRepository: OdmNotificationAddressRepository
+    private readonly notiAddressRepository: INotificationAddressRepository
     
     constructor(
-        notiAddressRepository: OdmNotificationAddressRepository,
+        notiAddressRepository: INotificationAddressRepository,
     ){
         this.notiAddressRepository = notiAddressRepository
     }
