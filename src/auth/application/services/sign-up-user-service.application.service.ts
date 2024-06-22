@@ -1,20 +1,22 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { SignUpEntryApplicationDto } from "../dto/sign-up-entry.application.dto";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { IEncryptor } from "../interface/encryptor.interface";
-import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
+import { IEncryptor } from "../../../common/Application/encryptor/encryptor.interface";
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface";
+import { SignUpEntryDto } from "../dto/entry/sign-up-entry.application.dto";
+import { SignUpResponseDto } from "../dto/response/sign-up-response.application.dto";
 
-export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
+export class SignUpUserApplicationService implements IApplicationService<SignUpEntryDto, SignUpResponseDto> {
     
     private readonly infraUserRepository: IInfraUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor; 
-    private readonly emailSender: IEmailSender; 
+    private readonly eventHandler: IEventHandler
 
     constructor(
+        eventHandler: IEventHandler,
         infraUserRepository: IInfraUserRepository,
         uuidGenerator: IdGenerator<string>,
         encryptor: IEncryptor,
@@ -22,9 +24,10 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
         this.infraUserRepository = infraUserRepository
         this.uuidGenerator = uuidGenerator
         this.encryptor = encryptor
+        this.eventHandler = eventHandler
     }
     
-    async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
+    async execute(signUpDto: SignUpEntryDto): Promise<Result<any>> {
         const findResult = await this.infraUserRepository.findUserByEmail( signUpDto.email )
         if ( findResult.isSuccess() ) return Result.fail( new Error('Email registered'), 403, 'Email registered')
         const idUser = await this.uuidGenerator.generateId()

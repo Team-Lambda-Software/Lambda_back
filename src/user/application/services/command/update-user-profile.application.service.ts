@@ -10,7 +10,7 @@ import { IFileUploader } from "src/common/Application/file-uploader/file-uploade
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
-import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
+import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
