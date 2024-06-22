@@ -37,6 +37,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         {
             return Result.success<User>( await this.ormUserMapper.fromPersistenceToDomain( user ), 200 )
         }
+
         return Result.fail<User>( new Error( 'User not found' ), 404, 'User not found')
     }
 

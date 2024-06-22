@@ -81,18 +81,18 @@ export class ProgressController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({description: 'Guarda el progreso de una leccion de un curso dado'})
-    async saveSectionProgress( @Body() saveDTO: SaveProgressEntryDto, @GetUser()user:User)
+    async saveSectionProgress( @Body() saveDTO: SaveProgressEntryDto, @GetUser()user)
     {
 
         const saveSectionProgressDto:SaveSectionProgressServiceEntryDto = {
             courseId: saveDTO.courseId,
             sectionId: saveDTO.lessonId,
-            userId: user.Id.Id,
+            userId: user.id,
             isCompleted: saveDTO.markAsCompleted,
             videoSecond: saveDTO.time
         };
         const syncCourseProgressDto:SyncProgressCourseEntryDto = {
-            userId: user.Id.Id,
+            userId: user.id,
             courseId: saveDTO.courseId
         };
 
@@ -128,10 +128,10 @@ export class ProgressController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({description: 'Obtiene el progreso de un curso dado, para el usuario actual', type:GetCourseProgressSwaggerResponseDto})
-    async getCourseProgress ( @Param('courseId', ParseUUIDPipe) courseId:string, @GetUser()user:User )
+    async getCourseProgress ( @Param('courseId', ParseUUIDPipe) courseId:string, @GetUser()user )
     {
         const getAllSectionsEntryDto:GetAllSectionsFromCourseEntryDto = {
-            userId: user.Id.Id,
+            userId: user.id,
             courseId: courseId
         }
 
@@ -161,9 +161,9 @@ export class ProgressController {
     @ApiBearerAuth()
     @ApiOkResponse({description: 'Obtiene el progreso del ultimo curso visto, para el usuario actual', type:GetTrendingCourseSwaggerResponseDto})
     //Gets "trending" (latest) course seen by the user
-    async getTrendingCourse(@GetUser() user:User)
+    async getTrendingCourse(@GetUser() user)
     {
-        const getTrendingDto = {userId: user.Id.Id};
+        const getTrendingDto = {userId: user.id};
 
         const getTrendingApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
@@ -193,7 +193,7 @@ export class ProgressController {
     //Gets data related to the progress-shown-in-profile for the current user
     async GetProgressProfile(@GetUser() user)
     {
-        const getProgressProfileDto = {userId: user.Id};
+        const getProgressProfileDto = {userId: user.id};
 
         const getProgressProfileApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
@@ -224,7 +224,7 @@ export class ProgressController {
         const paginationDto = new PaginationDto();
         paginationDto.page = pagination.page;
         paginationDto.perPage = pagination.perPage;
-        const getStartedCoursesDto = {userId: user.Id, pagination: paginationDto};
+        const getStartedCoursesDto = {userId: user.id, pagination: paginationDto};
 
         const getAllStartedCoursesApplicationService = new ExceptionDecorator(
             new LoggingDecorator(

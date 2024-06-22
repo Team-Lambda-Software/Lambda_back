@@ -1,9 +1,8 @@
 import { Result } from "src/common/Domain/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmNotificationAddress } from "../../entities/orm-entities/orm-notification-address"
-import { INotificationAddressRepository } from "src/notification/application/repositories/notification-address-repository.interface"
 
-export class OrmNotificationAddressRepository extends Repository<OrmNotificationAddress> implements INotificationAddressRepository {
+export class OrmNotificationAddressRepository extends Repository<OrmNotificationAddress> {
 
     constructor ( dataSource: DataSource ) {
         super( OrmNotificationAddress, dataSource.createEntityManager() )

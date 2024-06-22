@@ -104,12 +104,12 @@ export class UserController {
       'Modificar dato/s de registro de un usuario, dado el id del usuario',
     type: UpdateUserProfileSwaggerResponseDto,
   })
-  async updateUser(@GetUser() user: User, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
+  async updateUser(@GetUser() user, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
     let image: File = null
     if (updateEntryDTO.image) {
       image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
     }
-    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id.Id }
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.id }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
@@ -147,8 +147,8 @@ export class UserController {
       ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.',
     type: FolloUnfollowSwaggerResponseDto,
   })
-  async followTrainer(@Param('trainerID') id: string, @GetUser() user: User) {
-    const userTrainerFollowDTO = { userId: user.Id.Id, trainerId: id };
+  async followTrainer(@Param('trainerID') id: string, @GetUser() user) {
+    const userTrainerFollowDTO = { userId: user.id, trainerId: id };
 
     const followService = new ExceptionDecorator(
       new LoggingDecorator(
