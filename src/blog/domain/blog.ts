@@ -15,6 +15,7 @@ import { BlogCommentId } from "./entities/value-objects/blog-comment-id"
 import { BlogCommentCreated } from "./events/blog-comment-created-event"
 import { BlogComment } from "./entities/blog-comment"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -92,7 +93,7 @@ export class Blog extends AggregateRoot<BlogId>{
         return this.tags
     }
 
-    public createComment (id: BlogCommentId, userId: string, text: BlogCommentText, date: BlogCommentDate): BlogComment{
+    public createComment (id: BlogCommentId, userId: UserId, text: BlogCommentText, date: BlogCommentDate): BlogComment{
         const comment: BlogComment = BlogComment.create(id, userId, text, date, this.Id)
         const blogCommentCreated: BlogCommentCreated = BlogCommentCreated.create(id, userId, text, date, this.Id)
         this.onEvent(blogCommentCreated)
