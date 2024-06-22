@@ -6,12 +6,13 @@ import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-s
 import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
 import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
 import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
+import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 
 
 export class SearchRecentCoursesByCategoryService implements IApplicationService<SearchCoursesByCategoryServiceEntryDto, SearchCourseServiceResponseDto[]>{
-    private readonly courseRepository: OdmCourseRepository
+    private readonly courseRepository: CourseQueryRepository
 
-    constructor ( courseRepository: OdmCourseRepository)
+    constructor ( courseRepository: CourseQueryRepository)
     {
         this.courseRepository = courseRepository
 

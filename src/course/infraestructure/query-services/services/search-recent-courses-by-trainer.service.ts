@@ -4,12 +4,13 @@ import { Result } from 'src/common/Domain/result-handler/Result'
 import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
 import { SearchCoursesByTrainerServiceEntryDto } from '../dto/param/search-courses-by-trainer-service-entry.dto'
 import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
+import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 
 
 export class SearchRecentCoursesByTrainerService implements IApplicationService<SearchCoursesByTrainerServiceEntryDto, SearchCourseServiceResponseDto[]>{
-    private readonly courseRepository: OdmCourseRepository
+    private readonly courseRepository: CourseQueryRepository
 
-    constructor ( courseRepository: OdmCourseRepository)
+    constructor ( courseRepository: CourseQueryRepository)
     {
         this.courseRepository = courseRepository
 

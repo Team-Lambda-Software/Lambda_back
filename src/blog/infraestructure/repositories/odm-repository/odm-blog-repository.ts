@@ -8,10 +8,11 @@ import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entit
 import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { OdmBlogCommentEntity } from "../../entities/odm-entities/odm-blog-comment.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { BlogQueryRepository } from "../blog-query-repository.interface"
 
 
 
-export class OdmBlogRepository{
+export class OdmBlogRepository implements BlogQueryRepository{
 
     private readonly blogModel: Model<OdmBlogEntity>
     private readonly categoryModel: Model<OdmCategoryEntity>
