@@ -1,7 +1,6 @@
 import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
-import { OrmNotificationAddressRepository } from "../repositories/address-notification/orm-notification-address-repository";
 import { DataSource } from "typeorm";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
@@ -9,7 +8,6 @@ import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { OrmNotificationAlertRepository } from "../repositories/alert-notification/orm-notification-alert-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { SaveTokenAddressInfraService } from "src/notification/infraestructure/service/notification-service/save-token-address-services.service";
@@ -20,8 +18,6 @@ import { SaveTokenSwaggerResponseDto } from "./dto/response/save-token-address-s
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { INotificationAddressRepository } from "src/notification/application/repositories/notification-address-repository.interface";
-import { INotificationAlertRepository } from "src/notification/application/repositories/notification-alert-repository.interface";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
 import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
@@ -36,25 +32,33 @@ import { GetNotReadedNotificationSwaggerResponse } from "./dto/response/get-not-
 import { GetNotificationByNotificationIdSwaggerResponse } from "./dto/response/get-notification-by-id.response";
 import { GetNotificationsUserSwaggerResponse } from "./dto/response/get-notifications-by-user.response.dto";
 import { SaveTokenDto } from "./dto/entry/save-token.infraestructure.dto";
+import { OdmNotificationAlertRepository } from "../repositories/alert-notification/odm-notification-alert-repository";
+import { OdmNotificationAddressRepository } from "../repositories/address-notification/odm-notification-address-repository";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { OdmNotificationAddressEntity } from "../entities/odm-entities/odm-notification-address.entity";
+import { OdmNotificationAlertEntity } from "../entities/odm-entities/odm-notification-alert.entity";
 
 @ApiTags('Notification')
 @Controller('notifications')
 export class NotificationController {
  
-    private readonly notiAddressRepository: INotificationAddressRepository
-    private readonly notiAlertRepository: INotificationAlertRepository
+    private readonly notiAddressRepository: OdmNotificationAddressRepository
+    private readonly notiAlertRepository: OdmNotificationAlertRepository
     private readonly courseRepository: ICourseRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly logger: Logger
     private readonly pushNotifier: INotifier
 
     constructor(
-        @Inject('DataSource') private readonly dataSource: DataSource,
+        @Inject('DataSource') dataSource: DataSource,
+        @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
+        @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
     ) {
         this.logger = new Logger('NotificationController')
-        this.notiAddressRepository = new OrmNotificationAddressRepository( dataSource )
+        this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.uuidGenerator = new UuidGenerator()
-        this.notiAlertRepository = new OrmNotificationAlertRepository( dataSource )
+        this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.pushNotifier = FirebaseNotifier.getInstance()
         this.courseRepository = new OrmCourseRepository( 
             new OrmCourseMapper( new OrmSectionMapper(), new OrmTrainerMapper() ),
@@ -81,7 +85,7 @@ export class NotificationController {
             ),
             new HttpExceptionHandler()
         )
-        let entry = { userId: user.Id }
+        let entry = { userId: user.id }
         return (await service.execute(entry)).Value    
     }
     
@@ -93,7 +97,7 @@ export class NotificationController {
     })
     @ApiBearerAuth()
     async getNotificationById( @Param('id', ParseUUIDPipe) id: string,  @GetUser() user ) {
-        let dataentry = { notificationId: id, userId: user.Id }
+        let dataentry = { notificationId: id, userId: user.id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetNotificationByIdInfraService(
@@ -114,7 +118,7 @@ export class NotificationController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     async getNotificationsByUser( @Query() getNotifications:GetNotificationsUserDto, @GetUser() user ) {
-        let dataentry={ ...getNotifications, userId:user.Id }
+        let dataentry={ ...getNotifications, userId: user.id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetManyNotificationByUserInfraService(
@@ -145,8 +149,8 @@ export class NotificationController {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new NotifyGoodDayInfraService(
-                    this.notiAlertRepository,
                     this.notiAddressRepository,
+                    this.notiAlertRepository,
                     this.uuidGenerator,
                     this.pushNotifier
                 ),
@@ -162,9 +166,9 @@ export class NotificationController {
     async recommendCoursesRandomNotification() {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new NotifyRecommendCourseInfraService(   
+                new NotifyRecommendCourseInfraService( 
+                    this.notiAddressRepository,  
                     this.notiAlertRepository,
-                    this.notiAddressRepository,
                     this.courseRepository,
                     this.uuidGenerator,
                     this.pushNotifier
@@ -181,7 +185,7 @@ export class NotificationController {
     @ApiOkResponse({ description: 'Registrar el token de direccion de un usuario', type: SaveTokenSwaggerResponseDto })
     @ApiBearerAuth()
     async saveToken(@Body() saveTokenDto: SaveTokenDto, @GetUser() user) {
-        const data = { userId: user.Id, ...saveTokenDto }
+        const data = { userId: user.id, ...saveTokenDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SaveTokenAddressInfraService( this.notiAddressRepository ),
@@ -189,16 +193,7 @@ export class NotificationController {
             ),
             new HttpExceptionHandler()   
         )
-        const result = await (await service.execute( data )).Value
-        const resultNotifier = await this.pushNotifier.sendNotification( this.createPushMessage( saveTokenDto.token, 'Welcome', 'Be welcome my dear' ) )
-        await this.notiAlertRepository.saveNotificationAlert(
-            OrmNotificationAlert.create( await this.uuidGenerator.generateId(), user.Id, "Welcome", 'be Welcome my dear', false, new Date() ) 
-        )
-        return result
-    }
-
-    private createPushMessage(token: string, title: string, body: string) {
-        return { token: token, notification: { title: title, body: body } }
+        await service.execute(data)
     }
 
 }

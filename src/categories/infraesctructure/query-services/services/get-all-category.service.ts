@@ -3,15 +3,16 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { GetAllCategoryServiceEntryDto } from "../dto/param/get-all-category-service-entry.dto"
 import { GetAllCategoriesServiceResponseDto } from "../dto/responses/get-all-category-service-response.dto"
 import { OdmCategoryRepository } from "../../repositories/odm-repositories/odm-category-repository"
+import { CategoryQueryRepository } from "../../repositories/category-query-repository.interface"
 
 
 
 
 export class GetAllCategoriesService implements IApplicationService<GetAllCategoryServiceEntryDto, GetAllCategoriesServiceResponseDto[]> 
 {
-    private readonly categoryRepository: OdmCategoryRepository
+    private readonly categoryRepository: CategoryQueryRepository
 
-    constructor ( categoryRepository: OdmCategoryRepository )
+    constructor ( categoryRepository: CategoryQueryRepository )
     {
         this.categoryRepository = categoryRepository
     }

@@ -21,6 +21,8 @@ import { BlogSchema } from './blog/infraestructure/entities/odm-entities/odm-blo
 import { BlogCommentSchema } from './blog/infraestructure/entities/odm-entities/odm-blog-comment.entity'
 import { CourseSchema } from './course/infraestructure/entities/odm-entities/odm-course.entity'
 import { SectionCommentSchema } from './course/infraestructure/entities/odm-entities/odm-section-comment.entity'
+import { NotificationAlertSchema } from './notification/infraestructure/entities/odm-entities/odm-notification-alert.entity';
+import { NotificationAddressSchema } from './notification/infraestructure/entities/odm-entities/odm-notification-address.entity';
 
 @Module( {
   imports: [
@@ -77,6 +79,18 @@ import { SectionCommentSchema } from './course/infraestructure/entities/odm-enti
       {
         name: 'SectionComment',
         schema: SectionCommentSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'NotificationAddress',
+        schema: NotificationAddressSchema,
+      }
+    ]),
+    MongooseModule.forFeature([
+      {
+        name: 'NotificationAlert',
+        schema: NotificationAlertSchema,
       }
     ])
 

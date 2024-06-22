@@ -3,10 +3,11 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Model } from "mongoose"
 import { OdmCategoryEntity } from "../../entities/odm-entities/odm-category.entity"
+import { CategoryQueryRepository } from "../category-query-repository.interface"
 
 
 
-export class OdmCategoryRepository{
+export class OdmCategoryRepository implements CategoryQueryRepository{
 
     private readonly categoryModel: Model<OdmCategoryEntity>
     constructor ( categoryModel: Model<OdmCategoryEntity> )

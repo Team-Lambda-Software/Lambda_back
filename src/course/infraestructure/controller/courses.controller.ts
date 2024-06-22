@@ -146,7 +146,7 @@ export class CourseController
     } )
     @UseInterceptors( FileExtender )
     @UseInterceptors( FileInterceptor( 'image' ) )
-    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
+    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
         const eventBus = EventBus.getInstance()
         
@@ -185,7 +185,7 @@ export class CourseController
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
 
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id.Id, category: resultCategory} )
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory} )
         return result.Value
     }
 
@@ -212,7 +212,7 @@ export class CourseController
     } )
     @UseInterceptors( FileExtender )
     @UseInterceptors( FileInterceptor( 'file' ) )
-    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
+    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
         const eventBus = EventBus.getInstance()
 
@@ -255,7 +255,7 @@ export class CourseController
 
             const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.Id.Id } )
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
         return result.Value
     }
 
@@ -263,7 +263,7 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto } )
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user: User )
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user )
     {
         const service =
             new ExceptionDecorator(
@@ -275,7 +275,7 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { courseId: id, userId: user.Id.Id } )
+        const result = await service.execute( { courseId: id, userId: user.id } )
         return result.Value
     }
 
@@ -283,12 +283,12 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los cursos', type: SearchCoursesSwaggerResponseDto, isArray: true } )
-    async searchCourses ( @GetUser() user: User, @Query() searchCourseParams: SearchCourseQueryParametersDto )
+    async searchCourses ( @GetUser() user, @Query() searchCourseParams: SearchCourseQueryParametersDto )
     {
 
         if ( ( searchCourseParams.category || ( !searchCourseParams.category && !searchCourseParams.trainer ) ) )
         {
-            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.Id.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
             if ( searchCourseParams.filter == 'POPULAR' )
             {
@@ -325,7 +325,7 @@ export class CourseController
 
         }
 
-        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.Id.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
         if ( searchCourseParams.filter == 'POPULAR' )
         {

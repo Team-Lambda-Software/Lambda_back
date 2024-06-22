@@ -8,6 +8,8 @@ import { ICategoryRepository } from "src/categories/domain/repositories/category
 import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
 import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
+import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface"
+import { BlogQueryRepository } from "src/blog/infraestructure/repositories/blog-query-repository.interface"
 
 
 
@@ -15,10 +17,10 @@ import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm
 export class SearchAllService implements IApplicationService<SearchAllServiceEntryDto, SearchAllServiceResponseDto>
 {
 
-    private readonly courseRepository: OdmCourseRepository
-    private readonly blogRepository: OdmBlogRepository
+    private readonly courseRepository: CourseQueryRepository
+    private readonly blogRepository: BlogQueryRepository
 
-    constructor ( courseRepository: OdmCourseRepository, blogRepository: OdmBlogRepository)
+    constructor ( courseRepository: CourseQueryRepository, blogRepository: BlogQueryRepository)
     {
         this.courseRepository = courseRepository
         this.blogRepository = blogRepository

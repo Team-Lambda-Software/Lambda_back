@@ -5,6 +5,7 @@ import { Result } from 'src/common/Domain/result-handler/Result'
 import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
 import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
 import { OdmCourseEntity } from '../../entities/odm-entities/odm-course.entity'
+import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 
 
 interface CoursePopularity {
@@ -15,10 +16,10 @@ interface CoursePopularity {
 
 
 export class SearchMostPopularCoursesByCategoryService implements IApplicationService<SearchCoursesByCategoryServiceEntryDto, SearchCourseServiceResponseDto[]>{
-    private readonly courseRepository: OdmCourseRepository
+    private readonly courseRepository: CourseQueryRepository
     private readonly progressRepository: IProgressCourseRepository
 
-    constructor ( courseRepository: OdmCourseRepository, progressRepository: IProgressCourseRepository)
+    constructor ( courseRepository: CourseQueryRepository, progressRepository: IProgressCourseRepository)
     {
         this.courseRepository = courseRepository
         this.progressRepository = progressRepository
