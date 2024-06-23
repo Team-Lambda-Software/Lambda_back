@@ -9,13 +9,13 @@ import { SectionComment } from "src/course/domain/entities/section-comment/secti
 
 
 export interface CourseQueryRepository {
-    saveCourse ( course: Course ): Promise<void>
+    saveCourse ( course: OdmCourseEntity ): Promise<void>
     
 
-    addSectionToCourse ( courseId: string, section: Section ): Promise<void>
+    addSectionToCourse ( courseId: string, section: {id: string, name: string, duration: number, description: string, video: string;} ): Promise<void>
     
 
-    addCommentToSection ( comment: SectionComment ): Promise<void>
+    addCommentToSection ( comment: OdmSectionCommentEntity ): Promise<void>
     
 
     findCoursesByTagsAndName ( searchTags: string[], name: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>

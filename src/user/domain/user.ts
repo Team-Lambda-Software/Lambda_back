@@ -32,20 +32,29 @@ export class User extends AggregateRoot<UserId> {
     }
 
     protected applyEvent(event: DomainEvent): void {
-        if ( event.eventName == 'UserCreated' ) {
-            const userCreated: UserCreated = event as UserCreated
-            this.name = userCreated.userName
-            this.phone = userCreated.userPhone
-            this.email = userCreated.userEmail
-        } else if ( event.eventName == 'UserNameModified' ) {
-            const userNameModified: UserNameModified = event as UserNameModified
-            this.name = userNameModified.userName
-        } else if ( event.eventName == 'UserPhoneModified' ) {
-            const userPhoneModified: UserPhoneModified = event as UserPhoneModified
-            this.phone = userPhoneModified.userPhone
-        } else if ( event.eventName == 'UserEmailModified' ) {
-            const userEmailModified: UserEmailModified = event as UserEmailModified
-            this.email = userEmailModified.email
+        switch (event.eventName) {
+            case 'UserCreated':
+                const userCreated: UserCreated = event as UserCreated
+                this.name = userCreated.userName
+                this.phone = userCreated.userPhone
+                this.email = userCreated.userEmail
+                break;
+            case 'UserNameModified':
+                console.log("1")
+                const userNameModified: UserNameModified = event as UserNameModified
+                this.name = userNameModified.userName
+                break;
+            case 'UserPhoneModified':
+                console.log("2")
+                const userPhoneModified: UserPhoneModified = event as UserPhoneModified
+                this.phone = userPhoneModified.userPhone
+                break;
+            case 'UserEmailModified':
+                console.log("3")
+                const userEmailModified: UserEmailModified = event as UserEmailModified
+                this.email = userEmailModified.email
+                break;
+
         }
     }
 
