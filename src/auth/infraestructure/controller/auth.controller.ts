@@ -38,12 +38,18 @@ import { EventBus } from "src/common/Infraestructure/event-bus/event-bus";
 import { LogInUserInfraService } from "../infra-service/log-in-user-service.infraestructure.service";
 import { IJwtGenerator } from "src/common/Application/jwt-generator/jwt-generator.interface";
 import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
+import { UserCreated } from "src/user/domain/events/user-created-event";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
+import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
+import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
     private readonly infraUserRepository: IInfraUserRepository
+    private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
@@ -55,6 +61,7 @@ export class AuthController {
     ) {
         this.logger = new Logger('AuthController')
         this.infraUserRepository = new OrmInfraUserRepository(dataSource)
+        this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
@@ -77,17 +84,10 @@ export class AuthController {
     @Post('login')
     @ApiOkResponse({ description: 'Iniciar sesion de usuario', type: LogInUserSwaggerResponseDto })
     async logInUser(@Body() logInDto: LogInUserEntryInfraDto) {
-        const data = { userId: 'none', ...logInDto }
-        
-        const eventBus = EventBus.getInstance();
-        /*eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.odmBlogRepository.saveBlog(Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags))
-        })*/
-        
+        const data = { userId: 'none', ...logInDto } 
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new LogInUserInfraService(
-                    eventBus,
                     this.infraUserRepository,
                     this.tokenGenerator,
                     this.encryptor
@@ -103,30 +103,35 @@ export class AuthController {
     @ApiOkResponse({ description: 'Registrar un nuevo usuario en el sistema', type: SignUpUserSwaggerResponseDto })
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
-
-        const eventBus = EventBus.getInstance();
-        /*eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.odmBlogRepository.saveBlog(Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags))
-        })*/
-        
         if ( !data.type ) data = { type: 'CLIENT', ...data }
+        const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
+
+        const emailSender = new WelcomeSender()
+        emailSender.setVariables( { firstname: signUpDto.name } )
+        
+        const eventBus = EventBus.getInstance();
+        const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
+            
+            this.infraUserRepository.saveOrmUser(
+                OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            )
+            emailSender.sendEmail( signUpDto.email, signUpDto.name )
+        
+        })
+
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
                     eventBus,
-                    this.infraUserRepository,
-                    this.uuidGenerator,
-                    this.encryptor,
+                    this.userRepository,
+                    this.uuidGenerator
                 ), 
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
         )
-        const resultService = await (await signUpApplicationService.execute(data)).Value
-        const emailSender = new WelcomeSender()
-        emailSender.setVariables( { firstname: resultService.name } )
-        emailSender.sendEmail( resultService.email, resultService.name )
-        return { id: resultService.id }
+        const resultService = (await signUpApplicationService.execute(data))
+        return { id: resultService.Value.id }
     }
     
     @Post('forget/password')

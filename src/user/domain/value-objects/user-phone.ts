@@ -20,7 +20,7 @@ export class UserPhone implements IValueObject<UserPhone> {
     }
 
     get Phone(): string {
-        return this.Phone;
+        return this.phone;
     }
 
     equals(valueObject: UserPhone): boolean {

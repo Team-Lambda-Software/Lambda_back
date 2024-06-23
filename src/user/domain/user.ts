@@ -32,21 +32,20 @@ export class User extends AggregateRoot<UserId> {
     }
 
     protected applyEvent(event: DomainEvent): void {
-        switch (event.eventName) {
-            case 'UserCreated':
-                const userCreated: UserCreated = event as UserCreated
-                this.name = userCreated.userName
-                this.phone = userCreated.userPhone
-                this.email = userCreated.userEmail
-            case 'UserNameModified':
-                const userNameModified: UserNameModified = event as UserNameModified
-                this.name = userNameModified.userName
-            case 'UserPhoneModified':
-                const userPhoneModified: UserPhoneModified = event as UserPhoneModified
-                this.phone = userPhoneModified.userPhone
-            case 'UserEmailModified':
-                const userEmailModified: UserEmailModified = event as UserEmailModified
-                this.email = userEmailModified.email
+        if ( event.eventName == 'UserCreated' ) {
+            const userCreated: UserCreated = event as UserCreated
+            this.name = userCreated.userName
+            this.phone = userCreated.userPhone
+            this.email = userCreated.userEmail
+        } else if ( event.eventName == 'UserNameModified' ) {
+            const userNameModified: UserNameModified = event as UserNameModified
+            this.name = userNameModified.userName
+        } else if ( event.eventName == 'UserPhoneModified' ) {
+            const userPhoneModified: UserPhoneModified = event as UserPhoneModified
+            this.phone = userPhoneModified.userPhone
+        } else if ( event.eventName == 'UserEmailModified' ) {
+            const userEmailModified: UserEmailModified = event as UserEmailModified
+            this.email = userEmailModified.email
         }
     }
 

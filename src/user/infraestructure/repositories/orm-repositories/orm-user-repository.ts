@@ -54,7 +54,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         }
     }
 
-    /*async findUserByEmail ( email: string ): Promise<Result<User>>
+    async findUserByEmail ( email: string ): Promise<Result<User>>
     {
         const user = await this.findOneBy({email})
         if(user){
@@ -62,18 +62,7 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         }
         return Result.fail<User>(new Error('User not found'),404,'User not found');
     }
-
-    async updateUserPassword ( email: string, newPassword: string ): Promise<Result<User>>
-    {
-        const user = await this.findOneBy({email});
-        if(user){
-            user.password = newPassword;
-            await this.save(user)
-            return Result.success<User>(await this.ormUserMapper.fromPersistenceToDomain(user),200);
-        }
-        return Result.fail<User>(new Error('User not found'),404,'User not found');
-    }*/
-
+    
     async findAllUser(): Promise<Result<User[]>>
     {
 
