@@ -37,6 +37,8 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         let videoId = null
         let videoUrl: string = null
         
+        if ( !data.file )
+            return Result.fail<AddSectionToCourseServiceResponseDto>( new Error('File is required'), 400, 'File is required' )
 
         videoId = await this.idGenerator.generateId()
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
@@ -44,11 +46,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         
         const courseValue = data.course
         let section: Section
-        try{
-            section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
-        }catch(e){
-            return Result.fail<AddSectionToCourseServiceResponseDto>( e.message, 500 , e.message )
-        }
+        section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
         const result = await this.courseRepository.addSectionToCourse( data.course.Id.Value, section )
         if ( !result.isSuccess() )
         {
