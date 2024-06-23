@@ -32,45 +32,20 @@ export class OdmCourseRepository implements CourseQueryRepository{
 
     }
 
-    async saveCourse ( course: Course ): Promise<void>{
-        const courseTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: course.Trainer.Id } )
-        const courseCategory: OdmCategoryEntity = await this.categoryModel.findOne( { id: course.CategoryId.Value } )
-        const coursePersistence = new this.courseModel({
-            id: course.Id.Value,
-            name: course.Name.Value,
-            description: course.Description.Value,
-            level: course.Level.Value,
-            weeks_duration: course.WeeksDuration.Value,
-            minutes_per_section: course.MinutesDuration.Value,
-            date: course.Date.Value,
-            category: courseCategory,
-            trainer: courseTrainer,
-            image: course.Image.Value,
-            tags: course.Tags.map( tag => tag.Value ),
-            sections: course.Sections.map( section => ( { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value } ) )
-        })
-        await this.courseModel.create( coursePersistence )    
+    async saveCourse ( course: OdmCourseEntity ): Promise<void>{
+        
+        await this.courseModel.create( course )
     }
 
-    async addSectionToCourse ( courseId: string, section: Section ): Promise<void>
+    async addSectionToCourse ( courseId: string, section: {id: string, name: string, duration: number, description: string, video: string;} ): Promise<void>
     {
-        const odmSection = { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value }
-        await this.courseModel.updateOne( { id: courseId }, { $push: { sections: odmSection } } )
+       
+        await this.courseModel.updateOne( { id: courseId }, { $push: { sections: section } } )
     }
 
-    async addCommentToSection ( comment: SectionComment ): Promise<void>
-    {
-        const user = await this.userModel.findOne( { id: comment.UserId } )
-        const course = await this.courseModel.findOne( { 'sections.id': comment.SectionId.Value } )
-        const section = course.sections.find( section => section.id === comment.SectionId.Value )
-        const odmComment = new this.sectionCommentModel({
-            id: comment.Id.Value,
-            text: comment.Text.Value,
-            date: comment.Date.Value,
-            section: section,
-            user: user
-        })
-        await this.sectionCommentModel.create( odmComment )
+    async addCommentToSection ( comment: OdmSectionCommentEntity ): Promise<void>
+    {   
+        await this.sectionCommentModel.create( comment )
     }
 
     async findCoursesByTagsAndName ( searchTags: string[], name: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>{
@@ -150,6 +125,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
     async findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>{
         try{
             const course = await this.courseModel.findOne( { 'sections.id': sectionId } )
+            console.log(course)
             return Result.success<OdmCourseEntity>( course, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity>( error, 500, error.detail )

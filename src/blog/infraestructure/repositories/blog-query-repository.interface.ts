@@ -7,10 +7,10 @@ import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.
 
 
 export interface BlogQueryRepository {
-    saveBlog ( blog: Blog ): Promise<void>
+    saveBlog ( blog: OdmBlogEntity ): Promise<void>
     
 
-    createBlogComment (blogComment: BlogComment): Promise<void>
+    createBlogComment (blogComment: OdmBlogCommentEntity): Promise<void>
     
 
     findBlogsByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
