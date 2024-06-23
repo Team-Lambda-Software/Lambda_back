@@ -109,7 +109,7 @@ export class AuthController {
         const emailSender = new WelcomeSender()
         emailSender.setVariables( { firstname: signUpDto.name } )
         
-        const eventBus = EventBus.getInstance();
+        const eventBus = EventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
             
             this.infraUserRepository.saveOrmUser(
