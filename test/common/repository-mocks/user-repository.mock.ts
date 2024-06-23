@@ -5,6 +5,10 @@ import { User } from "src/user/domain/user"
 
 
 export class UserMockRepository implements IUserRepository{
+    findUserByEmail ( email: string ): Promise<Result<User>>
+    {
+        throw new Error( "Method not implemented." )
+    }
 
     private readonly users: User[] = []
 
