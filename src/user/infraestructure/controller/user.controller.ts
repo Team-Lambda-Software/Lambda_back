@@ -39,7 +39,6 @@ import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-
 import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
-//import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
 import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
@@ -48,10 +47,10 @@ import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploade
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { IInfraUserRepository } from "../../application/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
-import { EncryptorBcrypt } from "src/auth/infraestructure/encryptor/encryptor-bcrypt";
-import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
+import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
+import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
 
 
 @ApiTags('User')
@@ -104,12 +103,12 @@ export class UserController {
       'Modificar dato/s de registro de un usuario, dado el id del usuario',
     type: UpdateUserProfileSwaggerResponseDto,
   })
-  async updateUser(@GetUser() user: User, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
+  async updateUser(@GetUser() user, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
     let image: File = null
     if (updateEntryDTO.image) {
       image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
     }
-    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.Id }
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.id }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
@@ -147,8 +146,8 @@ export class UserController {
       ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.',
     type: FolloUnfollowSwaggerResponseDto,
   })
-  async followTrainer(@Param('trainerID') id: string, @GetUser() user: User) {
-    const userTrainerFollowDTO = { userId: user.Id, trainerId: id };
+  async followTrainer(@Param('trainerID') id: string, @GetUser() user) {
+    const userTrainerFollowDTO = { userId: user.id, trainerId: id };
 
     const followService = new ExceptionDecorator(
       new LoggingDecorator(

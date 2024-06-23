@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
+import { Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -46,6 +46,8 @@ import { SearchRecentBlogsByTrainerService } from "../query-services/services/se
 import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { GetBlogService } from "../query-services/services/get-blog.service"
+import { BlogQuerySyncronizer } from '../query-synchronizer/blog-query-synchronizer';
+import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -57,8 +59,10 @@ export class BlogController
     private readonly categoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly odmBlogRepository: OdmBlogRepository
+    private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
+    private readonly blogQuerySyncronizer: BlogQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
@@ -95,6 +99,14 @@ export class BlogController
             blogCommentModel,
             userModel
         )
+        this.blogQuerySyncronizer = new BlogQuerySyncronizer(
+            this.odmBlogRepository,
+            this.blogModel,
+            this.categoryModel,
+            this.trainerModel
+        )
+
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
     }
 
 
@@ -123,11 +135,11 @@ export class BlogController
         },
     } )
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
-    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user: User, @Body() createBlogParams: CreateBlogEntryDto )
+    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
         const eventBus = EventBus.getInstance();
         eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.odmBlogRepository.saveBlog(Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags))
+            this.blogQuerySyncronizer.execute(event)
         })
         const service =
             new ExceptionDecorator(
@@ -155,7 +167,12 @@ export class BlogController
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.Id } )
+        const category = await this.odmCategoryRepository.findCategoryById( createBlogParams.categoryId )
+        if ( !category.Value )
+        {
+            throw new NotFoundException( 'No se encontro la categoria' )
+        }
+        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
         return result.Value
     }
 
@@ -164,7 +181,7 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de un blog dado el id', type: GetBlogSwaggerResponseDto } )
-    async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user: User )
+    async getBlog ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user )
     {
         const service =
             new ExceptionDecorator(
@@ -176,7 +193,7 @@ export class BlogController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { blogId: id, userId: user.Id } )
+        const result = await service.execute( { blogId: id, userId: user.id } )
         return result.Value
     }
 
@@ -184,12 +201,12 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los blogs', type: SearchBlogsSwaggerResponseDto, isArray: true } )
-    async searchBlogs ( @GetUser() user: User, @Query() searchBlogParams: SearchBlogQueryParametersDto )
+    async searchBlogs ( @GetUser() user, @Query() searchBlogParams: SearchBlogQueryParametersDto )
     {
 
         if ( ( searchBlogParams.category || ( !searchBlogParams.category && !searchBlogParams.trainer ) ) )
         {
-            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+            const searchBlogServiceEntry: SearchBlogsByCategoryServiceEntryDto = { categoryId: searchBlogParams.category, userId: user.id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
             if ( searchBlogParams.filter == 'POPULAR' )
             {
@@ -225,7 +242,7 @@ export class BlogController
 
         }
 
-        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.Id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
+        const searchBlogServiceEntry: SearchBlogsByTrainerServiceEntryDto = { trainerId: searchBlogParams.trainer, userId: user.id, pagination: { page: searchBlogParams.page, perPage: searchBlogParams.perPage } }
 
         if ( searchBlogParams.filter == 'POPULAR' )
         {

@@ -63,6 +63,8 @@ import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CategoryName } from "src/categories/domain/value-objects/category-title"
 import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
+import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer';
+import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
 
 
 @ApiTags( 'Course' )
@@ -79,6 +81,8 @@ export class CourseController
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly odmCourseMapper: OdmCourseMapper
+    private readonly courseQuerySyncronizer: CourseQuerySyncronizer
+    private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
@@ -118,6 +122,19 @@ export class CourseController
         this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
 
         this.odmCourseMapper = new OdmCourseMapper()
+
+        this.courseQuerySyncronizer = new CourseQuerySyncronizer(
+            this.odmCourseRepository,
+            this.courseModel,
+            this.categoryModel,
+            this.trainerModel
+        )
+
+        this.sectionQuerySyncronizer = new SectionQuerySyncronizer(
+            this.odmCourseRepository
+        )
+
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
     }
 
     @Post( 'create' )
@@ -146,12 +163,12 @@ export class CourseController
     } )
     @UseInterceptors( FileExtender )
     @UseInterceptors( FileInterceptor( 'image' ) )
-    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user: User )
+    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
         const eventBus = EventBus.getInstance()
         
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
-            this.odmCourseRepository.saveCourse( Course.create( event.id, event.trainer, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date))
+            this.courseQuerySyncronizer.execute( event )
         })
 
         const service =
@@ -178,14 +195,14 @@ export class CourseController
         }
         const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
         const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
-        if ( !category.isSuccess() )
+        if ( !category.Value )
         {
-            throw new NotFoundException( category.Error )
+            throw new NotFoundException( 'No se encontro la categoria' )
         }
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
 
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.Id, category: resultCategory} )
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory} )
         return result.Value
     }
 
@@ -212,12 +229,12 @@ export class CourseController
     } )
     @UseInterceptors( FileExtender )
     @UseInterceptors( FileInterceptor( 'file' ) )
-    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user: User )
+    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
         const eventBus = EventBus.getInstance()
 
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
-            this.odmCourseRepository.addSectionToCourse( courseId, Section.create(event.id, event.name, event.description, event.duration, event.video) )
+            this.sectionQuerySyncronizer.execute(event)
         })
 
         const service =
@@ -248,14 +265,13 @@ export class CourseController
             }
         }
 
-        const course = await this.odmCourseRepository.findCourseBySectionId( courseId )
-            if (!course){
-                throw new NotFoundException('No se encontro el curso')
-            }
+        const course = await this.odmCourseRepository.findCourseById( courseId )
+        if (!course.Value){
+            throw new NotFoundException('No se encontro el curso')
+        }
+        const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
-            const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
-
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.Id } )
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
         return result.Value
     }
 
@@ -263,7 +279,7 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de un curso dado el id', type: GetCourseSwaggerResponseDto } )
-    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user: User )
+    async getCourse ( @Param( 'id', ParseUUIDPipe ) id: string, @GetUser() user )
     {
         const service =
             new ExceptionDecorator(
@@ -275,7 +291,7 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        const result = await service.execute( { courseId: id, userId: user.Id } )
+        const result = await service.execute( { courseId: id, userId: user.id } )
         return result.Value
     }
 
@@ -283,12 +299,12 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los cursos', type: SearchCoursesSwaggerResponseDto, isArray: true } )
-    async searchCourses ( @GetUser() user: User, @Query() searchCourseParams: SearchCourseQueryParametersDto )
+    async searchCourses ( @GetUser() user, @Query() searchCourseParams: SearchCourseQueryParametersDto )
     {
 
         if ( ( searchCourseParams.category || ( !searchCourseParams.category && !searchCourseParams.trainer ) ) )
         {
-            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+            const searchCourseServiceEntry: SearchCoursesByCategoryServiceEntryDto = { categoryId: searchCourseParams.category, userId: user.id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
             if ( searchCourseParams.filter == 'POPULAR' )
             {
@@ -325,7 +341,7 @@ export class CourseController
 
         }
 
-        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.Id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
+        const searchCourseServiceEntry: SearchCoursesByTrainerServiceEntryDto = { trainerId: searchCourseParams.trainer, userId: user.id, pagination: { page: searchCourseParams.page, perPage: searchCourseParams.perPage } }
 
         if ( searchCourseParams.filter == 'POPULAR' )
         {

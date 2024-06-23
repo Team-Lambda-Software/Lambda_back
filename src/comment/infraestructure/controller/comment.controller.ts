@@ -58,6 +58,8 @@ import { SectionDuration } from "src/course/domain/entities/section/value-object
 import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
 import { OdmCourseMapper } from "src/course/infraestructure/mappers/odm-mappers/odm-course-mapper"
 import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-blog-mapper"
+import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
+import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer';
 
 
 @ApiTags( 'Comment' )
@@ -74,6 +76,8 @@ export class CommentController
     private readonly odmCourseRepository: OdmCourseRepository
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmBlogMapper: OdmBlogMapper
+    private readonly blogCommentQuerySynchronizer: BlogCommentQuerySyncronizer
+    private readonly sectionCommentQuerySyncronizer: SectionCommentQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, 
             @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
@@ -128,19 +132,32 @@ export class CommentController
 
         this.odmCourseMapper = new OdmCourseMapper()
         this.odmBlogMapper = new OdmBlogMapper()
+
+        this.blogCommentQuerySynchronizer = new BlogCommentQuerySyncronizer(
+            this.odmBlogRepository,
+            blogCommentModel,
+            userModel,
+            blogModel
+        )
+        this.sectionCommentQuerySyncronizer = new SectionCommentQuerySyncronizer(
+            this.odmCourseRepository,
+            sectionCommentModel,
+            userModel,
+            courseModel
+        )
     }
 
     @Get( 'many' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Obtiene todos los comentarios de donde lo solicites', type: GetAllCommentsSwaggerResponseDto, isArray: true} )
-    async getComments (@GetUser() user: User, @Query() getCommentsQueryParams: GetAllCommentsQueryParametersDto)
+    async getComments (@GetUser() user, @Query() getCommentsQueryParams: GetAllCommentsQueryParametersDto)
     {
         if (getCommentsQueryParams.blog){
             const data: GetBlogCommentsServiceEntryDto = {
                 blogId: getCommentsQueryParams.blog,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id
+                userId: user.id
             } 
             const service =
                 new ExceptionDecorator(
@@ -158,7 +175,7 @@ export class CommentController
             const data: GetSectionCommentsServiceEntryDto = {
                 sectionId: getCommentsQueryParams.lesson,
                 pagination: {page: getCommentsQueryParams.page, perPage: getCommentsQueryParams.perPage},
-                userId: user.Id
+                userId: user.id
             } 
             const service =
                 new ExceptionDecorator(
@@ -180,14 +197,14 @@ export class CommentController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega un comentario' } )
-    async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user: User )
+    async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user )
     {
         const { target, targetType, body } = entryData
         const eventBus = EventBus.getInstance();
         if ( targetType === 'LESSON' )
         {
             eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
-                this.odmCourseRepository.addCommentToSection(SectionComment.create(event.id, event.userId, event.text, event.date, event.sectionId))
+                this.sectionCommentQuerySyncronizer.execute(event)
             })
             const service =
                 new ExceptionDecorator(
@@ -207,20 +224,20 @@ export class CommentController
                 )
 
             const section = await this.odmCourseRepository.findSectionById(target)
-            if (!section){
+            if (!section.Value){
                 throw new NotFoundException('No se encontro la seccion')
             }
             const resultSection = Section.create(SectionId.create(section.Value.id), SectionName.create(section.Value.name), SectionDescription.create(section.Value.description), SectionDuration.create(section.Value.duration), SectionVideo.create(section.Value.video))
 
             const course = await this.odmCourseRepository.findCourseBySectionId(target)
-            if (!course){
+            if (!course.Value){
                 throw new NotFoundException('No se encontro el curso')
             }
 
             const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
             const data: AddCommentToSectionServiceEntryDto = {
-                section: resultSection, userId: user.Id,
+                section: resultSection, userId: user.id,
                 comment: body, course: resultCourse
             }
             const result = await service.execute( data )
@@ -229,7 +246,7 @@ export class CommentController
         {
             const eventBus = EventBus.getInstance();
             eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
-                this.odmBlogRepository.createBlogComment(BlogComment.create(event.id, event.userId, event.text, event.date, event.blogId))
+                this.blogCommentQuerySynchronizer.execute(event)
             })
             const service =
                 new ExceptionDecorator(
@@ -248,13 +265,13 @@ export class CommentController
                     new HttpExceptionHandler()
                 )
             const blog = await this.odmBlogRepository.findBlogById(target)
-            if (!blog){
+            if (!blog.Value){
                 throw new NotFoundException('No se encontro el blog')
             }
             const resultBlog = blog.Value
             const data: AddCommentToBlogServiceEntryDto = {
                 blog: await this.odmBlogMapper.fromPersistenceToDomain(resultBlog), 
-                userId: user.Id,
+                userId: user.id,
                 comment: body
             }
             const result = await service.execute( data )

@@ -70,7 +70,7 @@ export class SearchController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los cursos y blogs que tengan el nombre dado', type: SearchAllSwaggerResponseDto } )
-    async searchCourse ( @GetUser() user: User, @Query() searchQueryParametersDto: SearchQueryParametersDto )
+    async searchCourse ( @GetUser() user, @Query() searchQueryParametersDto: SearchQueryParametersDto )
     {
         const pagination: PaginationDto = { page: searchQueryParametersDto.page, perPage: searchQueryParametersDto.perPage }
         
@@ -80,7 +80,7 @@ export class SearchController
         if ( !searchQueryParametersDto.tag ){
             searchQueryParametersDto.tag = []
         }
-        const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.Id, pagination: pagination, name: searchQueryParametersDto.term, tags: searchQueryParametersDto.tag }
+        const searchAllServiceEntry: SearchAllServiceEntryDto = { userId: user.id, pagination: pagination, name: searchQueryParametersDto.term, tags: searchQueryParametersDto.tag }
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(

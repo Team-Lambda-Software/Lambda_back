@@ -1,19 +1,17 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { IUserRepository } from "src/user/domain/repositories/user-repository.interface"
 import { GetBlogCommentsServiceEntryDto } from "../dto/params/get-blog-comments-service-entry.dto"
 import { GetBlogCommentsServiceResponseDto } from "../dto/responses/get-blog-comments-service-response.dto"
-import { OdmBlogRepository } from "../../repositories/odm-repository/odm-blog-repository"
+import { BlogQueryRepository } from "../../repositories/blog-query-repository.interface"
 
 
 
 
 export class GetBlogCommentsService implements IApplicationService<GetBlogCommentsServiceEntryDto, GetBlogCommentsServiceResponseDto[]> 
 {
-    private readonly blogRepository: OdmBlogRepository
+    private readonly blogRepository: BlogQueryRepository
 
-    constructor ( blogRepository: OdmBlogRepository)
+    constructor ( blogRepository: BlogQueryRepository)
     {
         this.blogRepository = blogRepository
     }

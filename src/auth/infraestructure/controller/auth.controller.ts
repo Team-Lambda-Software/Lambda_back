@@ -5,45 +5,51 @@ import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { Logger } from "@nestjs/common";
 import { DataSource } from "typeorm";
 import { Inject } from "@nestjs/common";
-import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { JwtGenerator } from "../jwt/jwt-generator";
-import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
-import { EncryptorBcrypt } from "../encryptor/encryptor-bcrypt";
-import { LogInUserApplicationService } from "src/auth/application/services/log-in-user-service.application.service";
+import { EncryptorBcrypt } from "../../../common/Infraestructure/encryptor/encryptor-bcrypt";
 import { SignUpUserApplicationService } from "src/auth/application/services/sign-up-user-service.application.service";
 import { JwtService } from "@nestjs/jwt";
 import { UpdatePasswordSender } from "src/common/Infraestructure/utils/email-sender/update-password-sender.infraestructure";
-import { SecretCodeGenerator } from "../secret-code-generator/secret-code-generator";
-import { GetCodeUpdatePasswordUserApplicationService } from "src/auth/application/services/get-code-update-password-service.application.service";
+import { SecretCodeGenerator } from "../../../common/Infraestructure/secret-code-generator/secret-code-generator";
+import { GetCodeUpdatePasswordUserInfraService } from "src/auth/infraestructure/infra-service/get-code-update-password-service.infra.service";
 import { WelcomeSender } from "src/common/Infraestructure/utils/email-sender/welcome-sender.infraestructure";
 import { JwtAuthGuard } from "../jwt/decorator/jwt-auth.guard";
-import { Cron, CronExpression } from "@nestjs/schedule";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { ForgetPasswordSwaggerResponseDto } from "../dto/response/forget-password-swagger-response.dto";
-import { LogInUserSwaggerResponseDto } from "../dto/response/log-in-user-swagger-response.dto";
-import { SignUpUserSwaggerResponseDto } from "../dto/response/sign-up-user-swagger-response.dto";
 import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
 import { GetUser } from "../jwt/decorator/get-user.param.decorator";
-import { SignUpUserEntryInfraDto } from "../dto/entry/sign-up-user-entry.dto";
-import { LogInUserEntryInfraDto } from "../dto/entry/log-in-user-entry.dto";
-import { CodeValidateEntryInfraDto } from "../dto/entry/code-validate-entry.dto";
-import { ForgetPasswordEntryInfraDto } from "../dto/entry/forget-password-entry.dto";
-import { CurrentUserSwaggerResponseDto } from "../dto/response/current-user-swagger-response.dto";
-import { ChangePasswordUserApplicationService } from "src/auth/application/services/change-password-user-service.application.service";
-import { ChangePasswordEntryInfraDto } from "../dto/entry/change-password-entry.dto";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
-import { ValidateCodeForgetPasswordSwaggerResponseDto } from "../dto/response/val-code-swagger-response.dto";
-import { ChangePasswordSwaggerResponseDto } from "../dto/response/change-password-swagger-response.dto";
+import { ChangePasswordUserInfraService } from "../infra-service/change-password-user-service.infra.service";
+import { ChangePasswordEntryInfraDto } from "./dto/entry/change-password-entry.dto";
+import { CodeValidateEntryInfraDto } from "./dto/entry/code-validate-entry.dto";
+import { ForgetPasswordEntryInfraDto } from "./dto/entry/forget-password-entry.dto";
+import { LogInUserEntryInfraDto } from "./dto/entry/log-in-user-entry.dto";
+import { SignUpUserEntryInfraDto } from "./dto/entry/sign-up-user-entry.dto";
+import { ChangePasswordSwaggerResponseDto } from "./dto/response/change-password-swagger-response.dto";
+import { CurrentUserSwaggerResponseDto } from "./dto/response/current-user-swagger-response.dto";
+import { ForgetPasswordSwaggerResponseDto } from "./dto/response/forget-password-swagger-response.dto";
+import { LogInUserSwaggerResponseDto } from "./dto/response/log-in-user-swagger-response.dto";
+import { SignUpUserSwaggerResponseDto } from "./dto/response/sign-up-user-swagger-response.dto";
+import { ValidateCodeForgetPasswordSwaggerResponseDto } from "./dto/response/val-code-swagger-response.dto";
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus";
+import { LogInUserInfraService } from "../infra-service/log-in-user-service.infraestructure.service";
+import { IJwtGenerator } from "src/common/Application/jwt-generator/jwt-generator.interface";
+import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
+import { UserCreated } from "src/user/domain/events/user-created-event";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
+import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
+import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
     private readonly infraUserRepository: IInfraUserRepository
+    private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
@@ -55,6 +61,7 @@ export class AuthController {
     ) {
         this.logger = new Logger('AuthController')
         this.infraUserRepository = new OrmInfraUserRepository(dataSource)
+        this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
@@ -66,21 +73,21 @@ export class AuthController {
     @ApiBearerAuth()
     async currentUser( @GetUser() user ) {        
         return {
-            id: user.Id,
-            email: user.Email,
-            name: user.Name,
-            phone: user.Phone,
-            image: user.Image
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            image: user.image
         } 
     }
 
     @Post('login')
     @ApiOkResponse({ description: 'Iniciar sesion de usuario', type: LogInUserSwaggerResponseDto })
     async logInUser(@Body() logInDto: LogInUserEntryInfraDto) {
-        const data = { userId: 'none', ...logInDto }
+        const data = { userId: 'none', ...logInDto } 
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new LogInUserApplicationService(
+                new LogInUserInfraService(
                     this.infraUserRepository,
                     this.tokenGenerator,
                     this.encryptor
@@ -97,31 +104,44 @@ export class AuthController {
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
         if ( !data.type ) data = { type: 'CLIENT', ...data }
+        const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
+
+        const emailSender = new WelcomeSender()
+        emailSender.setVariables( { firstname: signUpDto.name } )
+        
+        const eventBus = EventBus.getInstance()
+        const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
+            
+            this.infraUserRepository.saveOrmUser(
+                OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            )
+            emailSender.sendEmail( signUpDto.email, signUpDto.name )
+        
+        })
+
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SignUpUserApplicationService(
-                    this.infraUserRepository,
-                    this.uuidGenerator,
-                    this.encryptor,
+                    eventBus,
+                    this.userRepository,
+                    this.uuidGenerator
                 ), 
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
         )
-        const resultService = await (await signUpApplicationService.execute(data)).Value
-        const emailSender = new WelcomeSender()
-        emailSender.setVariables( { firstname: resultService.name } )
-        emailSender.sendEmail( resultService.email, resultService.name )
-        return { id: resultService.id }
+        const resultService = (await signUpApplicationService.execute(data))
+        return { id: resultService.Value.id }
     }
     
     @Post('forget/password')
     @ApiOkResponse({ description: 'Obtener codigo temporal para confirmar usuario', type: ForgetPasswordSwaggerResponseDto })
     async getCodeForUpdatePasswordUser(@Body() getCodeUpdateDto: ForgetPasswordEntryInfraDto ) {
+        this.cleanSecretCodes()
         const data = { userId: 'none', ...getCodeUpdateDto, }
-        const getCodeUpdatePasswordApplicationService = new ExceptionDecorator( 
+        const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetCodeUpdatePasswordUserApplicationService(
+                new GetCodeUpdatePasswordUserInfraService(
                     this.infraUserRepository,
                     new UpdatePasswordSender(),
                     new SecretCodeGenerator(),
@@ -130,22 +150,22 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        const result = await getCodeUpdatePasswordApplicationService.execute(data)
+        const result = await service.execute(data)
         this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
         this.secretCodes.push( result.Value )
-        // console.log( this.secretCodes )
         return { date: result.Value.date }
     }
 
     @Put('change/password')
     @ApiOkResponse({ description: 'Cambiar la contraseña del usuario', type: ChangePasswordSwaggerResponseDto })
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
+        this.cleanSecretCodes()
         const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
         if ( !result ) throw new BadRequestException('Invalid secret code')
         const data = { userId: 'none',  ...updatePasswordDto }
-        const changePasswordApplicationService = new ExceptionDecorator( 
+        const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new ChangePasswordUserApplicationService(
+                new ChangePasswordUserInfraService(
                     this.infraUserRepository,
                     this.encryptor
                 ), 
@@ -153,7 +173,7 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        await changePasswordApplicationService.execute(data)
+        await service.execute(data)
     }
     
     @Post('code/validate')
@@ -179,7 +199,6 @@ export class AuthController {
         return true
     }
 
-    @Cron(CronExpression.EVERY_10_MINUTES)
     private async cleanSecretCodes() {
         var nowTime = new Date().getTime()
         this.secretCodes = this.secretCodes.filter( e => {

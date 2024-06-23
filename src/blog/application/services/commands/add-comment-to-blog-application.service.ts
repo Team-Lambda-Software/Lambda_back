@@ -2,12 +2,12 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { AddCommentToBlogServiceEntryDto } from "../../dto/params/add-comment-to-blog-service-entry.dto"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
 import { BlogCommentId } from "src/blog/domain/entities/value-objects/blog-comment-id"
 import { BlogCommentText } from "src/blog/domain/entities/value-objects/blog-comment-text"
 import { BlogCommentDate } from "src/blog/domain/entities/value-objects/blog-comment-date"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { UserId } from "src/user/domain/value-objects/user-id"
 
 
 
@@ -30,7 +30,7 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
     async execute ( data: AddCommentToBlogServiceEntryDto ): Promise<Result<string>>
     {
         const blogValue = data.blog
-        const comment = blogValue.createComment( BlogCommentId.create(await this.idGenerator.generateId()), data.userId, BlogCommentText.create(data.comment), BlogCommentDate.create(new Date()) )
+        const comment = blogValue.createComment( BlogCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), BlogCommentText.create(data.comment), BlogCommentDate.create(new Date()) )
         const result = await this.blogRepository.addCommentToBlog( comment )
         if ( !result.isSuccess() )
         {

@@ -3,15 +3,16 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { OdmBlogRepository } from "../../repositories/odm-repository/odm-blog-repository"
 import { GetBlogServiceEntryDto } from "../dto/params/get-blog-service-entry.dto"
 import { GetBlogServiceResponseDto } from "../dto/responses/get-blog-service-response.dto"
+import { BlogQueryRepository } from "../../repositories/blog-query-repository.interface"
 
 
 
 
 export class GetBlogService implements IApplicationService<GetBlogServiceEntryDto, GetBlogServiceResponseDto> 
 {
-    private readonly blogRepository: OdmBlogRepository
+    private readonly blogRepository: BlogQueryRepository
 
-    constructor ( blogRepository: OdmBlogRepository)
+    constructor ( blogRepository: BlogQueryRepository)
     {
         this.blogRepository = blogRepository
     }

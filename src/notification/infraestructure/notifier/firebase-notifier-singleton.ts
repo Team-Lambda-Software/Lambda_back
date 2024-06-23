@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import { title } from 'node:process';
 import { PushNotificationDto } from 'src/common/Application/notifier/dto/token-notification.dto';
 import { INotifier } from 'src/common/Application/notifier/notifier.application';
 import { Result } from 'src/common/Domain/result-handler/Result';
