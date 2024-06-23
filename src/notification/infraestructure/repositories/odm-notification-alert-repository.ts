@@ -10,6 +10,10 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
     constructor ( notiModel: Model<OdmNotificationAlertEntity>) {
         this.notiModel = notiModel
     }
+
+    async deleteNotificationsByUser(user_id: string) {
+        await this.notiModel.deleteMany( { "user_id": user_id } )
+    }
     
     async findManyNotificationsByIdUser(userId: string, pagDto: PaginationDto): Promise<Result<OdmNotificationAlertEntity[]>> {
         try {

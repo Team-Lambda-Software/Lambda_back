@@ -39,6 +39,7 @@ import { INotificationAlertRepository } from "../repositories/interface/notifica
 import { INotificationAddressRepository } from "../repositories/interface/notification-address-repository.interface";
 import { OdmNotificationAddressRepository } from "../repositories/odm-notification-address-repository";
 import { OdmNotificationAlertRepository } from "../repositories/odm-notification-alert-repository";
+import { DeleteNotificationsInfraService } from "../service/notification-service/delete-notifications-services";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -162,10 +163,10 @@ export class NotificationController {
         return (await service.execute( { userId: 'none' } )).Value    
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_1PM)
+    //@Cron(CronExpression.EVERY_DAY_AT_1PM)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
-        const service = new ExceptionDecorator( 
+        /*const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new NotifyRecommendCourseInfraService( 
                     this.notiAddressRepository,  
@@ -178,7 +179,7 @@ export class NotificationController {
             ),
             new HttpExceptionHandler()    
         )
-        return (await service.execute( { userId: 'none' } )).Value
+        return (await service.execute( { userId: 'none' } )).Value*/
     }
 
     @Post('savetoken')
@@ -190,6 +191,22 @@ export class NotificationController {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new SaveTokenAddressInfraService( this.notiAddressRepository ),
+                new NativeLogger(this.logger)
+            ),
+            new HttpExceptionHandler()   
+        )
+        await service.execute(data)
+    }
+
+    @Get('delete/all')
+    @UseGuards(JwtAuthGuard)
+    @ApiOkResponse({ description: 'Borrar notificationes de un usuario', type: SaveTokenSwaggerResponseDto })
+    @ApiBearerAuth()
+    async deleteTokens(@GetUser() user) {
+        const data = { userId: user.id }
+        const service = new ExceptionDecorator( 
+            new LoggingDecorator(
+                new DeleteNotificationsInfraService( this.notiAlertRepository ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()   
