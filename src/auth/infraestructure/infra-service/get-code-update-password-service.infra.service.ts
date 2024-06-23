@@ -1,11 +1,12 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { ICodeGenerator } from "../interface/code-generator.interface";
+import { ICodeGenerator } from "../../../common/Application/code-generator/code-generator.interface";
 import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
-import { ForgetPasswordEntryApplicationDto } from "../dto/forget-password-entry.application.dto copy";
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
+import { ForgetPasswordEntryDto } from "./dto/entry/forget-password-entry.infraestructure.dto";
+import { GetCodeServiceResponseDto } from "./dto/response/get-code-service-response";
 
-export class GetCodeUpdatePasswordUserApplicationService implements IApplicationService<ForgetPasswordEntryApplicationDto, any> {
+export class GetCodeUpdatePasswordUserInfraService implements IApplicationService<ForgetPasswordEntryDto, GetCodeServiceResponseDto> {
     private readonly userRepository: IInfraUserRepository   
     private readonly emailSender: IEmailSender;
     private readonly codeGenerator: ICodeGenerator<string>; 
@@ -19,7 +20,7 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
         this.codeGenerator = codeGenerator
     }
     
-    async execute(forgetDto: ForgetPasswordEntryApplicationDto): Promise<Result<any>> {
+    async execute(forgetDto: ForgetPasswordEntryDto): Promise<Result<GetCodeServiceResponseDto>> {
         const result = await this.userRepository.findUserByEmail( forgetDto.email )
         if ( !result.isSuccess() ) return Result.fail( new Error('Email not registered'), 400, 'Email not registered' )
         const code = this.codeGenerator.generateCode(4)
@@ -28,7 +29,7 @@ export class GetCodeUpdatePasswordUserApplicationService implements IApplication
         const answer = { 
             email: forgetDto.email,
             code: code,
-            date: new Date().getTime() 
+            date: new Date()
         }
         return Result.success(answer, 200)
     }

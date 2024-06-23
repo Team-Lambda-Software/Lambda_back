@@ -2,15 +2,14 @@ import { IApplicationService } from "src/common/Application/application-services
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { GetNotificationsUserDtoEntryAplicationDto } from "./dto/entry/get-notifications-by-user.aplication.dto"
-import { OdmNotificationAlertRepository } from "../../repositories/alert-notification/odm-notification-alert-repository"
-import { OdmNotificationAddressEntity } from "../../entities/odm-entities/odm-notification-address.entity"
 import { OdmNotificationAlertEntity } from "../../entities/odm-entities/odm-notification-alert.entity"
+import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface"
 
 export class GetManyNotificationByUserInfraService implements IApplicationService<ApplicationServiceEntryDto, OdmNotificationAlertEntity[]> {
-    private readonly notiAlertRepository: OdmNotificationAlertRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
 
     constructor(
-        notiAlertRepository: OdmNotificationAlertRepository,
+        notiAlertRepository: INotificationAlertRepository,
     ){
         this.notiAlertRepository = notiAlertRepository
     }

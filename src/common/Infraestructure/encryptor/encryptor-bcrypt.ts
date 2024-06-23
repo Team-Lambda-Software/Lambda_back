@@ -1,5 +1,5 @@
-import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import * as bcrypt from 'bcrypt'
+import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface'
 
 export class EncryptorBcrypt implements IEncryptor {
     constructor() {}

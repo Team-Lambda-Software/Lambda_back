@@ -5,8 +5,6 @@ import { OrmProgressVideo } from "src/progress/infraestructure/entities/orm-enti
 import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm"
 import { EnumInfraUserRoles } from "../../user-roles/enum-infra-user-roles"
-import { OrmNotificationAddress } from "src/notification/infraestructure/entities/orm-entities/orm-notification-address"
-import { OrmNotificationAlert } from "src/notification/infraestructure/entities/orm-entities/orm-notification-alert"
 
 @Entity()
 export class OrmUser {
@@ -42,11 +40,6 @@ export class OrmUser {
     @Column( 'enum', { enum: EnumInfraUserRoles, default: 'CLIENT' } )
     type: string
     
-    @OneToMany(() => OrmNotificationAddress, (notification) => notification.user_id)
-    notificationsAddress: OrmNotificationAddress[]
-    @OneToMany(() => OrmNotificationAlert, (notification) => notification.user_id)
-    notificationsReceived: OrmNotificationAlert[] 
-    
     //TODO all relations and fields for the stadistics, courses made, etc.
 
     static create ( 
@@ -61,8 +54,6 @@ export class OrmUser {
         progressCourse?: OrmProgressCourse[],
         progressSection?: OrmProgressSection[],
         progressVideo?: OrmProgressVideo[],
-        notificationsAddress?: OrmNotificationAddress[],
-        notificationsReceived?: OrmNotificationAlert[]
     ): OrmUser
     {
         const user = new OrmUser()
@@ -77,8 +68,6 @@ export class OrmUser {
         user.progressCourse = progressCourse
         user.progressSection = progressSection
         user.ProgressVideo = progressVideo
-        user.notificationsReceived = notificationsReceived
-        user.notificationsAddress = notificationsAddress
         return user
     }
 
