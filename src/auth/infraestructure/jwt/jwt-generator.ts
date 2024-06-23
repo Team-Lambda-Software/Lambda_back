@@ -1,5 +1,5 @@
 import { JwtService } from "@nestjs/jwt";
-import { IJwtGenerator } from "src/auth/application/interface/jwt-generator.interface";
+import { IJwtGenerator } from "src/common/Application/jwt-generator/jwt-generator.interface";
 
 export class JwtGenerator implements IJwtGenerator<string> {
     private readonly jwtService: JwtService

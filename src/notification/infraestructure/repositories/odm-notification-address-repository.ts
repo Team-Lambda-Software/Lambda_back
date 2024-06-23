@@ -1,14 +1,9 @@
 import { Model } from "mongoose"
-import { OdmNotificationAddressEntity } from "../../entities/odm-entities/odm-notification-address.entity"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { OrmNotificationAddress } from "../../entities/orm-entities/orm-notification-address"
+import { INotificationAddressRepository, NotiAddress } from "./interface/notification-address-repository.interface"
+import { OdmNotificationAddressEntity } from "../entities/odm-entities/odm-notification-address.entity"
 
-export interface NotiAddress {
-    token: string
-    user_id: string
-}
-
-export class OdmNotificationAddressRepository  {
+export class OdmNotificationAddressRepository implements INotificationAddressRepository {
 
     private readonly notiModel: Model<OdmNotificationAddressEntity>
     constructor ( notiModel: Model<OdmNotificationAddressEntity>) {

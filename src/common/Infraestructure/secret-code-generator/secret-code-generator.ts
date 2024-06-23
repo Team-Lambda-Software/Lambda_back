@@ -1,4 +1,4 @@
-import { ICodeGenerator } from "src/auth/application/interface/code-generator.interface";
+import { ICodeGenerator } from "src/common/Application/code-generator/code-generator.interface"
 
 export class SecretCodeGenerator implements ICodeGenerator<string> {
     generateCode(len: number): string {

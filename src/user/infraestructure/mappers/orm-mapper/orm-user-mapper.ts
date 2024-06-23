@@ -14,7 +14,9 @@ export class OrmUserMapper implements IMapper<User, OrmUser> {
             domain.Id.Id,
             domain.Phone.Phone,
             domain.Name.Name,
-            domain.Email.Email
+            '',
+            domain.Email.Email,
+            ''
         )
         return persistanceUser
     }

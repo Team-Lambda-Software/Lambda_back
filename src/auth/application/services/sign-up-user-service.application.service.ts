@@ -1,50 +1,53 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { SignUpEntryApplicationDto } from "../dto/sign-up-entry.application.dto";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { IEncryptor } from "../interface/encryptor.interface";
-import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
-import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface";
+import { SignUpEntryDto } from "../dto/entry/sign-up-entry.application.dto";
+import { SignUpResponseDto } from "../dto/response/sign-up-response.application.dto";
+import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
+import { User } from "src/user/domain/user";
+import { UserId } from "src/user/domain/value-objects/user-id";
+import { UserName } from "src/user/domain/value-objects/user-name";
+import { UserPhone } from "src/user/domain/value-objects/user-phone";
+import { UserEmail } from "src/user/domain/value-objects/user-email";
 
-export class SignUpUserApplicationService implements IApplicationService<SignUpEntryApplicationDto, any> {
+export class SignUpUserApplicationService implements IApplicationService<SignUpEntryDto, SignUpResponseDto> {
     
-    private readonly infraUserRepository: IInfraUserRepository
+    private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
-    private readonly encryptor: IEncryptor; 
-    private readonly emailSender: IEmailSender; 
-
+    private readonly eventHandler: IEventHandler
+        
     constructor(
-        infraUserRepository: IInfraUserRepository,
+        eventHandler: IEventHandler,
+        userRepository: IUserRepository,
         uuidGenerator: IdGenerator<string>,
-        encryptor: IEncryptor,
     ){
-        this.infraUserRepository = infraUserRepository
+        this.userRepository = userRepository
         this.uuidGenerator = uuidGenerator
-        this.encryptor = encryptor
+        this.eventHandler = eventHandler
     }
     
-    async execute(signUpDto: SignUpEntryApplicationDto): Promise<Result<any>> {
-        const findResult = await this.infraUserRepository.findUserByEmail( signUpDto.email )
+    async execute(signUpDto: SignUpEntryDto): Promise<Result<any>> {
+        const findResult = await this.userRepository.findUserByEmail( signUpDto.email )
         if ( findResult.isSuccess() ) return Result.fail( new Error('Email registered'), 403, 'Email registered')
+        
         const idUser = await this.uuidGenerator.generateId()
-        const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
-        const userResult = await this.infraUserRepository.saveOrmUser( 
-            OrmUser.create(
-                idUser,
-                signUpDto.phone,
-                signUpDto.name,
-                undefined,
-                signUpDto.email,
-                plainToHash,
-                signUpDto.type    
-            )
+
+        const create = User.create(
+            UserId.create(idUser), 
+            UserName.create(signUpDto.name), 
+            UserPhone.create(signUpDto.phone), 
+            UserEmail.create(signUpDto.email) 
         )
-        if ( !userResult.isSuccess() ) return Result.fail( new Error('Something went wrong signing up user'), 500, 'Something went wrong signing up user' )        
+        const userResult = await this.userRepository.saveUserAggregate( create )
+        if ( !userResult.isSuccess() ) return Result.fail( userResult.Error, userResult.StatusCode, userResult.Message )        
+        
+        this.eventHandler.publish( create.pullEvents() )
+
         const answer = { 
-            id: userResult.Value.id,
-            email: userResult.Value.email,
-            name: userResult.Value.name 
+            id: idUser,
+            email: signUpDto.email,
+            name: signUpDto.name 
         }
         return Result.success(answer, 200)
     }

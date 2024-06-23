@@ -1,11 +1,12 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { LogInEntryApplicationDto } from "../dto/log-in-entry.application.dto";
-import { IJwtGenerator } from "../interface/jwt-generator.interface";
-import { IEncryptor } from "../interface/encryptor.interface";
+import { IJwtGenerator } from "../../../common/Application/jwt-generator/jwt-generator.interface";
+import { IEncryptor } from "../../../common/Application/encryptor/encryptor.interface";
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
+import { LogInEntryDto } from "./dto/entry/log-in-entry.infraestructure.dto";
+import { LogInResponseDto } from "./dto/response/log-in-response.dto";
 
-export class LogInUserApplicationService implements IApplicationService<LogInEntryApplicationDto, any> { 
+export class LogInUserInfraService implements IApplicationService<LogInEntryDto, LogInResponseDto> { 
     
     private readonly userRepository: IInfraUserRepository
     private readonly tokenGenerator: IJwtGenerator<string>;
@@ -14,14 +15,14 @@ export class LogInUserApplicationService implements IApplicationService<LogInEnt
     constructor(
         userRepository: IInfraUserRepository,
         tokenGenerator: IJwtGenerator<string>,
-        encryptor: IEncryptor
+        encryptor: IEncryptor,
     ){
         this.userRepository = userRepository
         this.tokenGenerator = tokenGenerator,
-        this.encryptor = encryptor        
+        this.encryptor = encryptor 
     }
     
-    async execute(logInDto: LogInEntryApplicationDto): Promise<Result<any>> {
+    async execute(logInDto: LogInEntryDto): Promise<Result<LogInResponseDto>> {
         const findResult = await this.userRepository.findUserByEmail( logInDto.email )
         if ( !findResult.isSuccess() ) return Result.fail( new Error('Email not registered'), 403, 'Email not registered' )
         const userResult = await findResult.Value

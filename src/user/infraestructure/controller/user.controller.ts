@@ -39,7 +39,6 @@ import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-
 import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
-//import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
 import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
@@ -48,10 +47,10 @@ import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploade
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { IInfraUserRepository } from "../../application/interfaces/orm-infra-user-repository.interface";
 import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
-import { EncryptorBcrypt } from "src/auth/infraestructure/encryptor/encryptor-bcrypt";
-import { IEncryptor } from "src/auth/application/interface/encryptor.interface";
 import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
+import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
+import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
 
 
 @ApiTags('User')

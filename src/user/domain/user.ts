@@ -54,6 +54,7 @@ export class User extends AggregateRoot<UserId> {
                 const userEmailModified: UserEmailModified = event as UserEmailModified
                 this.email = userEmailModified.email
                 break;
+
         }
     }
 
