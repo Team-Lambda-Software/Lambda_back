@@ -63,6 +63,8 @@ import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CategoryName } from "src/categories/domain/value-objects/category-title"
 import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
+import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer';
+import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
 
 
 @ApiTags( 'Course' )
@@ -79,6 +81,8 @@ export class CourseController
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly odmCourseMapper: OdmCourseMapper
+    private readonly courseQuerySyncronizer: CourseQuerySyncronizer
+    private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
@@ -118,6 +122,19 @@ export class CourseController
         this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
 
         this.odmCourseMapper = new OdmCourseMapper()
+
+        this.courseQuerySyncronizer = new CourseQuerySyncronizer(
+            this.odmCourseRepository,
+            this.courseModel,
+            this.categoryModel,
+            this.trainerModel
+        )
+
+        this.sectionQuerySyncronizer = new SectionQuerySyncronizer(
+            this.odmCourseRepository
+        )
+
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
     }
 
     @Post( 'create' )
@@ -151,7 +168,7 @@ export class CourseController
         const eventBus = EventBus.getInstance()
         
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
-            this.odmCourseRepository.saveCourse( Course.create( event.id, event.trainer, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date))
+            this.courseQuerySyncronizer.execute( event )
         })
 
         const service =
@@ -178,9 +195,9 @@ export class CourseController
         }
         const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
         const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
-        if ( !category.isSuccess() )
+        if ( !category.Value )
         {
-            throw new NotFoundException( category.Error )
+            throw new NotFoundException( 'No se encontro la categoria' )
         }
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
@@ -217,7 +234,7 @@ export class CourseController
         const eventBus = EventBus.getInstance()
 
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
-            this.odmCourseRepository.addSectionToCourse( courseId, Section.create(event.id, event.name, event.description, event.duration, event.video) )
+            this.sectionQuerySyncronizer.execute(event)
         })
 
         const service =
@@ -248,12 +265,11 @@ export class CourseController
             }
         }
 
-        const course = await this.odmCourseRepository.findCourseBySectionId( courseId )
-            if (!course){
-                throw new NotFoundException('No se encontro el curso')
-            }
-
-            const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
+        const course = await this.odmCourseRepository.findCourseById( courseId )
+        if (!course.Value){
+            throw new NotFoundException('No se encontro el curso')
+        }
+        const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
         return result.Value

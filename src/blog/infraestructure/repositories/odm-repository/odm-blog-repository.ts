@@ -29,36 +29,14 @@ export class OdmBlogRepository implements BlogQueryRepository{
 
     }
 
-    async saveBlog ( blog: Blog ): Promise<void>
+    async saveBlog ( blog: OdmBlogEntity ): Promise<void>
     {
-
-        const blogTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: blog.Trainer.Id } )
-        const blogCategory: OdmCategoryEntity = await this.categoryModel.findOne( { id: blog.CategoryId.Value } )
-        const blogPersistence = new this.blogModel({
-            id: blog.Id.Value,
-            title: blog.Title.Value,
-            body: blog.Body.Value,
-            publication_date: blog.PublicationDate.Value,
-            category: blogCategory,
-            trainer: blogTrainer,
-            images: blog.Images.map( image => ( { url: image.Value } ) ),
-            tags: blog.Tags.map( tag => tag.Value )
-        })
-        await this.blogModel.create( blogPersistence )    
+        await this.blogModel.create( blog )    
     }
 
-    async createBlogComment (blogComment: BlogComment): Promise<void>
+    async createBlogComment (blogComment: OdmBlogCommentEntity): Promise<void>
     {
-        const blog = await this.blogModel.findOne( { id: blogComment.BlogId.Value } )
-        const user = await this.userModel.findOne( { id: blogComment.UserId } )
-        const odmBlogComment = new this.blogCommentModel({
-            id: blogComment.Id.Value,
-            text: blogComment.Text.Value,
-            date: blogComment.Date.Value,
-            blog: blog,
-            user: user
-        })
-        await this.blogCommentModel.create( odmBlogComment )
+        await this.blogCommentModel.create( blogComment )
     }
 
     async findBlogsByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
