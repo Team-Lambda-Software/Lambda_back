@@ -87,17 +87,13 @@ export class CommentController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
-                ),
+                    new OrmSectionMapper()),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
                 dataSource
             )
         this.blogRepository = new OrmBlogRepository(
-            new OrmBlogMapper(
-                new OrmTrainerMapper()
-            ),
+            new OrmBlogMapper(),
             new OrmBlogCommentMapper(),
             dataSource
         )

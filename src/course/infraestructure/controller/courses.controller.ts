@@ -128,7 +128,7 @@ export class CourseController
         this.courseQuerySyncronizer = new CourseQuerySyncronizer(
             this.odmCourseRepository,
             this.courseModel,
-            this.categoryModel,
+            this.odmCategoryRepository,
             this.trainerModel
         )
 
@@ -207,7 +207,7 @@ export class CourseController
         {
             throw new NotFoundException( trainer.Message )
         }
-        const resultTrainer = trainer.Value
+        const resultTrainer = Trainer.create(trainer.Value.Id,trainer.Value.Name, trainer.Value.Email, trainer.Value.Phone, trainer.Value.FollowersID, trainer.Value.Location)
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
         return result.Value
     }

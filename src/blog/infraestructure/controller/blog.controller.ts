@@ -72,9 +72,7 @@ export class BlogController
     {
         this.blogRepository =
             new OrmBlogRepository(
-                new OrmBlogMapper(
-                    new OrmTrainerMapper()
-                ),
+                new OrmBlogMapper(),
                 new OrmBlogCommentMapper(),
                 dataSource
             )

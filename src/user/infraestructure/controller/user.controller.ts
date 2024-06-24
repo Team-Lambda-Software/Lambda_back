@@ -76,8 +76,7 @@ export class UserController {
     this.courseRepository =
       new OrmCourseRepository(
         new OrmCourseMapper(
-          new OrmSectionMapper(),
-          new OrmTrainerMapper()
+          new OrmSectionMapper()
         ),
         new OrmSectionMapper(),
         new OrmSectionCommentMapper(),
