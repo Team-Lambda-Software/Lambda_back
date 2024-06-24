@@ -66,4 +66,9 @@ export class Trainer extends AggregateRoot<TrainerId> {
             throw new InvalidTrainerException();
         }
     }
+
+    static create (id: TrainerId, name:TrainerName, email:TrainerEmail, phone:TrainerPhone, followers: TrainerFollowers, location?: TrainerLocation): Trainer
+    {
+        return new Trainer(id, name, email, phone, followers, location);
+    }
 }
