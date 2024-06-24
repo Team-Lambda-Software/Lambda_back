@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -12,7 +12,6 @@ import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swag
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
-import { User } from "src/user/domain/user"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
@@ -23,15 +22,13 @@ import { CreateBlogApplicationService } from "src/blog/application/services/comm
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { AuditingDecorator } from "src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator"
-import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
-import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
+import { FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { OdmBlogRepository } from "../repositories/odm-repository/odm-blog-repository"
 import { BlogCreated } from "src/blog/domain/events/blog-created-event"
-import { Blog } from "src/blog/domain/blog"
 import { Model } from "mongoose"
 import { OdmBlogEntity } from "../entities/odm-entities/odm-blog.entity"
 import { InjectModel } from "@nestjs/mongoose"
@@ -46,8 +43,10 @@ import { SearchRecentBlogsByTrainerService } from "../query-services/services/se
 import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { GetBlogService } from "../query-services/services/get-blog.service"
-import { BlogQuerySyncronizer } from '../query-synchronizer/blog-query-synchronizer';
+import { BlogQuerySyncronizer } from '../query-synchronizer/blog-query-synchronizer'
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
+import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
+import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -94,10 +93,7 @@ export class BlogController
 
         this.odmBlogRepository = new OdmBlogRepository(
             blogModel,
-            categoryModel,
-            trainerModel,
-            blogCommentModel,
-            userModel
+            blogCommentModel
         )
         this.blogQuerySyncronizer = new BlogQuerySyncronizer(
             this.odmBlogRepository,
@@ -277,6 +273,29 @@ export class BlogController
         }
 
 
+    }
+
+    @Get( 'count' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Devuelve la cantidad de blogs', type: Number } )
+    async getBlogcount ( @GetUser() user, @Query() getBlogCountParams: GetBlogCountQueryParametersDto )
+    {
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetBlogCountService(
+                        this.odmBlogRepository
+                    ),
+                    new NativeLogger( this.logger )
+                ),
+                new HttpExceptionHandler()
+            )
+        if (!getBlogCountParams.category && !getBlogCountParams.trainer){
+            throw new BadRequestException("tiene que enviar o un entrenador o una categoria")
+        }
+        const result = await service.execute( {...getBlogCountParams, userId: user.id})
+        return result.Value
     }
 
 }

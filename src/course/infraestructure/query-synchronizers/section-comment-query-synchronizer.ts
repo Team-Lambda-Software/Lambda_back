@@ -47,7 +47,7 @@ export class SectionCommentQuerySyncronizer implements Querysynchronizer<Section
         try{
             await this.courseRepository.addCommentToSection(odmComment)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }

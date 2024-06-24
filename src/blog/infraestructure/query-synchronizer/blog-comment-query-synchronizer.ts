@@ -44,7 +44,7 @@ export class BlogCommentQuerySyncronizer implements Querysynchronizer<BlogCommen
         try{
             await this.blogRepository.createBlogComment(odmBlogComment)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }

@@ -43,7 +43,7 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
         try{
             await this.blogRepository.saveBlog(blogPersistence)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }
