@@ -63,7 +63,7 @@ export class NotificationController {
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.pushNotifier = FirebaseNotifier.getInstance()
         this.courseRepository = new OrmCourseRepository( 
-            new OrmCourseMapper( new OrmSectionMapper(), new OrmTrainerMapper() ),
+            new OrmCourseMapper( new OrmSectionMapper() ),
             new OrmSectionMapper(),
             new OrmSectionCommentMapper(),
             dataSource

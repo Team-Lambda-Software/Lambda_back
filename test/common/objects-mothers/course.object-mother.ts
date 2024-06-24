@@ -16,6 +16,7 @@ import { CourseName } from "src/course/domain/value-objects/course-name"
 import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseWeeksDuration } from "src/course/domain/value-objects/course-weeks-duration"
 import { Trainer } from "src/trainer/domain/trainer"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -23,8 +24,7 @@ export class CourseObjectMother{
     static async createCourse(){
         return Course.create(
             CourseId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
-            Trainer.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab9', 'John', 'Doe' , 'Doe', 'asfvs@gmail.com',
-            '+58 123 123 123', []),
+            TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab9'),
             CourseName.create('Title'),
             CourseDescription.create('Body body'),
             CourseWeeksDuration.create(5),

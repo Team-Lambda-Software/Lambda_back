@@ -28,8 +28,8 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
 
     async execute ( event: BlogCreated ): Promise<Result<string>>
     {
-        const blog = Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags)
-        const blogTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: blog.Trainer.Id } )
+        const blog = Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainerId, event.categoryId, event.tags)
+        const blogTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: blog.TrainerId.Value } )
         const blogCategory = await this.categoryRepository.findCategoryById(  blog.CategoryId.Value )
         if ( !blogCategory.isSuccess() ){
             return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
