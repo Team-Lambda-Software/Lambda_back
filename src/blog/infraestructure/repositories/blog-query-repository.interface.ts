@@ -31,5 +31,11 @@ export interface BlogQueryRepository {
     
 
     findBlogsByTagsAndTitle ( searchTags: string[], title: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+
+    findBlogCountByTrainer ( trainerId: string ): Promise<Result<number>>
+
+    findBlogCountByCategory ( categoryId: string ): Promise<Result<number>>
+
+    findBlogTags (): Promise<Result<string[]>>
     
 }

@@ -49,7 +49,7 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
         try{
             await this.courseRepository.saveCourse(coursePersistence)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }
