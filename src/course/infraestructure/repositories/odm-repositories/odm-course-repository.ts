@@ -4,9 +4,6 @@ import { OdmSectionCommentEntity } from "../../entities/odm-entities/odm-section
 import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
 import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
-import { Course } from "src/course/domain/course"
-import { Section } from "src/course/domain/entities/section/section"
-import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { CourseQueryRepository } from "../course-query-repository.interface"
@@ -18,18 +15,38 @@ export class OdmCourseRepository implements CourseQueryRepository{
 
     private readonly courseModel: Model<OdmCourseEntity>
     private readonly sectionCommentModel: Model<OdmSectionCommentEntity>
-    private readonly categoryModel: Model<OdmCategoryEntity>
-    private readonly trainerModel: Model<OdmTrainerEntity>
-    private readonly userModel: Model<OdmUserEntity>
-
-    constructor ( courseModel: Model<OdmCourseEntity>, sectionCommentModel: Model<OdmSectionCommentEntity>, categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>, userModel: Model<OdmUserEntity>)
+    constructor ( courseModel: Model<OdmCourseEntity>, sectionCommentModel: Model<OdmSectionCommentEntity>)
     {
         this.courseModel = courseModel
         this.sectionCommentModel = sectionCommentModel
-        this.categoryModel = categoryModel
-        this.trainerModel = trainerModel
-        this.userModel = userModel
 
+    }
+    async findCourseTags (): Promise<Result<string[]>>
+    {
+        try{
+            const tags = await this.courseModel.distinct( "tags" )
+            return Result.success<string[]>( tags, 200 )
+        } catch (error){
+            return Result.fail<string[]>( error, 500, error.message)
+        }
+    }
+    async findCourseCountByTrainer ( trainerId: string ): Promise<Result<number>>
+    {
+        try{
+            const count = await this.courseModel.countDocuments( { 'trainer.id': trainerId } )
+            return Result.success<number>( count, 200 )
+        }catch (error){
+            return Result.fail<number>( error, 500, error.message )
+        }
+    }
+    async findCourseCountByCategory ( categoryId: string ): Promise<Result<number>>
+    {
+        try{
+            const count = await this.courseModel.countDocuments( { 'category.id': categoryId } )
+            return Result.success<number>( count, 200 )
+        }catch (error){
+            return Result.fail<number>( error, 500, error.message )
+        }
     }
 
     async saveCourse ( course: OdmCourseEntity ): Promise<void>{
@@ -61,7 +78,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1} )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
-            return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
         }
     }
 
@@ -70,7 +87,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const course = await this.courseModel.findOne( { id: courseId } )
             return Result.success<OdmCourseEntity>( course, 200 )
         }catch (error){
-            return Result.fail<OdmCourseEntity>( error, 500, error.detail )
+            return Result.fail<OdmCourseEntity>( error, 500, error.message )
         }
     }
 
@@ -80,7 +97,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const comments = await this.sectionCommentModel.find( { "section.id": sectionId } ).skip(page).limit(perPage).sort( { date: -1, id: -1} )
             return Result.success<OdmSectionCommentEntity[]>( comments, 200 )
         }catch (error){
-            return Result.fail<OdmSectionCommentEntity[]>( error, 500, error.detail )
+            return Result.fail<OdmSectionCommentEntity[]>( error, 500, error.message )
         }
     }
 
@@ -94,7 +111,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1 } )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
-            return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
         }
     }	
 
@@ -108,7 +125,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const courses = await this.courseModel.find( query ).skip(page).limit(perPage).sort( { date: -1, id: -1 } )
             return Result.success<OdmCourseEntity[]>( courses, 200 )
         }catch (error){
-            return Result.fail<OdmCourseEntity[]>( error, 500, error.detail )
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
         }
     }
 
@@ -118,7 +135,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             const section = course.sections.find( section => section.id === sectionId )
             return Result.success<{id: string, name: string, duration: number, description: string, video: string}>( section, 200 )
         }catch (error){
-            return Result.fail<{id: string, name: string, duration: number, description: string, video: string}>( error, 500, error.detail )
+            return Result.fail<{id: string, name: string, duration: number, description: string, video: string}>( error, 500, error.message )
         }
     }
 
@@ -128,7 +145,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
             console.log(course)
             return Result.success<OdmCourseEntity>( course, 200 )
         }catch (error){
-            return Result.fail<OdmCourseEntity>( error, 500, error.detail )
+            return Result.fail<OdmCourseEntity>( error, 500, error.message )
         }
     }
 }

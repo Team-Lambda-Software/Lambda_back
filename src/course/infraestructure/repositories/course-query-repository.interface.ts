@@ -35,4 +35,10 @@ export interface CourseQueryRepository {
     findSectionById ( sectionId: string ): Promise<Result<{id: string, name: string, duration: number, description: string, video: string}>>
 
     findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>
+
+    findCourseCountByTrainer ( trainerId: string ): Promise<Result<number>>
+
+    findCourseCountByCategory ( categoryId: string ): Promise<Result<number>>
+
+    findCourseTags (): Promise<Result<string[]>>
 }
