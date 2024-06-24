@@ -20,19 +20,17 @@ export class BlogCommentQuerySyncronizer implements Querysynchronizer<BlogCommen
 
     private readonly blogRepository: BlogQueryRepository
     private readonly userModel: Model<OdmUserEntity>
-    private readonly blogModel: Model<OdmBlogEntity>
     private readonly blogCommentModel: Model<OdmBlogCommentEntity>
-    constructor ( blogRepository: BlogQueryRepository, blogCommentModel: Model<OdmBlogCommentEntity> ,userModel: Model<OdmUserEntity>, blogModel: Model<OdmBlogEntity>){
+    constructor ( blogRepository: BlogQueryRepository, blogCommentModel: Model<OdmBlogCommentEntity>, userModel: Model<OdmUserEntity>){
         this.blogRepository = blogRepository
         this.userModel = userModel
-        this.blogModel = blogModel
         this.blogCommentModel = blogCommentModel
     }
 
     async execute ( event: BlogCommentCreated ): Promise<Result<string>>
     {
         const blogComment = BlogComment.create(event.id, event.userId, event.text, event.date, event.blogId)
-        const blog = await this.blogModel.findOne( { id: blogComment.BlogId.Value } )
+        const blog = await this.blogRepository.findBlogById(  blogComment.BlogId.Value )
         const user = await this.userModel.findOne( { id: blogComment.UserId.Id } )
         const odmBlogComment = new this.blogCommentModel({
             id: blogComment.Id.Value,

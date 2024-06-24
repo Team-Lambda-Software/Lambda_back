@@ -98,7 +98,7 @@ export class BlogController
         this.blogQuerySyncronizer = new BlogQuerySyncronizer(
             this.odmBlogRepository,
             this.blogModel,
-            this.categoryModel,
+            this.odmCategoryRepository,
             this.trainerModel
         )
 

@@ -8,6 +8,7 @@ import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-
 import { Model } from "mongoose"
 import { OdmBlogEntity } from "../entities/odm-entities/odm-blog.entity"
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer"
+import { CategoryQueryRepository } from "src/categories/infraesctructure/repositories/category-query-repository.interface"
 
 
 
@@ -16,11 +17,11 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
 
     private readonly blogRepository: BlogQueryRepository
     private readonly trainerModel: Model<OdmTrainerEntity>
-    private readonly categoryModel: Model<OdmCategoryEntity>
+    private readonly categoryRepository: CategoryQueryRepository
     private readonly blogModel: Model<OdmBlogEntity>
-    constructor ( blogRepository: BlogQueryRepository, blogModel: Model<OdmBlogEntity> ,categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>){
+    constructor ( blogRepository: BlogQueryRepository, blogModel: Model<OdmBlogEntity> , categoryRepository: CategoryQueryRepository, trainerModel: Model<OdmTrainerEntity>){
         this.blogRepository = blogRepository
-        this.categoryModel = categoryModel
+        this.categoryRepository = categoryRepository
         this.trainerModel = trainerModel
         this.blogModel = blogModel
     }
@@ -29,13 +30,17 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
     {
         const blog = Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainer, event.categoryId, event.tags)
         const blogTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: blog.Trainer.Id } )
-        const blogCategory: OdmCategoryEntity = await this.categoryModel.findOne( { id: blog.CategoryId.Value } )
+        const blogCategory = await this.categoryRepository.findCategoryById(  blog.CategoryId.Value )
+        if ( !blogCategory.isSuccess() ){
+            return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
+        }
+        const category = blogCategory.Value
         const blogPersistence = new this.blogModel({
             id: blog.Id.Value,
             title: blog.Title.Value,
             body: blog.Body.Value,
             publication_date: blog.PublicationDate.Value,
-            category: blogCategory,
+            category: category,
             trainer: blogTrainer,
             images: blog.Images.map( image => ( { url: image.Value } ) ),
             tags: blog.Tags.map( tag => tag.Value )

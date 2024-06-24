@@ -123,8 +123,7 @@ export class CommentController
         this.blogCommentQuerySynchronizer = new BlogCommentQuerySyncronizer(
             this.odmBlogRepository,
             blogCommentModel,
-            userModel,
-            blogModel
+            userModel
         )
         this.sectionCommentQuerySyncronizer = new SectionCommentQuerySyncronizer(
             this.odmCourseRepository,
