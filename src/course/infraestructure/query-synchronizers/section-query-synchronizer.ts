@@ -32,7 +32,7 @@ export class SectionQuerySyncronizer implements Querysynchronizer<SectionCreated
         try{
             await this.courseRepository.addSectionToCourse(event.courseId.Value,odmSection)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }
