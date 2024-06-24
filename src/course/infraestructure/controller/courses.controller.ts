@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource, Not } from "typeorm"
@@ -65,6 +65,8 @@ import { CategoryIcon } from "src/categories/domain/value-objects/category-image
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer';
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
+import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-course-count-query-parameters.dto"
+import { GetCourseCountService } from "../query-services/services/get-course-count.service"
 
 
 @ApiTags( 'Course' )
@@ -119,7 +121,7 @@ export class CourseController
 
         this.fileUploader = new AzureFileUploader()
 
-        this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
+        this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel)
 
         this.odmCourseMapper = new OdmCourseMapper()
 
@@ -378,6 +380,30 @@ export class CourseController
 
 
     }
+
+    @Get( 'count' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Devuelve la cantidad de courses', type: Number } )
+    async getCoursecount ( @GetUser() user, @Query() getCourseCountParams: GetCourseCountQueryParametersDto )
+    {
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetCourseCountService(
+                        this.odmCourseRepository
+                    ),
+                    new NativeLogger( this.logger )
+                ),
+                new HttpExceptionHandler()
+            )
+        if (!getCourseCountParams.category && !getCourseCountParams.trainer){
+            throw new BadRequestException("tiene que enviar o un entrenador o una categoria")
+        }
+        const result = await service.execute( {...getCourseCountParams, userId: user.id})
+        return result.Value
+    }
+
 
     // @Post( 'levels/search' )
     // @UseGuards( JwtAuthGuard )

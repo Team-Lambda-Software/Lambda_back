@@ -15,8 +15,7 @@ import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { User } from "src/user/domain/user"
-import { DataSource, In } from "typeorm"
+import { DataSource } from "typeorm"
 import { AddCommentEntryDto } from "../dto/entry/add-comment-entry.dto"
 import { AddCommentToSectionServiceEntryDto } from "src/course/application/dto/param/add-comment-to-section-service-entry.dto"
 import { AddCommentToBlogApplicationService } from "src/blog/application/services/commands/add-comment-to-blog-application.service"
@@ -37,7 +36,6 @@ import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-
 import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
 import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
 import { BlogCommentCreated } from "src/blog/domain/events/blog-comment-created-event"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { OdmBlogCommentEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog-comment.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { GetBlogCommentsServiceEntryDto } from "src/blog/infraestructure/query-services/dto/params/get-blog-comments-service-entry.dto"
@@ -47,7 +45,6 @@ import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 import { SectionCommentCreated } from "src/course/domain/events/section-comment-created-event"
-import { SectionComment } from "src/course/domain/entities/section-comment/section-comment"
 import { GetSectionCommentsServiceEntryDto } from "src/course/infraestructure/query-services/dto/param/get-section-comments-service-entry.dto"
 import { GetSectionCommentsService } from "src/course/infraestructure/query-services/services/get-section-comments.service"
 import { Section } from "src/course/domain/entities/section/section"
@@ -59,7 +56,7 @@ import { SectionVideo } from "src/course/domain/entities/section/value-objects/s
 import { OdmCourseMapper } from "src/course/infraestructure/mappers/odm-mappers/odm-course-mapper"
 import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-blog-mapper"
 import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
-import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer';
+import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer'
 
 
 @ApiTags( 'Comment' )
@@ -69,7 +66,6 @@ export class CommentController
 
     private readonly courseRepository: OrmCourseRepository
     private readonly blogRepository: OrmBlogRepository
-    private readonly userRepository: OrmUserRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly odmBlogRepository: OdmBlogRepository
@@ -110,24 +106,15 @@ export class CommentController
 
         this.idGenerator = new UuidGenerator()
 
-        this.userRepository = new OrmUserRepository( 
-            new OrmUserMapper(),
-            dataSource )
         
         this.odmBlogRepository = new OdmBlogRepository(
             blogModel,
-            categoryModel,
-            trainerModel,
-            blogCommentModel,
-            userModel
+            blogCommentModel
         )
 
         this.odmCourseRepository = new OdmCourseRepository(
             courseModel,
-            sectionCommentModel,
-            categoryModel,
-            trainerModel,
-            userModel
+            sectionCommentModel
         )
 
         this.odmCourseMapper = new OdmCourseMapper()
@@ -136,8 +123,7 @@ export class CommentController
         this.blogCommentQuerySynchronizer = new BlogCommentQuerySyncronizer(
             this.odmBlogRepository,
             blogCommentModel,
-            userModel,
-            blogModel
+            userModel
         )
         this.sectionCommentQuerySyncronizer = new SectionCommentQuerySyncronizer(
             this.odmCourseRepository,
