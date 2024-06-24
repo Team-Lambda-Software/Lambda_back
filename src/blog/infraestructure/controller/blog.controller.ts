@@ -144,7 +144,6 @@ export class BlogController
                         new CreateBlogApplicationService(
                             this.blogRepository,
                             this.idGenerator,
-                            this.trainerRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -166,7 +165,12 @@ export class BlogController
         const category = await this.odmCategoryRepository.findCategoryById( createBlogParams.categoryId )
         if ( !category.Value )
         {
-            throw new NotFoundException( 'No se encontro la categoria' )
+            throw new NotFoundException( category.Message )
+        }
+        const trainer = await this.trainerRepository.findTrainerById( createBlogParams.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            throw new NotFoundException( trainer.Message )
         }
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
         return result.Value
