@@ -28,7 +28,6 @@ export class NotifyGoodDayInfraService implements IApplicationService<Applicatio
         const findResult = await this.notiAddressRepository.findAllTokens()
         if ( !findResult.isSuccess() ) return Result.fail( findResult.Error, findResult.StatusCode, findResult.Message )
         const listTokens = findResult.Value
-
         listTokens.forEach( async e => {  
             this.notiAlertRepository.saveNotificationAlert({
                 alert_id: await this.uuidGenerator.generateId(), 

@@ -15,5 +15,6 @@ export interface INotificationAlertRepository {
     findManyNotificationsByIdUser(userId: string, pagDto: PaginationDto): Promise<Result<OdmNotificationAlertEntity[]>>
     saveNotificationAlert( data: NotiAlert ) 
     findNotificationById(user_id: string, notification_id: string): Promise<Result<OdmNotificationAlertEntity>>
+    deleteNotificationsByUser(user_id: string): void
     findAllByIdUserNotReaded(user_id: string): Promise<Result<OdmNotificationAlertEntity[]>> 
 }
