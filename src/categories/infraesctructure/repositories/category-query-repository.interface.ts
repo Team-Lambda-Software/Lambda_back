@@ -5,7 +5,7 @@ import { OdmCategoryEntity } from "../entities/odm-entities/odm-category.entity"
 
 
 export interface CategoryQueryRepository {
-    saveCategory ( category: Category ): Promise<void>
+    saveCategory ( category: OdmCategoryEntity ): Promise<void>
 
 
     findCategoryById ( id: string ): Promise<Result<OdmCategoryEntity>>

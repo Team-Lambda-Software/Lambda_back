@@ -27,17 +27,17 @@ import { UserId } from "src/user/domain/value-objects/user-id"
 export class CourseDomainEventObjectMother {
 
 
-    static createCourseCreatedEvent(): CourseCreated {
+    static createCourseCreatedEvent(trainerId: string, categoryId: string): CourseCreated {
         return CourseCreated.create(
             CourseId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
+            TrainerId.create(trainerId),
             CourseName.create('title'),
             CourseDescription.create('description of the course'),
             CourseWeeksDuration.create(10),
             CourseMinutesDuration.create(60),
             CourseLevel.create(2),
             [],
-            CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
+            CategoryId.create(categoryId),
             CourseImage.create('url.com'),
             [CourseTag.create('Tag')],
             CourseDate.create(new Date())
