@@ -11,15 +11,22 @@ import { IdGenerator } from "src/common/Application/Id-generator/id-generator.in
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
+import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
+    private readonly syncroInfraUser: InfraUserQuerySynchronizer
     private readonly userRepository: IInfraUserRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
 
-    constructor ( userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>, encryptor:IEncryptor ){
+    constructor ( 
+        syncroInfraUser: InfraUserQuerySynchronizer,
+        userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>, encryptor:IEncryptor 
+    
+    ){
+        this.syncroInfraUser = syncroInfraUser
         this.userRepository = userRepository
         this.fileUploader = fileUploader
         this.idGenerator = idGenerator
@@ -45,6 +52,8 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
         const updateResult = await this.userRepository.saveOrmUser(userUpdate);
 
         if(!updateResult.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
+
+        this.syncroInfraUser.execute( updateResult.Value )
 
         const respuesta: UpdateUserProfileServiceResponseDto = {
             userId: updateResult.Value.id

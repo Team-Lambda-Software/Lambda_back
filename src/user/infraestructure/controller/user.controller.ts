@@ -50,6 +50,11 @@ import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repos
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
+import { InfraUserQuerySynchronizer } from '../query-synchronizer/user-infra-query-synchronizer';
+import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
+import { Model } from 'mongoose';
 
 
 @ApiTags('User')
@@ -66,8 +71,14 @@ export class UserController {
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
+  private readonly syncroInfraUser: InfraUserQuerySynchronizer
 
-  constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+  constructor(
+    @InjectModel('User') private userModel: Model<OdmUserEntity>,
+    @Inject('DataSource') private readonly dataSource: DataSource
+) {
+    
+    this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
     this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
@@ -113,6 +124,7 @@ export class UserController {
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
+            this.syncroInfraUser,
             this.infraUserRepository,
             this.fileUploader,
             this.idGenerator,

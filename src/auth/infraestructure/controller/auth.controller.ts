@@ -48,7 +48,7 @@ import { OdmUserRepository } from "src/user/infraestructure/repositories/odm-rep
 import { InjectModel } from "@nestjs/mongoose";
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
-import { Result } from "src/common/Domain/result-handler/Result";
+import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -60,6 +60,7 @@ export class AuthController {
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
     private readonly queryUserRepository: UserQueryRepository
+    private readonly syncroInfraUser: InfraUserQuerySynchronizer
     private secretCodes = []
 
     constructor(
@@ -74,6 +75,7 @@ export class AuthController {
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
+        this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
     }
     
     @Get('current')
@@ -124,12 +126,10 @@ export class AuthController {
         
         const eventBus = EventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
-            
-            this.infraUserRepository.saveOrmUser(
-                OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
-            )
+            const ormUser = OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            this.syncroInfraUser.execute( ormUser )
+            this.infraUserRepository.saveOrmUser( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )
-        
         })
 
         const signUpApplicationService = new ExceptionDecorator( 
@@ -180,7 +180,8 @@ export class AuthController {
             new LoggingDecorator(
                 new ChangePasswordUserInfraService(
                     this.infraUserRepository,
-                    this.encryptor
+                    this.encryptor,
+                    this.syncroInfraUser
                 ), 
                 new NativeLogger(this.logger)
             ),

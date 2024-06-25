@@ -6,7 +6,7 @@ import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
 import { OrmUser } from "../entities/orm-entities/user.entity";
 
-export class UserQuerySynchronizer implements Querysynchronizer<OrmUser>{
+export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
     
     private readonly odmUserRepository: OdmUserRepository
     private readonly userModel: Model<OdmUserEntity>
