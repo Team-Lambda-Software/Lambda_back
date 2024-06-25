@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - CQRS
 
 jobs:
   run-tests:
@@ -14,7 +15,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.2.0'
-      - run: npm ci
+      - run: npm install
       - run: npm run test
   build-container:
     needs: run-tests
