@@ -4,13 +4,13 @@ import { OdmUserEntity } from 'src/user/infraestructure/entities/odm-entities/od
 
 @Schema()
 export class OdmSectionCommentEntity extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, type: String})
   id: string;
 
-  @Prop({required: true}) 
+  @Prop({required: true, type: String}) 
   text:string;
 
-  @Prop({required: true})  
+  @Prop({required: true, type: Date})  
   date: Date;
 
   @Prop({type: {id: String, name: String, duration: Number, description: String, video: String},required: true})

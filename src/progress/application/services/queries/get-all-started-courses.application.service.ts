@@ -7,6 +7,8 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { Course } from "src/course/domain/course";
 import { ProgressCourse } from "src/progress/domain/entities/progress-course";
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface";
+import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
+import { Trainer } from "src/trainer/domain/trainer";
 
 
 export class GetAllStartedCoursesApplicationService implements IApplicationService<GetAllStartedCoursesEntryDto, GetAllStartedCoursesResponseDto>
@@ -14,12 +16,14 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
     private readonly progressRepository: IProgressCourseRepository;
     private readonly courseRepository: ICourseRepository;
     private readonly categoryRepository: ICategoryRepository;
+    private readonly trainerRepository: ITrainerRepository;
 
-    constructor ( progressRepository:IProgressCourseRepository, courseRepository:ICourseRepository, categoryRepository:ICategoryRepository )
+    constructor ( progressRepository:IProgressCourseRepository, courseRepository:ICourseRepository, categoryRepository:ICategoryRepository, trainerRepository:ITrainerRepository )
     {
         this.progressRepository = progressRepository;
         this.courseRepository = courseRepository;
         this.categoryRepository = categoryRepository;
+        this.trainerRepository = trainerRepository;
     }
 
     async execute(data:GetAllStartedCoursesEntryDto): Promise<Result<GetAllStartedCoursesResponseDto>>
@@ -32,7 +36,7 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
         }
         const arrayProgress = arrayProgressResult.Value;
 
-        let arrayResponseData:{course:Course, categoryName:string, progress:ProgressCourse}[] = [];
+        let arrayResponseData:{course:Course, categoryName:string, trainerName:string, progress:ProgressCourse}[] = [];
         for (let progress of arrayProgress)
         {
             const courseResult = await this.courseRepository.findCourseById(progress.CourseId);
@@ -49,7 +53,16 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
             }
             const categoryName = categoryResult.Value.Name;
 
-            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName.Value, progress: progress});
+            const trainerResult = await this.trainerRepository.findTrainerById(course.TrainerId.Value);
+            if (!trainerResult.isSuccess())
+            {
+                return Result.fail<GetAllStartedCoursesResponseDto>(trainerResult.Error, trainerResult.StatusCode, trainerResult.Message);
+            }
+            const trainer:Trainer = trainerResult.Value;
+            const trainerNameVO = trainer.Name;
+            const trainerName = trainerNameVO.FirstName + " " + trainerNameVO.FirstLastName + " " + trainerNameVO.SecondLastName;
+
+            arrayResponseData.push({course: courseResult.Value, categoryName: categoryName.Value, trainerName:trainerName, progress: progress});
         }
         //! make this a dto
         let returnDataArray:Array< { id: string, title: string, image:string, date: Date, category: string, trainerName: string, completionPercent: number } > = [];
@@ -61,7 +74,7 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
                 image: response.course.Image.Value,
                 date: response.course.Date.Value,
                 category: response.categoryName, 
-                trainerName: response.course.Trainer.FirstName + " " + response.course.Trainer.FirstLastName + " " + response.course.Trainer.SecondLastName,
+                trainerName: response.trainerName,
                 completionPercent: response.progress.CompletionPercent
             };
             returnDataArray.push(returnData);

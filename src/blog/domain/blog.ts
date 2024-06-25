@@ -16,6 +16,7 @@ import { BlogCommentCreated } from "./events/blog-comment-created-event"
 import { BlogComment } from "./entities/blog-comment"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { UserId } from "src/user/domain/value-objects/user-id"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -26,13 +27,13 @@ export class Blog extends AggregateRoot<BlogId>{
     private body: BlogBody
     private images: BlogImage[]
     private publicationDate: BlogPublicationDate
-    private trainer: Trainer
+    private trainerId: TrainerId
     private categoryId: CategoryId
     private tags: BlogTag[]
 
-    protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[])
+    protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainerId: TrainerId, categoryId: CategoryId, tags: BlogTag[])
     {
-        const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate,trainer, categoryId, tags)
+        const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate, trainerId, categoryId, tags)
         super( id, blogCreated)
     }
 
@@ -47,14 +48,14 @@ export class Blog extends AggregateRoot<BlogId>{
                 this.categoryId = blogCreated.categoryId
                 this.images = blogCreated.images
                 this.publicationDate = blogCreated.publicationDate
-                this.trainer = blogCreated.trainer 
+                this.trainerId = blogCreated.trainerId 
         }
     }
 
 
     protected ensureValidState (): void
     {
-        if (!this.Body || !this.title || !this.CategoryId || !this.PublicationDate || !this.trainer)
+        if (!this.Body || !this.title || !this.CategoryId || !this.PublicationDate || !this.trainerId)
             throw new InvalidBlogException()
     }
 
@@ -78,9 +79,9 @@ export class Blog extends AggregateRoot<BlogId>{
         return this.publicationDate
     }
 
-    get Trainer (): Trainer
+    get TrainerId (): TrainerId
     {
-        return this.trainer
+        return this.trainerId
     }
 
     get CategoryId (): CategoryId
@@ -100,9 +101,9 @@ export class Blog extends AggregateRoot<BlogId>{
         return comment
     }
 
-    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainer: Trainer, categoryId: CategoryId, tags: BlogTag[]): Blog
+    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainerId: TrainerId, categoryId: CategoryId, tags: BlogTag[]): Blog
     {
-        return new Blog( id, title, body, images, publicationDate, trainer, categoryId, tags)
+        return new Blog( id, title, body, images, publicationDate, trainerId, categoryId, tags)
     }
 
 }

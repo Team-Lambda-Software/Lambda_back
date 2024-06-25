@@ -27,7 +27,7 @@ describe('Create Blog', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateBlogServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainerId: trainer.Id.Value,
             title: "new blog",
             body: "body of the new blog",
             images: [await FileObjectMother.createFile()],
@@ -39,7 +39,6 @@ describe('Create Blog', () => {
         const service = new CreateBlogApplicationService(
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -62,7 +61,7 @@ describe('Create Blog', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateBlogServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainerId: trainer.Id.Value,
             title: "",
             body: "body of the new blog",
             images: [await FileObjectMother.createFile()],
@@ -74,7 +73,6 @@ describe('Create Blog', () => {
         const service = new CreateBlogApplicationService(
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -98,7 +96,7 @@ describe('Create Blog', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateBlogServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainerId: trainer.Id.Value,
             title: "Title of the new blog",
             body: "",
             images: [await FileObjectMother.createFile()],
@@ -110,7 +108,6 @@ describe('Create Blog', () => {
         const service = new CreateBlogApplicationService(
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )

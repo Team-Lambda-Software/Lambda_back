@@ -11,16 +11,10 @@ import { BlogBody } from "src/blog/domain/value-objects/blog-body"
 import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publication-date"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
 {
-
-    private readonly ormTrainerMapper: OrmTrainerMapper
-
-    constructor ( ormTrainerMapper: OrmTrainerMapper )
-    {
-        this.ormTrainerMapper = ormTrainerMapper
-    }
 
     async fromDomainToPersistence ( domain: Blog ): Promise<OrmBlog>
     {
@@ -32,7 +26,7 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
         domain.Tags.forEach( tag => {
             tags.push( OrmBlogTags.create( tag.Value ) )
         })
-        const blog = OrmBlog.create( domain.Id.Value, domain.Title.Value, domain.Body.Value, domain.PublicationDate.Value, domain.Trainer.Id, domain.CategoryId.Value, images, tags)
+        const blog = OrmBlog.create( domain.Id.Value, domain.Title.Value, domain.Body.Value, domain.PublicationDate.Value, domain.TrainerId.Value, domain.CategoryId.Value, images, tags)
         return blog
     }
     async fromPersistenceToDomain ( persistence: OrmBlog ): Promise<Blog>
@@ -52,8 +46,7 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
             BlogTitle.create(persistence.title), 
             BlogBody.create(persistence.body), 
             images, 
-            BlogPublicationDate.create(persistence.publication_date),
-            await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer), 
+            BlogPublicationDate.create(persistence.publication_date),TrainerId.create(persistence.trainer_id), 
             CategoryId.create(persistence.category_id), 
             tags)
         return blog

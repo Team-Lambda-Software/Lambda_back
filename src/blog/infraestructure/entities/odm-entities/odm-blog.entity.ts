@@ -5,16 +5,16 @@ import { OdmTrainerEntity } from 'src/trainer/infraestructure/entities/odm-entit
 
 @Schema()
 export class OdmBlogEntity extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, type: String})
   id: string;
 
-  @Prop({required: true}) 
+  @Prop({required: true, type: String}) 
   title:string;
 
-  @Prop({required: true})  
+  @Prop({required: true, type: String})  
   body:string;
 
-  @Prop({required: true})  
+  @Prop({required: true, type: Date})  
   publication_date: Date;
 
   @Prop({type: mongoose.Schema.Types.Mixed, required: true})
@@ -26,7 +26,7 @@ export class OdmBlogEntity extends Document {
   @Prop({type: [{id: String, url: String}],required: true})
   images: {id: string, url: string}[];
 
-  @Prop({required: true})  
+  @Prop({required: true, type: [String]})  
   tags:string[];
 
 }

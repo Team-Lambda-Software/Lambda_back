@@ -19,6 +19,7 @@ import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -26,32 +27,25 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
 {
 
     private readonly courseRepository: ICourseRepository
-    private readonly trainerRepository: ITrainerRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
     private readonly eventHandler: IEventHandler 
     
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
-        this.trainerRepository = trainerRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
     }
 
     async execute ( data: CreateCourseServiceEntryDto ): Promise<Result<CreateCourseServiceResponseDto>>
     {
-        const trainer = await this.trainerRepository.findTrainerById( data.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            return Result.fail<CreateCourseServiceResponseDto>( trainer.Error, trainer.StatusCode, trainer.Message )
-        }
         
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainer.Value, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], data.category.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
+        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), TrainerId.create(data.trainer.Id.Value), CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], data.category.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
@@ -65,8 +59,8 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             category: data.category.Name.Value,
             image: imageUrl,
             trainer: {
-                id: trainer.Value.Id,
-                name: trainer.Value.FirstName + " " + trainer.Value.FirstLastName + " " + trainer.Value.SecondLastName
+                id: data.trainer.Id.Value,
+                name: data.trainer.Name.FirstName + " " + data.trainer.Name.FirstLastName + " " + data.trainer.Name.SecondLastName
             },
             level: course.Level.Value.toString(),
             durationWeeks: course.WeeksDuration.Value,

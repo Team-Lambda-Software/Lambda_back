@@ -5,13 +5,13 @@ import { OdmBlogEntity } from './odm-blog.entity'
 
 @Schema()
 export class OdmBlogCommentEntity extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, type: String})
   id: string;
 
-  @Prop({required: true}) 
+  @Prop({required: true, type: String}) 
   text:string;
 
-  @Prop({required: true})  
+  @Prop({required: true, type: Date})  
   date: Date;
 
   @Prop({type: mongoose.Schema.Types.Mixed, required: true})

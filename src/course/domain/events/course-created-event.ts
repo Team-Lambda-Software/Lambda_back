@@ -11,12 +11,13 @@ import { CourseImage } from "../value-objects/course-image"
 import { CourseTag } from "../value-objects/course-tag"
 import { CourseDate } from "../value-objects/course-date"
 import { Section } from "../entities/section/section"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 export class CourseCreated extends DomainEvent{
     protected constructor ( 
         public id: CourseId,
-        public trainer: Trainer,
+        public trainerId: TrainerId,
         public name: CourseName,
         public description: CourseDescription,
         public weeksDuration: CourseWeeksDuration,
@@ -31,8 +32,8 @@ export class CourseCreated extends DomainEvent{
         super()
     }
 
-    static create ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): CourseCreated
+    static create ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): CourseCreated
     {
-        return new CourseCreated( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
+        return new CourseCreated( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }
 }
