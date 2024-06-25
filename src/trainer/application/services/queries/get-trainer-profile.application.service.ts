@@ -7,6 +7,7 @@ import { Trainer } from "src/trainer/domain/trainer";
 //Couple service to Course,Blog repositories
 import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
+import { TrainerLocation } from "src/trainer/domain/value-objects/trainer-location";
 
 export class GetTrainerProfileApplicationService implements IApplicationService<GetTrainerProfileServiceEntryDto, GetTrainerProfileServiceResponseDto>
 {
@@ -45,7 +46,12 @@ export class GetTrainerProfileApplicationService implements IApplicationService<
 
         const trainerName = trainer.Name.FirstName + " " + trainer.Name.FirstLastName + " " + trainer.Name.SecondLastName;
         const trainerId = trainer.Id.Value;
-        const trainerLocation = trainer.Location.Latitude + "," + trainer.Location.Longitude;
+        let trainerLocation:string = "not available";
+        let locationVO: TrainerLocation = trainer.Location;
+        if (locationVO)
+        {
+            trainerLocation = trainer.Location.Latitude + ", " + trainer.Location.Longitude;
+        }
 
         //. Same reason as above 'unused' flag
         // const resultCourses = await this.courseRepository.findAllTrainerCourses(trainer.Id, data.coursesPagination);
