@@ -13,7 +13,10 @@ export class OdmUserRepository implements UserQueryRepository{
     }
 
     async saveUser(user: OdmUserEntity): Promise<void> {
-        await this.userModel.create(user)
+        
+        const newUserOdm = new this.userModel(user)
+        
+        await newUserOdm.save()
     }
 
     async findUserById(userId: string): Promise<Result<OdmUserEntity>> {

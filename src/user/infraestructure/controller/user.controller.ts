@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -14,11 +15,10 @@ import {
 import { OrmUserRepository } from '../repositories/orm-repositories/orm-user-repository';
 import { DataSource } from 'typeorm';
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
-import { userUpdateEntryInfraestructureDto } from "../dto/entry/user-update-entry-infraestructure";
+import { userUpdateEntryInfraestructureDto } from '../dto/entry/user-update-entry-infraestructure';
 import { UpdateUserProfileAplicationService } from "src/user/application/services/command/update-user-profile.application.service";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { User } from "src/user/domain/user";
@@ -51,12 +51,17 @@ import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repos
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
+import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
 
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   private readonly userRepository: OrmUserRepository
+  private readonly odmUserRepository: OdmUserRepository
   private readonly trainerRepository: OrmTrainerRepository
   private readonly courseRepository: OrmCourseRepository
   private readonly progressRepository: OrmProgressCourseRepository
@@ -68,8 +73,12 @@ export class UserController {
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
 
-  constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+  constructor(
+    @Inject('DataSource') private readonly dataSource: DataSource,
+    @InjectModel('User') private userModel: Model<OdmUserEntity>
+  ) {
     this.encryptor = new EncryptorBcrypt()
+    this.odmUserRepository = new OdmUserRepository(userModel)
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
@@ -165,6 +174,7 @@ export class UserController {
 
     return resultado.Value;
   }
+
   /*
   @Delete('unfollow/:trainerID')
   @UseGuards(JwtAuthGuard)
