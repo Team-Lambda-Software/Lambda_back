@@ -14,6 +14,7 @@ import { SectionComment } from "src/course/domain/entities/section-comment/secti
 import { CourseQueryRepository } from "../repositories/course-query-repository.interface"
 import { OdmCourseEntity } from "../entities/odm-entities/odm-course.entity"
 import { OdmSectionCommentEntity } from "../entities/odm-entities/odm-section-comment.entity"
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface"
 
 
 
@@ -21,28 +22,34 @@ import { OdmSectionCommentEntity } from "../entities/odm-entities/odm-section-co
 export class SectionCommentQuerySyncronizer implements Querysynchronizer<SectionCommentCreated>{
 
     private readonly courseRepository: CourseQueryRepository
-    private readonly userModel: Model<OdmUserEntity>
-    private readonly courseModel: Model<OdmCourseEntity>
+    private readonly userRepository: UserQueryRepository
     private readonly sectionCommentModel: Model<OdmSectionCommentEntity>
-    constructor ( courseRepository: CourseQueryRepository, sectionCommentModel: Model<OdmSectionCommentEntity> ,userModel: Model<OdmUserEntity>, courseModel: Model<OdmCourseEntity>){
+    constructor ( courseRepository: CourseQueryRepository, sectionCommentModel: Model<OdmSectionCommentEntity>, userRepository: UserQueryRepository){
         this.courseRepository = courseRepository
-        this.userModel = userModel
-        this.courseModel = courseModel
+        this.userRepository = userRepository
         this.sectionCommentModel = sectionCommentModel
     }
 
     async execute ( event: SectionCommentCreated ): Promise<Result<string>>
     {
         const comment = SectionComment.create(event.id, event.userId, event.text, event.date, event.sectionId)
-        const user = await this.userModel.findOne( { id: comment.UserId.Id } )
-        const course = await this.courseModel.findOne( { 'sections.id': comment.SectionId.Value } )
-        const section = course.sections.find( section => section.id === comment.SectionId.Value )
+        const user = await this.userRepository.findUserById( comment.UserId.Id )
+        if ( !user.isSuccess() ){
+            return Result.fail<string>( user.Error, user.StatusCode, user.Message )
+        }
+        const resultUser = user.Value
+        const course = await this.courseRepository.findCourseBySectionId( comment.SectionId.Value )
+        if ( !course.isSuccess() ){
+            return Result.fail<string>( course.Error, course.StatusCode, course.Message )
+        }
+        const resultCourse = course.Value
+        const section = resultCourse.sections.find( section => section.id === comment.SectionId.Value )
         const odmComment = new this.sectionCommentModel({
             id: comment.Id.Value,
             text: comment.Text.Value,
             date: comment.Date.Value,
             section: section,
-            user: user
+            user: resultUser
         })
         try{
             await this.courseRepository.addCommentToSection(odmComment)

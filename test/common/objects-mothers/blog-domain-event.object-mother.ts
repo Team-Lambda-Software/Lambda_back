@@ -30,13 +30,13 @@ export class BlogDomainEventObjectMother {
         )
     }
 
-    static createBlogCommentCreatedEvent(): BlogCommentCreated {
+    static createBlogCommentCreatedEvent(userId: string, blogId: string): BlogCommentCreated {
         return BlogCommentCreated.create(
             BlogCommentId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            UserId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            BlogCommentText.create('text'),
+            UserId.create(userId),
+            BlogCommentText.create('texts of the comment'),
             BlogCommentDate.create(new Date()),
-            BlogId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1')
+            BlogId.create(blogId)
         )
     }
 }

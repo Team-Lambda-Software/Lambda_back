@@ -57,6 +57,7 @@ import { OdmCourseMapper } from "src/course/infraestructure/mappers/odm-mappers/
 import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-blog-mapper"
 import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
 import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer'
+import { OdmUserRepository } from '../../../user/infraestructure/repositories/odm-repository/odm-user-repository';
 
 
 @ApiTags( 'Comment' )
@@ -70,6 +71,7 @@ export class CommentController
     private readonly idGenerator: IdGenerator<string>
     private readonly odmBlogRepository: OdmBlogRepository
     private readonly odmCourseRepository: OdmCourseRepository
+    private readonly odmUserRepository: OdmUserRepository
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmBlogMapper: OdmBlogMapper
     private readonly blogCommentQuerySynchronizer: BlogCommentQuerySyncronizer
@@ -116,16 +118,17 @@ export class CommentController
         this.odmCourseMapper = new OdmCourseMapper()
         this.odmBlogMapper = new OdmBlogMapper()
 
+        this.odmUserRepository = new OdmUserRepository(userModel)
+
         this.blogCommentQuerySynchronizer = new BlogCommentQuerySyncronizer(
             this.odmBlogRepository,
             blogCommentModel,
-            userModel
+            this.odmUserRepository
         )
         this.sectionCommentQuerySyncronizer = new SectionCommentQuerySyncronizer(
             this.odmCourseRepository,
             sectionCommentModel,
-            userModel,
-            courseModel
+            this.odmUserRepository
         )
     }
 
