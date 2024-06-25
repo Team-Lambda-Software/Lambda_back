@@ -43,6 +43,12 @@ import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.ent
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
+import { OdmUserRepository } from "src/user/infraestructure/repositories/odm-repository/odm-user-repository";
+import { InjectModel } from "@nestjs/mongoose";
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
+import { Model } from "mongoose";
+import { Result } from "src/common/Domain/result-handler/Result";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -53,15 +59,18 @@ export class AuthController {
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
+    private readonly queryUserRepository: UserQueryRepository
     private secretCodes = []
 
     constructor(
+        @InjectModel('User') private userModel: Model<OdmUserEntity>,
         @Inject('DataSource') private readonly dataSource: DataSource,
         private jwtAuthService: JwtService
     ) {
         this.logger = new Logger('AuthController')
         this.infraUserRepository = new OrmInfraUserRepository(dataSource)
         this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
+        this.queryUserRepository = new OdmUserRepository( userModel )
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
@@ -104,6 +113,10 @@ export class AuthController {
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
         if ( !data.type ) data = { type: 'CLIENT', ...data }
+
+        const findResult = await this.queryUserRepository.findUserByEmail( signUpDto.email )
+        if ( findResult.isSuccess() ) throw new BadRequestException('Email registered')
+
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
 
         const emailSender = new WelcomeSender()

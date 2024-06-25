@@ -14,7 +14,6 @@ import {
 import { OrmUserRepository } from '../repositories/orm-repositories/orm-user-repository';
 import { DataSource } from 'typeorm';
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"

@@ -28,8 +28,6 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
     }
     
     async execute(signUpDto: SignUpEntryDto): Promise<Result<any>> {
-        const findResult = await this.userRepository.findUserByEmail( signUpDto.email )
-        if ( findResult.isSuccess() ) return Result.fail( new Error('Email registered'), 403, 'Email registered')
         
         const idUser = await this.uuidGenerator.generateId()
 
