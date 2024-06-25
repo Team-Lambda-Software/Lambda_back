@@ -3,18 +3,23 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { IEncryptor } from "../../../common/Application/encryptor/encryptor.interface";
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { ChangePasswordEntryDto } from "./dto/entry/change-password-entry.infraestructure.dto";
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
+import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 
 export class ChangePasswordUserInfraService implements IApplicationService<ChangePasswordEntryDto, any> {
     
     private readonly userRepository: IInfraUserRepository
     private readonly encryptor: IEncryptor; 
+    private readonly syncroInfraUser: InfraUserQuerySynchronizer
 
     constructor(
         userRepository: IInfraUserRepository,
-        encryptor: IEncryptor
+        encryptor: IEncryptor,
+        syncroInfraUser: InfraUserQuerySynchronizer
     ){
         this.userRepository = userRepository
         this.encryptor = encryptor
+        this.syncroInfraUser = syncroInfraUser
     }
     
     async execute(updateDto: ChangePasswordEntryDto): Promise<Result<any>> {
@@ -23,6 +28,8 @@ export class ChangePasswordUserInfraService implements IApplicationService<Chang
             await this.encryptor.hashPassword( updateDto.password )
         )
         if ( !result.isSuccess() ) return Result.fail( new Error('Something went wrong changing password'), 500, 'Something whent wrong changing password' )
+        const userOrm = await this.userRepository.findUserByEmail( updateDto.email )
+        this.syncroInfraUser.execute( userOrm.Value )
         return Result.success({}, 200)
     }
    

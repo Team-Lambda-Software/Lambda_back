@@ -43,6 +43,12 @@ import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.ent
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
+import { OdmUserRepository } from "src/user/infraestructure/repositories/odm-repository/odm-user-repository";
+import { InjectModel } from "@nestjs/mongoose";
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
+import { Model } from "mongoose";
+import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -53,18 +59,23 @@ export class AuthController {
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
+    private readonly queryUserRepository: UserQueryRepository
+    private readonly syncroInfraUser: InfraUserQuerySynchronizer
     private secretCodes = []
 
     constructor(
+        @InjectModel('User') private userModel: Model<OdmUserEntity>,
         @Inject('DataSource') private readonly dataSource: DataSource,
         private jwtAuthService: JwtService
     ) {
         this.logger = new Logger('AuthController')
         this.infraUserRepository = new OrmInfraUserRepository(dataSource)
         this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
+        this.queryUserRepository = new OdmUserRepository( userModel )
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
+        this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
     }
     
     @Get('current')
@@ -104,6 +115,10 @@ export class AuthController {
     async signUpUser(@Body() signUpDto: SignUpUserEntryInfraDto) {
         var data = { userId: 'none', ...signUpDto }
         if ( !data.type ) data = { type: 'CLIENT', ...data }
+
+        const findResult = await this.queryUserRepository.findUserByEmail( signUpDto.email )
+        if ( findResult.isSuccess() ) throw new BadRequestException('Email registered')
+
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
 
         const emailSender = new WelcomeSender()
@@ -111,12 +126,10 @@ export class AuthController {
         
         const eventBus = EventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
-            
-            this.infraUserRepository.saveOrmUser(
-                OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
-            )
+            const ormUser = OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            this.syncroInfraUser.execute( ormUser )
+            this.infraUserRepository.saveOrmUser( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )
-        
         })
 
         const signUpApplicationService = new ExceptionDecorator( 
@@ -167,7 +180,8 @@ export class AuthController {
             new LoggingDecorator(
                 new ChangePasswordUserInfraService(
                     this.infraUserRepository,
-                    this.encryptor
+                    this.encryptor,
+                    this.syncroInfraUser
                 ), 
                 new NativeLogger(this.logger)
             ),
