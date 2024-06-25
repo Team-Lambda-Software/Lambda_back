@@ -27,7 +27,7 @@ describe('Create Course', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainer: trainer,
             name: "Curso yoga",
             description: "desripction of the course",
             weeksDuration: 10,
@@ -42,7 +42,6 @@ describe('Create Course', () => {
         const service = new CreateCourseApplicationService(
             new CourseRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -65,7 +64,7 @@ describe('Create Course', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainer: trainer,
             name: "",
             description: "desripction of the course",
             weeksDuration: 10,
@@ -80,7 +79,6 @@ describe('Create Course', () => {
         const service = new CreateCourseApplicationService(
             new CourseRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -106,7 +104,7 @@ describe('Create Course', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainer: trainer,
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 0,
@@ -121,7 +119,6 @@ describe('Create Course', () => {
         const service = new CreateCourseApplicationService(
             new CourseRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -147,7 +144,7 @@ describe('Create Course', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainer: trainer,
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 10,
@@ -162,7 +159,6 @@ describe('Create Course', () => {
         const service = new CreateCourseApplicationService(
             new CourseRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )
@@ -188,7 +184,7 @@ describe('Create Course', () => {
         const category = await CategoryObjectMother.createNormalCategory('category 1');
 
         const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id,
+            trainer: trainer,
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 10,
@@ -203,7 +199,6 @@ describe('Create Course', () => {
         const service = new CreateCourseApplicationService(
             new CourseRepositoryMock(),
             new UuidGeneratorMock(),
-            trainerRepositoryMock,
             new FileUploaderMock(),
             new EventHandlerMock()
         )

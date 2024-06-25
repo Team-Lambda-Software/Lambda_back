@@ -67,6 +67,7 @@ import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-sync
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
 import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-course-count-query-parameters.dto"
 import { GetCourseCountService } from "../query-services/services/get-course-count.service"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 @ApiTags( 'Course' )
@@ -96,8 +97,7 @@ export class CourseController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
+                    new OrmSectionMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
@@ -128,7 +128,7 @@ export class CourseController
         this.courseQuerySyncronizer = new CourseQuerySyncronizer(
             this.odmCourseRepository,
             this.courseModel,
-            this.categoryModel,
+            this.odmCategoryRepository,
             this.trainerModel
         )
 
@@ -180,7 +180,6 @@ export class CourseController
                         new CreateCourseApplicationService(
                             this.courseRepository,
                             this.idGenerator,
-                            this.trainerRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -199,12 +198,17 @@ export class CourseController
         const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
         if ( !category.Value )
         {
-            throw new NotFoundException( 'No se encontro la categoria' )
+            throw new NotFoundException( category.Message )
         }
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
-
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory} )
+        const trainer = await this.trainerRepository.findTrainerById( createCourseServiceEntryDto.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            throw new NotFoundException( trainer.Message )
+        }
+        const resultTrainer = Trainer.create(trainer.Value.Id,trainer.Value.Name, trainer.Value.Email, trainer.Value.Phone, trainer.Value.FollowersID, trainer.Value.Location)
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
         return result.Value
     }
 

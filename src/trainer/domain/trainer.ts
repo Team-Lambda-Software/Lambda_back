@@ -1,134 +1,74 @@
-import { Entity } from "src/common/Domain/domain-object/entity.interface"
+import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root";
+import { TrainerId } from "./value-objects/trainer-id";
+import { TrainerName } from "./value-objects/trainer-name";
+import { TrainerEmail } from "./value-objects/trainer-email";
+import { TrainerPhone } from "./value-objects/trainer-phone";
+import { TrainerFollowers } from "./value-objects/trainer-followers";
+import { TrainerLocation } from "./value-objects/trainer-location";
+import { DomainEvent } from "src/common/Domain/domain-event/domain-event";
+import { TrainerCreated } from "./events/trainer-created-event";
+import { InvalidTrainerException } from "./exceptions/invalid-trainer";
 
-export class Trainer extends Entity<string>
-{
-    private firstName: string;
-    private firstLastName: string;
-    private secondLastName: string; //? This should be optional
-    private email: string;
-    private phone: string;
-    private followersID: Array<string>; //Array of all the users that follow this particular trainer
-    //unused For easier DDD, the blogs and courses a certain trainer teaches is not part of itself
-        //. private coursesID: Array<string>; //Array of all courses that a given trainer teaches
-        //. private blogsID: Array<string>; //Array of all courses that a given trainer wrote
-    private latitude:string|undefined; //to-do Refactor as Optional<String>, Optional<LocationClass>
-    private longitude:string|undefined;
-    //to-do Add field for associated courses? Maybe some stats?
+export class Trainer extends AggregateRoot<TrainerId> {
+    private name: TrainerName;
+    private email: TrainerEmail;
+    private phone: TrainerPhone;
+    private followers: TrainerFollowers;
+    private location?: TrainerLocation;
 
-    private constructor (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, latitude?:string, longitude?:string)
+    get Name(): TrainerName
     {
-        super(id);
-
-        this.firstName = firstName;
-        this.firstLastName = firstLastName;
-        this.secondLastName = secondLastName;
-        this.email = email;
-        this.phone = phone;
-        this.followersID = followersID;
-
-        this.latitude = latitude;
-        this.longitude = longitude;
+        return (TrainerName.create(this.name.FirstName, this.name.FirstLastName, this.name.SecondLastName));
     }
 
-    get FirstName(): string
+    get Email(): TrainerEmail
     {
-        return this.firstName;
+        return (TrainerEmail.create(this.email.Value));
     }
 
-    get FirstLastName(): string
+    get Phone(): TrainerPhone
     {
-        return this.firstLastName;
+        return (TrainerPhone.create(this.phone.Value));
     }
 
-    get SecondLastName(): string
+    get FollowersID(): TrainerFollowers
     {
-        return this.secondLastName;
+        return (TrainerFollowers.create(this.followers.Value));
     }
 
-    get Email(): string
+    get Location(): TrainerLocation | undefined //to-do A value-object may be undefined?
     {
-        return this.email;
+        if (this.location === undefined) { return undefined; }
+        return (TrainerLocation.create(this.location.Latitude, this.location.Longitude));
     }
 
-    get Phone(): string
+    protected constructor (id: TrainerId, name:TrainerName, email:TrainerEmail, phone:TrainerPhone, followers: TrainerFollowers, location?: TrainerLocation)
     {
-        return this.phone;
+        const trainerCreated: TrainerCreated = TrainerCreated.create( id, name, email, phone, followers, location);
+        super(id, trainerCreated);
     }
 
-    get FollowersID(): Array<string>
-    {
-        return this.followersID;
-    }
-
-    get Location(): string
-    {
-        if ( (this.latitude === undefined)||(this.longitude === undefined) ) { throw new ReferenceError("This trainer has no associated location"); }
-        return <string>this.latitude + " " + <string>this.longitude;
-    }
-
-    static create (id:string, firstName:string, firstLastName:string, secondLastName:string, email:string, phone:string, followersID:Array<string>, latitude?:string, longitude?:string):Trainer
-    {
-        return new Trainer(id, firstName, firstLastName, secondLastName, email, phone, followersID, latitude, longitude);
-    }
-
-    public updateFirstName(firstName:string):void
-    {
-        this.firstName = firstName;
-    }
-
-    public updateFirstLastName(firstLastName:string):void
-    {
-        this.firstName = firstLastName;
-    }
-
-    public updateSecondLastName(secondLastName:string):void
-    {
-        this.firstName = secondLastName;
-    }
-
-    public updateEmail(email:string):void
-    {
-        this.email = email;
-    }
-
-    public updatePhone(phone:string):void
-    {
-        this.phone = phone;
-    }
-
-    public addFollower(userID:string):boolean
-    {
-        if (!(this.followersID.includes(userID))) //User is already following this trainer. Cannot add
-        {
-            return false;
-        }
-        else
-        {
-            this.followersID.push(userID);
-            return true;
+    protected applyEvent(event: DomainEvent): void {
+        switch (event.eventName) { //to-do Model the other domain events
+            case 'TrainerCreated':
+                const trainerCreated: TrainerCreated = event as TrainerCreated
+                this.name = trainerCreated.name;
+                this.email = trainerCreated.email;
+                this.phone = trainerCreated.phone;
+                this.followers = trainerCreated.followers;
+                this.location = trainerCreated.location;
         }
     }
 
-    public removeFollower(userID:string):boolean
-    {
-        //to-do Optimize this
-        let newFollowerArray:Array<string> = new Array<string>();
-        for (let followerID of this.followersID)
+    protected ensureValidState(): void {
+        if ( !this.name || !this.email || !this.followers || !this.phone )
         {
-            if (followerID != userID) { newFollowerArray.push(followerID); }
+            throw new InvalidTrainerException();
         }
-        //Check if someone was left out
-        if (newFollowerArray.length < this.followersID.length)
-        {
-            this.followersID = newFollowerArray;
-            return true;
-        }
-        return false;
     }
 
-    public updateLocation(latitude?:string, longitude?:string):void
+    static create (id: TrainerId, name:TrainerName, email:TrainerEmail, phone:TrainerPhone, followers: TrainerFollowers, location?: TrainerLocation): Trainer
     {
-        if (latitude != undefined) { this.latitude = latitude; }
-        if (longitude != undefined) { this.longitude = longitude; }
+        return new Trainer(id, name, email, phone, followers, location);
     }
 }
