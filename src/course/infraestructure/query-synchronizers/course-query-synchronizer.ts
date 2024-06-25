@@ -11,6 +11,7 @@ import { CourseCreated } from "src/course/domain/events/course-created-event"
 import { Course } from "src/course/domain/course"
 import { CourseQueryRepository } from "../repositories/course-query-repository.interface"
 import { CategoryQueryRepository } from "src/categories/infraesctructure/repositories/category-query-repository.interface"
+import { TrainerQueryRepository } from "src/trainer/infraestructure/repositories/trainer-query-repository.interface"
 
 
 
@@ -18,20 +19,24 @@ import { CategoryQueryRepository } from "src/categories/infraesctructure/reposit
 export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
 
     private readonly courseRepository: CourseQueryRepository
-    private readonly trainerModel: Model<OdmTrainerEntity>
+    private readonly trainerRepository: TrainerQueryRepository
     private readonly categoryRepository: CategoryQueryRepository
     private readonly courseModel: Model<OdmCourseEntity>
-    constructor ( courseRepository: CourseQueryRepository, courseModel: Model<OdmCourseEntity> ,categoryRepository: CategoryQueryRepository, trainerModel: Model<OdmTrainerEntity>){
+    constructor ( courseRepository: CourseQueryRepository, courseModel: Model<OdmCourseEntity> ,categoryRepository: CategoryQueryRepository, trainerRepository: TrainerQueryRepository){
         this.courseRepository = courseRepository
         this.categoryRepository = categoryRepository
-        this.trainerModel = trainerModel
+        this.trainerRepository = trainerRepository
         this.courseModel = courseModel
     }
 
     async execute ( event: CourseCreated ): Promise<Result<string>>
     {
         const course = Course.create( event.id, event.trainerId, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date)
-        const courseTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: course.TrainerId.Value } )
+        const courseTrainer = await this.trainerRepository.findTrainerById(  course.TrainerId.Value  )
+        if ( !courseTrainer.isSuccess() ){
+            return Result.fail<string>( courseTrainer.Error, courseTrainer.StatusCode, courseTrainer.Message )
+        }
+        const trainer = courseTrainer.Value
         const blogCategory = await this.categoryRepository.findCategoryById(  course.CategoryId.Value )
         if ( !blogCategory.isSuccess() ){
             return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
@@ -46,7 +51,7 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
             minutes_per_section: course.MinutesDuration.Value,
             date: course.Date.Value,
             category: category,
-            trainer: courseTrainer,
+            trainer: trainer,
             image: course.Image.Value,
             tags: course.Tags.map( tag => tag.Value ),
             sections: course.Sections.map( section => ( { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value } ) )
