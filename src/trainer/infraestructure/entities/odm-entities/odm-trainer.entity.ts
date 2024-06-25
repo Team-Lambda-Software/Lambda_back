@@ -19,8 +19,8 @@ export class OdmTrainerEntity extends Document {
   @Prop({required: true, unique: true })
   email: string;
 
-  @Prop({ required: false, unique: true })
-  phone?: string;
+  @Prop({ required: true, unique: true })
+  phone: string;
 
   @Prop({required: false}) 
   latitude:string;
