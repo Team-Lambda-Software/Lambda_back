@@ -52,7 +52,6 @@ import { AuditingDecorator } from 'src/common/Application/application-services/d
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
 import { InfraUserQuerySynchronizer } from '../query-synchronizer/user-infra-query-synchronizer';
-import { InjectModel } from '@nestjs/mongoose';
 import { UserQueryRepository } from '../repositories/user-query-repository.interface';
 import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
 import { InjectModel } from '@nestjs/mongoose';
