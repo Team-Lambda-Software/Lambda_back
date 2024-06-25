@@ -25,7 +25,8 @@ export class GetManyNotificationByUserInfraService implements IApplicationServic
                 title: e.title,
                 body: e.body,
                 id: e.alert_id,
-                date: e.date
+                date: e.date,
+                userReaded: e.user_readed
             }
         ))
         return Result.success(result, 200)

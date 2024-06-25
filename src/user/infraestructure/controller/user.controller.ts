@@ -14,7 +14,6 @@ import {
 import { OrmUserRepository } from '../repositories/orm-repositories/orm-user-repository';
 import { DataSource } from 'typeorm';
 import { OrmUserMapper } from '../mappers/orm-mapper/orm-user-mapper';
-import { GetUserProfileApplicationService } from "src/user/application/services/queries/get-user-profile.application.service";
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
@@ -51,6 +50,12 @@ import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repos
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
+import { InfraUserQuerySynchronizer } from '../query-synchronizer/user-infra-query-synchronizer';
+import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
+import { Model } from 'mongoose';
+import { UserQueryRepository } from '../repositories/user-query-repository.interface';
 
 
 @ApiTags('User')
@@ -67,8 +72,13 @@ export class UserController {
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
-
-  constructor(@Inject('DataSource') private readonly dataSource: DataSource) {
+  private readonly queryUserRepository: UserQueryRepository
+    
+  constructor(
+    @InjectModel('User') private userModel: Model<OdmUserEntity>,
+    @Inject('DataSource') private readonly dataSource: DataSource
+) {
+    this.queryUserRepository = new OdmUserRepository( userModel )    
     this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
@@ -93,6 +103,7 @@ export class UserController {
     this.imageTransformer = new ImageTransformer()
     this.idGenerator = new UuidGenerator()
     this.fileUploader = new AzureFileUploader()
+    this.auditingRepository = new OrmAuditingRepository( dataSource )
   }
 
   @Patch('/update')
@@ -114,6 +125,7 @@ export class UserController {
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
+            this.queryUserRepository,
             this.infraUserRepository,
             this.fileUploader,
             this.idGenerator,
