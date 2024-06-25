@@ -181,7 +181,7 @@ export class AuthController {
                 new ChangePasswordUserInfraService(
                     this.infraUserRepository,
                     this.encryptor,
-                    this.syncroInfraUser
+                    this.queryUserRepository
                 ), 
                 new NativeLogger(this.logger)
             ),
