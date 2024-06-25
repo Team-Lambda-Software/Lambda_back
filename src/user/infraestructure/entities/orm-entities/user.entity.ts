@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { OrmProgressCourse } from "src/progress/infraestructure/entities/orm-entities/orm-progress-course"
 import { OrmProgressSection } from "src/progress/infraestructure/entities/orm-entities/orm-progress-section"
-import { OrmProgressVideo } from "src/progress/infraestructure/entities/orm-entities/orm-progress-video"
 import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm"
 import { EnumInfraUserRoles } from "../../user-roles/enum-infra-user-roles"
@@ -34,8 +33,6 @@ export class OrmUser {
     progressCourse: OrmProgressCourse[]
     @OneToMany(() => OrmProgressSection, (progressSection) => progressSection.user_id)
     progressSection: OrmProgressSection[]
-    @OneToMany(() => OrmProgressVideo, (progressVideo) => progressVideo.user_id)
-    ProgressVideo: OrmProgressVideo[]
 
     @Column( 'enum', { enum: EnumInfraUserRoles, default: 'CLIENT' } )
     type: string
@@ -53,7 +50,6 @@ export class OrmUser {
         trainers?: OrmTrainer[],
         progressCourse?: OrmProgressCourse[],
         progressSection?: OrmProgressSection[],
-        progressVideo?: OrmProgressVideo[],
     ): OrmUser
     {
         const user = new OrmUser()
@@ -67,7 +63,6 @@ export class OrmUser {
         user.trainers = trainers
         user.progressCourse = progressCourse
         user.progressSection = progressSection
-        user.ProgressVideo = progressVideo
         return user
     }
 
