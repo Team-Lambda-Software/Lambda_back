@@ -51,6 +51,10 @@ export class SectionCommentQuerySyncronizer implements Querysynchronizer<Section
             section: section,
             user: resultUser
         })
+        const errors = odmComment.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.courseRepository.addCommentToSection(odmComment)
         }catch (error){

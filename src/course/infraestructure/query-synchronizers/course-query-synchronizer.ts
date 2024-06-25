@@ -51,6 +51,10 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
             tags: course.Tags.map( tag => tag.Value ),
             sections: course.Sections.map( section => ( { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value } ) )
         })
+        const errors = coursePersistence.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.courseRepository.saveCourse(coursePersistence)
         }catch (error){

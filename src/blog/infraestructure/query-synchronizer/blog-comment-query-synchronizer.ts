@@ -48,6 +48,10 @@ export class BlogCommentQuerySyncronizer implements Querysynchronizer<BlogCommen
             blog: resultBlog,
             user: resultUser
         })
+        const errors = odmBlogComment.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.blogRepository.createBlogComment(odmBlogComment)
         }catch (error){

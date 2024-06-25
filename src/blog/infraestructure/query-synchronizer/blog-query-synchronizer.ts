@@ -45,6 +45,10 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
             images: blog.Images.map( image => ( { url: image.Value } ) ),
             tags: blog.Tags.map( tag => tag.Value )
         })
+        const errors = blogPersistence.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.blogRepository.saveBlog(blogPersistence)
         }catch (error){
