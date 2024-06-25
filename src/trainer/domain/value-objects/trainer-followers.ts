@@ -2,19 +2,19 @@ import { IValueObject } from "src/common/Domain/value-object/value-object.interf
 import { UserId } from "src/user/domain/value-objects/user-id";
 
 export class TrainerFollowers implements IValueObject<TrainerFollowers> {
-    private readonly followersId: Array<UserId>
+    private readonly followersId: UserId[]
 
-    get Value(): Array<UserId>
+    get Value(): UserId[]
     {
         return this.followersId;
     }
 
-    protected constructor (followers:Array<UserId>) {
+    protected constructor (followers:UserId[]) {
         this.followersId = followers;
     }
 
     equals(valueObject: TrainerFollowers): boolean {
-        let otherFollowers:Array<UserId> = valueObject.Value;
+        let otherFollowers:UserId[] = valueObject.Value;
         let isEqual:boolean;
         for (let follower of this.Value)
         {
@@ -25,7 +25,7 @@ export class TrainerFollowers implements IValueObject<TrainerFollowers> {
         return isEqual;
     }
 
-    static create (followers:Array<UserId>)
+    static create (followers:UserId[])
     {
         return new TrainerFollowers(followers);
     }
