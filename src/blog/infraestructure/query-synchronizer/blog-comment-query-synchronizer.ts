@@ -12,6 +12,7 @@ import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.
 import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { BlogCommentCreated } from "src/blog/domain/events/blog-comment-created-event"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface"
 
 
 
@@ -19,32 +20,42 @@ import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/od
 export class BlogCommentQuerySyncronizer implements Querysynchronizer<BlogCommentCreated>{
 
     private readonly blogRepository: BlogQueryRepository
-    private readonly userModel: Model<OdmUserEntity>
-    private readonly blogModel: Model<OdmBlogEntity>
+    private readonly userRepository: UserQueryRepository
     private readonly blogCommentModel: Model<OdmBlogCommentEntity>
-    constructor ( blogRepository: BlogQueryRepository, blogCommentModel: Model<OdmBlogCommentEntity> ,userModel: Model<OdmUserEntity>, blogModel: Model<OdmBlogEntity>){
+    constructor ( blogRepository: BlogQueryRepository, blogCommentModel: Model<OdmBlogCommentEntity>, userRepository: UserQueryRepository){
         this.blogRepository = blogRepository
-        this.userModel = userModel
-        this.blogModel = blogModel
+        this.userRepository = userRepository
         this.blogCommentModel = blogCommentModel
     }
 
     async execute ( event: BlogCommentCreated ): Promise<Result<string>>
     {
         const blogComment = BlogComment.create(event.id, event.userId, event.text, event.date, event.blogId)
-        const blog = await this.blogModel.findOne( { id: blogComment.BlogId.Value } )
-        const user = await this.userModel.findOne( { id: blogComment.UserId.Id } )
+        const blog = await this.blogRepository.findBlogById(  blogComment.BlogId.Value )
+        if ( !blog.isSuccess() ){
+            return Result.fail<string>( blog.Error, blog.StatusCode, blog.Message )
+        }
+        const resultBlog = blog.Value
+        const user = await this.userRepository.findUserById( blogComment.UserId.Id )
+        if ( !user.isSuccess() ){
+            return Result.fail<string>( user.Error, user.StatusCode, user.Message )
+        }
+        const resultUser = user.Value
         const odmBlogComment = new this.blogCommentModel({
             id: blogComment.Id.Value,
             text: blogComment.Text.Value,
             date: blogComment.Date.Value,
-            blog: blog,
-            user: user
+            blog: resultBlog,
+            user: resultUser
         })
+        const errors = odmBlogComment.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.blogRepository.createBlogComment(odmBlogComment)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }

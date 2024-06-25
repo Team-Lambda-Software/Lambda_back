@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource, Not } from "typeorm"
@@ -65,6 +65,9 @@ import { CategoryIcon } from "src/categories/domain/value-objects/category-image
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer';
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
+import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-course-count-query-parameters.dto"
+import { GetCourseCountService } from "../query-services/services/get-course-count.service"
+import { Trainer } from "src/trainer/domain/trainer"
 
 
 @ApiTags( 'Course' )
@@ -94,8 +97,7 @@ export class CourseController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
+                    new OrmSectionMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
@@ -119,14 +121,14 @@ export class CourseController
 
         this.fileUploader = new AzureFileUploader()
 
-        this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel, this.categoryModel, this.trainerModel, this.userModel )
+        this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel)
 
         this.odmCourseMapper = new OdmCourseMapper()
 
         this.courseQuerySyncronizer = new CourseQuerySyncronizer(
             this.odmCourseRepository,
             this.courseModel,
-            this.categoryModel,
+            this.odmCategoryRepository,
             this.trainerModel
         )
 
@@ -178,7 +180,6 @@ export class CourseController
                         new CreateCourseApplicationService(
                             this.courseRepository,
                             this.idGenerator,
-                            this.trainerRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -197,12 +198,17 @@ export class CourseController
         const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
         if ( !category.Value )
         {
-            throw new NotFoundException( 'No se encontro la categoria' )
+            throw new NotFoundException( category.Message )
         }
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
-
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory} )
+        const trainer = await this.trainerRepository.findTrainerById( createCourseServiceEntryDto.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            throw new NotFoundException( trainer.Message )
+        }
+        const resultTrainer = Trainer.create(trainer.Value.Id,trainer.Value.Name, trainer.Value.Email, trainer.Value.Phone, trainer.Value.FollowersID, trainer.Value.Location)
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
         return result.Value
     }
 
@@ -378,6 +384,30 @@ export class CourseController
 
 
     }
+
+    @Get( 'count' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Devuelve la cantidad de courses', type: Number } )
+    async getCoursecount ( @GetUser() user, @Query() getCourseCountParams: GetCourseCountQueryParametersDto )
+    {
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new GetCourseCountService(
+                        this.odmCourseRepository
+                    ),
+                    new NativeLogger( this.logger )
+                ),
+                new HttpExceptionHandler()
+            )
+        if (!getCourseCountParams.category && !getCourseCountParams.trainer){
+            throw new BadRequestException("tiene que enviar o un entrenador o una categoria")
+        }
+        const result = await service.execute( {...getCourseCountParams, userId: user.id})
+        return result.Value
+    }
+
 
     // @Post( 'levels/search' )
     // @UseGuards( JwtAuthGuard )

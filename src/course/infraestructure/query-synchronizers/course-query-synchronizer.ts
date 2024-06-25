@@ -10,6 +10,7 @@ import { OdmCourseEntity } from "../entities/odm-entities/odm-course.entity"
 import { CourseCreated } from "src/course/domain/events/course-created-event"
 import { Course } from "src/course/domain/course"
 import { CourseQueryRepository } from "../repositories/course-query-repository.interface"
+import { CategoryQueryRepository } from "src/categories/infraesctructure/repositories/category-query-repository.interface"
 
 
 
@@ -18,20 +19,24 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
 
     private readonly courseRepository: CourseQueryRepository
     private readonly trainerModel: Model<OdmTrainerEntity>
-    private readonly categoryModel: Model<OdmCategoryEntity>
+    private readonly categoryRepository: CategoryQueryRepository
     private readonly courseModel: Model<OdmCourseEntity>
-    constructor ( courseRepository: CourseQueryRepository, courseModel: Model<OdmCourseEntity> ,categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>){
+    constructor ( courseRepository: CourseQueryRepository, courseModel: Model<OdmCourseEntity> ,categoryRepository: CategoryQueryRepository, trainerModel: Model<OdmTrainerEntity>){
         this.courseRepository = courseRepository
-        this.categoryModel = categoryModel
+        this.categoryRepository = categoryRepository
         this.trainerModel = trainerModel
         this.courseModel = courseModel
     }
 
     async execute ( event: CourseCreated ): Promise<Result<string>>
     {
-        const course = Course.create( event.id, event.trainer, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date)
-        const courseTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: course.Trainer.Id } )
-        const courseCategory: OdmCategoryEntity = await this.categoryModel.findOne( { id: course.CategoryId.Value } )
+        const course = Course.create( event.id, event.trainerId, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date)
+        const courseTrainer: OdmTrainerEntity = await this.trainerModel.findOne( { id: course.TrainerId.Value } )
+        const blogCategory = await this.categoryRepository.findCategoryById(  course.CategoryId.Value )
+        if ( !blogCategory.isSuccess() ){
+            return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
+        }
+        const category = blogCategory.Value
         const coursePersistence = new this.courseModel({
             id: course.Id.Value,
             name: course.Name.Value,
@@ -40,16 +45,20 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
             weeks_duration: course.WeeksDuration.Value,
             minutes_per_section: course.MinutesDuration.Value,
             date: course.Date.Value,
-            category: courseCategory,
+            category: category,
             trainer: courseTrainer,
             image: course.Image.Value,
             tags: course.Tags.map( tag => tag.Value ),
             sections: course.Sections.map( section => ( { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value } ) )
         })
+        const errors = coursePersistence.validateSync()
+        if ( errors ){
+            return Result.fail<string>( errors, 400, errors.name )
+        }
         try{
             await this.courseRepository.saveCourse(coursePersistence)
         }catch (error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
         return Result.success<string>( 'success', 201 )
     }

@@ -41,6 +41,7 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 import { GetAllStartedCoursesApplicationService } from "src/progress/application/services/queries/get-all-started-courses.application.service";
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository";
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper";
+import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
 
 @ApiTags('Progress')
 @Controller('progress')
@@ -49,6 +50,7 @@ export class ProgressController {
     private readonly progressRepository:OrmProgressCourseRepository;
     private readonly courseRepository:OrmCourseRepository;
     private readonly categoryRepository:OrmCategoryRepository;
+    private readonly trainerRepository:OrmTrainerRepository;
 
     private readonly logger:Logger = new Logger( "ProgressController" );
 
@@ -56,8 +58,7 @@ export class ProgressController {
     {
         this.courseRepository = new OrmCourseRepository(
             new OrmCourseMapper(
-                new OrmSectionMapper(),
-                new OrmTrainerMapper()
+                new OrmSectionMapper()
             ),
             new OrmSectionMapper(),
             new OrmSectionCommentMapper(),
@@ -72,6 +73,10 @@ export class ProgressController {
         );
         this.categoryRepository = new OrmCategoryRepository(
             new OrmCategoryMapper(),
+            dataSource
+        );
+        this.trainerRepository = new OrmTrainerRepository(
+            new OrmTrainerMapper(),
             dataSource
         );
     }
@@ -228,7 +233,7 @@ export class ProgressController {
 
         const getAllStartedCoursesApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllStartedCoursesApplicationService(this.progressRepository, this.courseRepository, this.categoryRepository),
+                new GetAllStartedCoursesApplicationService(this.progressRepository, this.courseRepository, this.categoryRepository, this.trainerRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()

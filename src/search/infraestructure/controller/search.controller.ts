@@ -1,25 +1,13 @@
-import { Body, Controller, Get, Inject, Logger, Post, Query, UseGuards } from "@nestjs/common"
+import { Controller, Get, Inject, Logger, Query, UseGuards } from "@nestjs/common"
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
-import { OrmBlogCommentMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-comment-mapper"
-import { OrmBlogMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-mapper"
-import { OrmBlogRepository } from "src/blog/infraestructure/repositories/orm-repositories/orm-blog-repository"
-import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
-import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
-import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
-import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { DataSource, In } from "typeorm"
+import { DataSource } from "typeorm"
 import { SearchAllSwaggerResponseDto } from "../dto/responses/search-all-swagger-response.dto"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
-import { User } from "src/user/domain/user"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
-import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
-import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
-import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { SearchQueryParametersDto } from "../dto/queryParameters/search-query-parameters.dto"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { SearchAllServiceEntryDto } from "../query-services/dto/param/search-all-service-entry.dto"
@@ -35,6 +23,7 @@ import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/od
 import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity"
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
+import { SearchAllTagsService } from "../query-services/services/search-all-tags.service"
 
 @ApiTags( 'Search' )
 @Controller( 'search' )
@@ -54,14 +43,11 @@ export class SearchController
             @InjectModel('SectionComment') private sectionCommentModel: Model<OdmSectionCommentEntity>,
             @InjectModel('Course') private courseModel: Model<OdmCourseEntity> )
     {
-        this.courseRepository = new OdmCourseRepository( courseModel, sectionCommentModel, categoryModel, trainerModel, userModel)
+        this.courseRepository = new OdmCourseRepository( courseModel, sectionCommentModel)
         this.blogRepository =
             new OdmBlogRepository(
                 blogModel,
-                categoryModel,
-                trainerModel,
-                blogCommentModel,
-                userModel
+                blogCommentModel
             )
 
     }
@@ -93,6 +79,31 @@ export class SearchController
                 new HttpExceptionHandler()
             )
         const result = await service.execute( searchAllServiceEntry )
+
+        return result.Value
+
+    
+    }
+
+    @Get( '/popular/tags' )
+    @UseGuards( JwtAuthGuard )
+    @ApiBearerAuth()
+    @ApiOkResponse( { description: 'Devuelve los tags', type: PaginationDto } )
+    async searchTags ( @GetUser() user, @Query() pagination: PaginationDto )
+    {
+        
+        const service =
+            new ExceptionDecorator(
+                new LoggingDecorator(
+                    new SearchAllTagsService(
+                        this.courseRepository,
+                        this.blogRepository
+                    ),
+                    new NativeLogger( this.logger )
+                ),
+                new HttpExceptionHandler()
+            )
+        const result = await service.execute( {pagination, userId: user.id} )
 
         return result.Value
 

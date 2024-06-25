@@ -1,13 +1,8 @@
-import { Blog } from "src/blog/domain/blog"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Model } from "mongoose"
 import { OdmBlogEntity } from "../../entities/odm-entities/odm-blog.entity"
-import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
-import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { OdmBlogCommentEntity } from "../../entities/odm-entities/odm-blog-comment.entity"
-import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { BlogQueryRepository } from "../blog-query-repository.interface"
 
 
@@ -15,18 +10,41 @@ import { BlogQueryRepository } from "../blog-query-repository.interface"
 export class OdmBlogRepository implements BlogQueryRepository{
 
     private readonly blogModel: Model<OdmBlogEntity>
-    private readonly categoryModel: Model<OdmCategoryEntity>
-    private readonly trainerModel: Model<OdmTrainerEntity>
     private readonly blogCommentModel: Model<OdmBlogCommentEntity>
-    private readonly userModel: Model<OdmUserEntity>
-    constructor ( blogModel: Model<OdmBlogEntity>, categoryModel: Model<OdmCategoryEntity>, trainerModel: Model<OdmTrainerEntity>, blogCommentModel: Model<OdmBlogCommentEntity>, userModel: Model<OdmUserEntity>)
+    constructor ( blogModel: Model<OdmBlogEntity>,  blogCommentModel: Model<OdmBlogCommentEntity>)
     {
         this.blogModel = blogModel
-        this.categoryModel = categoryModel
-        this.trainerModel = trainerModel
         this.blogCommentModel = blogCommentModel
-        this.userModel = userModel
 
+    }
+
+    async findBlogTags (): Promise<Result<string[]>>
+    {
+        try{
+            const tags = await this.blogModel.distinct( "tags" )
+            return Result.success<string[]>( tags, 200 )
+        } catch (error){
+            return Result.fail<string[]>( error, 500, error.message)
+        }
+    }
+
+    async findBlogCountByTrainer ( trainerId: string ): Promise<Result<number>>
+    {
+        try{
+            const count = await this.blogModel.countDocuments( { 'trainer.id': trainerId } )
+            return Result.success<number>( count, 200 )
+        }catch (error){
+            return Result.fail<number>( error, 500, error.message )
+        }
+    }
+    async findBlogCountByCategory ( categoryId: string ): Promise<Result<number>>
+    {
+        try{
+            const count = await this.blogModel.countDocuments( { 'category.id': categoryId } )
+            return Result.success<number>( count, 200 )
+        }catch (error){
+            return Result.fail<number>( error, 500, error.message )
+        }
     }
 
     async saveBlog ( blog: OdmBlogEntity ): Promise<void>

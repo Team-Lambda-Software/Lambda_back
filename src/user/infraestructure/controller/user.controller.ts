@@ -51,6 +51,9 @@ import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repos
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
+import { InfraUserQuerySynchronizer } from '../query-synchronizer/user-infra-query-synchronizer';
+import { InjectModel } from '@nestjs/mongoose';
+import { UserQueryRepository } from '../repositories/user-query-repository.interface';
 import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -61,7 +64,6 @@ import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
 @Controller('user')
 export class UserController {
   private readonly userRepository: OrmUserRepository
-  private readonly odmUserRepository: OdmUserRepository
   private readonly trainerRepository: OrmTrainerRepository
   private readonly courseRepository: OrmCourseRepository
   private readonly progressRepository: OrmProgressCourseRepository
@@ -72,21 +74,22 @@ export class UserController {
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
+  private readonly queryUserRepository: UserQueryRepository
 
   constructor(
     @Inject('DataSource') private readonly dataSource: DataSource,
     @InjectModel('User') private userModel: Model<OdmUserEntity>
+
   ) {
+    this.queryUserRepository = new OdmUserRepository(userModel)
     this.encryptor = new EncryptorBcrypt()
-    this.odmUserRepository = new OdmUserRepository(userModel)
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
     this.courseRepository =
       new OrmCourseRepository(
         new OrmCourseMapper(
-          new OrmSectionMapper(),
-          new OrmTrainerMapper()
+          new OrmSectionMapper()
         ),
         new OrmSectionMapper(),
         new OrmSectionCommentMapper(),
@@ -102,6 +105,7 @@ export class UserController {
     this.imageTransformer = new ImageTransformer()
     this.idGenerator = new UuidGenerator()
     this.fileUploader = new AzureFileUploader()
+    this.auditingRepository = new OrmAuditingRepository(dataSource)
   }
 
   @Patch('/update')
@@ -123,6 +127,7 @@ export class UserController {
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
+            this.queryUserRepository,
             this.infraUserRepository,
             this.fileUploader,
             this.idGenerator,

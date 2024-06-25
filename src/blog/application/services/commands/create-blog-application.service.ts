@@ -15,6 +15,7 @@ import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publicat
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -23,15 +24,13 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
 {
 
     private readonly blogRepository: IBlogRepository
-    private readonly trainerRepository: ITrainerRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
     private readonly eventHandler: IEventHandler
 
-    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, trainerRepository: ITrainerRepository, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
     {
         this.idGenerator = idGenerator
-        this.trainerRepository = trainerRepository
         this.blogRepository = blogRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
@@ -40,18 +39,13 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
     // TODO: Search the progress if exists one for that user
     async execute ( data: CreateBlogServiceEntryDto ): Promise<Result<string>>
     {
-        const trainer = await this.trainerRepository.findTrainerById( data.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            return Result.fail<string>( trainer.Error, trainer.StatusCode, trainer.Message )
-        }
         const images: BlogImage[] = []
         for ( const image of data.images ){
             const imageId = await this.idGenerator.generateId()
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
             images.push( BlogImage.create( imageUrl ) )
         }
-        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), trainer.Value, CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
+        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), TrainerId.create(data.trainerId), CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
         {

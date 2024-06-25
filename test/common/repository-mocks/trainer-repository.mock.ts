@@ -20,7 +20,7 @@ export class TrainerMockRepository implements ITrainerRepository {
     }
     async findTrainerById ( id: string ): Promise<Result<Trainer>>
     {
-        const trainer = this.trainers.find( trainer => trainer.Id === id )
+        const trainer = this.trainers.find( trainer => trainer.Id.Value === id )
         if( trainer === undefined )
         {
             return Result.fail<Trainer>(new Error(`Trainer with id ${id} not found`) ,404,`Trainer with id ${id} not found`)

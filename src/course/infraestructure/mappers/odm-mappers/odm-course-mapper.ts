@@ -18,6 +18,7 @@ import { SectionId } from "src/course/domain/entities/section/value-objects/sect
 import { SectionName } from "src/course/domain/entities/section/value-objects/section-name"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { SectionDuration } from "src/course/domain/entities/section/value-objects/section-duration"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 export class OdmCourseMapper implements IMapper<Course, OdmCourseEntity>
@@ -29,9 +30,7 @@ export class OdmCourseMapper implements IMapper<Course, OdmCourseEntity>
     async fromPersistenceToDomain ( course: OdmCourseEntity ): Promise<Course>
     {
         return Course.create(CourseId.create(course.id), 
-            Trainer.create(course.trainer.id, course.trainer.first_name, course.trainer.first_last_name, 
-            course.trainer.second_last_name, course.trainer.email, course.trainer.phone, 
-            course.trainer.followers.map(follower => follower.id)),
+            TrainerId.create(course.trainer.id),
             CourseName.create(course.name), 
             CourseDescription.create(course.description),
             CourseWeeksDuration.create(course.weeks_duration), 
