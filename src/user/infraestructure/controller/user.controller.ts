@@ -55,6 +55,7 @@ import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repos
 import { InjectModel } from '@nestjs/mongoose';
 import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
 import { Model } from 'mongoose';
+import { UserQueryRepository } from '../repositories/user-query-repository.interface';
 
 
 @ApiTags('User')
@@ -71,14 +72,13 @@ export class UserController {
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
-  private readonly syncroInfraUser: InfraUserQuerySynchronizer
-
+  private readonly queryUserRepository: UserQueryRepository
+    
   constructor(
     @InjectModel('User') private userModel: Model<OdmUserEntity>,
     @Inject('DataSource') private readonly dataSource: DataSource
 ) {
-    
-    this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
+    this.queryUserRepository = new OdmUserRepository( userModel )    
     this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
@@ -102,6 +102,7 @@ export class UserController {
     this.imageTransformer = new ImageTransformer()
     this.idGenerator = new UuidGenerator()
     this.fileUploader = new AzureFileUploader()
+    this.auditingRepository = new OrmAuditingRepository( dataSource )
   }
 
   @Patch('/update')
@@ -123,7 +124,7 @@ export class UserController {
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
-            this.syncroInfraUser,
+            this.queryUserRepository,
             this.infraUserRepository,
             this.fileUploader,
             this.idGenerator,

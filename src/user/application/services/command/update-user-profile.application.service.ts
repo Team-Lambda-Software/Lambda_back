@@ -11,18 +11,18 @@ import { IdGenerator } from "src/common/Application/Id-generator/id-generator.in
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
-import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
+import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
 
 export class UpdateUserProfileAplicationService implements IApplicationService<UpdateUserProfileServiceEntryDto,UpdateUserProfileServiceResponseDto>{
     
-    private readonly syncroInfraUser: InfraUserQuerySynchronizer
+    private readonly syncroInfraUser: UserQueryRepository
     private readonly userRepository: IInfraUserRepository
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
 
     constructor ( 
-        syncroInfraUser: InfraUserQuerySynchronizer,
+        syncroInfraUser: UserQueryRepository,
         userRepository: IInfraUserRepository, fileUploader: IFileUploader, idGenerator: IdGenerator<string>, encryptor:IEncryptor 
     
     ){
@@ -53,7 +53,13 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
 
         if(!updateResult.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
-        this.syncroInfraUser.execute( updateResult.Value )
+        const userOdm = await (await this.syncroInfraUser.findUserById( data.userId )).Value
+        if (data.phone) userOdm.phone = userUpdate.phone
+        if (data.email) userOdm.email = userUpdate.email
+        if (data.password) userOdm.password = userUpdate.password
+        if (data.name) userOdm.name = userUpdate.name
+        if (data.image) userOdm.image =  userUpdate.image
+        this.syncroInfraUser.saveUser(userOdm)
 
         const respuesta: UpdateUserProfileServiceResponseDto = {
             userId: updateResult.Value.id

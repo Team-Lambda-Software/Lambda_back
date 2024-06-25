@@ -10,12 +10,12 @@ export class ChangePasswordUserInfraService implements IApplicationService<Chang
     
     private readonly userRepository: IInfraUserRepository
     private readonly encryptor: IEncryptor; 
-    private readonly syncroInfraUser: InfraUserQuerySynchronizer
+    private readonly syncroInfraUser: UserQueryRepository
 
     constructor(
         userRepository: IInfraUserRepository,
         encryptor: IEncryptor,
-        syncroInfraUser: InfraUserQuerySynchronizer
+        syncroInfraUser: UserQueryRepository
     ){
         this.userRepository = userRepository
         this.encryptor = encryptor
@@ -29,7 +29,9 @@ export class ChangePasswordUserInfraService implements IApplicationService<Chang
         )
         if ( !result.isSuccess() ) return Result.fail( new Error('Something went wrong changing password'), 500, 'Something whent wrong changing password' )
         const userOrm = await this.userRepository.findUserByEmail( updateDto.email )
-        this.syncroInfraUser.execute( userOrm.Value )
+        const userOdm = await (await this.syncroInfraUser.findUserByEmail( updateDto.email )).Value
+        userOdm.password = await result.Value.password
+        this.syncroInfraUser.saveUser(userOdm)
         return Result.success({}, 200)
     }
    

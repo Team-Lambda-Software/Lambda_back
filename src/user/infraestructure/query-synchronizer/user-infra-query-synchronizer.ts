@@ -17,7 +17,6 @@ export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
     }
     
     async execute(event: OrmUser): Promise<Result<string>> {
-
         const userOdmPersistence = new this.userModel({
             id: event.id,
             name: event.name,
@@ -27,10 +26,12 @@ export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
             phone: event.phone,
             type: event.type
         })
-
+        
         try{
             await this.odmUserRepository.saveUser(userOdmPersistence)            
         }catch(error){
+            console.log(error)
+        
             return Result.fail<string>( error, 500, error.detail )
         }
 
