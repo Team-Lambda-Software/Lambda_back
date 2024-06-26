@@ -4,7 +4,7 @@ import {
     BlobDownloadResponseParsed,
   } from '@azure/storage-blob';
 import { ImageGetter } from 'src/common/Application/image-getter/image-getter.inteface'
-  import { Result } from 'src/common/domain/result-handler/result';
+import { Result } from 'src/common/Domain/result-handler/Result'
   
   export class AzureBufferImageHelper implements ImageGetter{
     private async getBlobClient(
