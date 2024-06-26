@@ -35,6 +35,14 @@ import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
 import { OdmTrainerRepository } from "../repositories/odm-repositories/odm-trainer-repository"
 import { ToggleTrainerFollowApplicationService } from "src/trainer/application/services/commands/toggle-trainer-follow.application.service"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
+import { GetManyTrainersSwaggerResponseDto } from "../dto/response/get-many-trainers-response.dto"
+import { GetManyTrainersSwaggerEntryDto } from "../dto/entry/get-many-trainers-entry.dto"
+import { GetManyTrainersServiceEntryDto } from "src/trainer/application/dto/parameters/get-many-trainers-service-entry.dto"
+import { GetManyTrainersServiceResponseDto } from "src/trainer/application/dto/responses/get-many-trainers-service-response.dto"
+import { GetAllFollowedTrainersApplicationService } from "src/trainer/application/services/queries/get-all-followed-trainers.application.service"
+import { GetAllTrainersApplicationService } from "src/trainer/application/services/queries/get-all-trainers.application.service"
+import { GetUserFollowingCountSwaggerResponseDto } from "../dto/response/get-user-following-count-response.dto"
+import { GetUserFollowingCountApplicationService } from "src/trainer/application/services/queries/get-user-following-count.application.service"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -72,11 +80,11 @@ export class TrainerController {
             );
     }
     
-    @Get( '/one/:id' )
+    @Get( 'one/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve informacion sobre un entrenador, todos sus seguidores, cursos y blogs que haya creado; dado su id.', type: GetTrainerProfileSwaggerResponseDto})
-    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
+    async GetTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         const service = 
             new ExceptionDecorator(
@@ -94,11 +102,11 @@ export class TrainerController {
         return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
     }
 
-    @Post( '/toggle/follow/:id' )
+    @Post( 'toggle/follow/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
-    async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
+    async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         const eventBus = EventBus.getInstance();
         //to-do Sync databases on follow/unfollow event instance
@@ -110,6 +118,7 @@ export class TrainerController {
         }
         const trainer = trainerResult.Value;
         
+        //unused Modified for a new service that considers both cases within
         // let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>;
 
         // const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
@@ -135,5 +144,74 @@ export class TrainerController {
             new HttpExceptionHandler()
         );
         await service.execute({userId: user.id, trainer: trainer})
+    }
+
+    @Get('many')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene todos los entrenadores existentes. Se puede filtrar a sólo aquellos que el usuario está siguiendo', type: GetManyTrainersSwaggerResponseDto, isArray: true})
+    //Gets all available trainers. May be filtered to only those that the user follows
+    async GetManyTrainers(@Query() data:GetManyTrainersSwaggerEntryDto, @GetUser() user)
+    {
+        const pagination:PaginationDto = {page: data.page, perPage: data.perPage};
+        let baseService:IApplicationService<GetManyTrainersServiceEntryDto, GetManyTrainersServiceResponseDto>;
+
+        if (data.userFollow)
+        {
+            baseService = new GetAllFollowedTrainersApplicationService( this.trainerRepository );
+        }
+        else
+        {
+            baseService = new GetAllTrainersApplicationService( this.trainerRepository );
+        }
+
+        const service = 
+        new ExceptionDecorator(
+            new LoggingDecorator(
+                baseService,
+                new NativeLogger( this.logger )
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const serviceDTO:GetManyTrainersServiceEntryDto = { userId: user.id, pagination: pagination };
+
+        const responseResult = await service.execute(serviceDTO);
+        const responseValue = responseResult.Value;
+        //Map the fields of the DTO to the fields of the swagger response
+        let responseTrainers:GetManyTrainersSwaggerResponseDto[] = [];
+        for (const trainer of responseValue.trainers)
+        {
+            const responseTrainer = {
+                id: trainer.id,
+                name: trainer.name,
+                location: trainer.location,
+                followers: trainer.followerCount,
+                userFollow: trainer.doesUserFollow
+            }
+            responseTrainers.push(responseTrainer);
+        }
+        return responseTrainers;
+    }
+
+    @Get('user/follow')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene la cantidad de entrenadores que el usuario está siguiendo', type: GetUserFollowingCountSwaggerResponseDto})
+    //Gets the number of trainers that a given user follows
+    async GetUserFollowingCount(@GetUser() user)
+    {
+        const service = 
+        new ExceptionDecorator(
+            new LoggingDecorator(
+                new GetUserFollowingCountApplicationService( this.trainerRepository ),
+                new NativeLogger( this.logger )
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const countResult = await service.execute({userId: user.id});
+        const followingCount = countResult.Value;
+        return {count: followingCount.count};
     }
 }
