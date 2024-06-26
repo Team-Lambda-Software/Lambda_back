@@ -20,9 +20,15 @@ export class SaveProgressEntryDto
 
     @ApiProperty( {
         example: 21, type:Number,
-        description: "Tiempo reproducido del video que pertenece a la leccion, en segundos, si hay algun video asociado"
+        description: "Tiempo reproducido del video que pertenece a la leccion, en segundos"
     } )
-    @IsOptional()
     @IsNumber()
-    time?: number;
+    time: number;
+
+    @ApiProperty( {
+        example: 2111, type:Number,
+        description: "Tiempo total del video que pertenece a la leccion, en segundos"
+    } )
+    @IsNumber()
+    totalTime: number;
 }
