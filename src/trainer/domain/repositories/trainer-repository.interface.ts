@@ -5,11 +5,13 @@ import { PaginationDto } from 'src/common/Infraestructure/dto/entry/pagination.d
 export interface ITrainerRepository {
     findTrainerByEmail(email:string): Promise<Result<Trainer>>;
     findTrainerById(id:string): Promise<Result<Trainer>>;
-    findTrainersByLocation(latitude:string, longitude:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>; //to-do Revamp Location from string into something more useful
-    findTrainersByFollower(followerID:string, pagination:PaginationDto): Promise<Result<Array<Trainer>>>;
+    findTrainersByLocation(latitude:string, longitude:string, pagination:PaginationDto): Promise<Result<Trainer[]>>; //to-do Revamp Location from string into something more useful
+    findTrainersByFollower(followerID:string, pagination:PaginationDto): Promise<Result<Trainer[]>>;
+    findAllTrainers(pagination:PaginationDto): Promise<Result<Trainer[]>>;
 
-    findAllTrainerFollowersId(id:string, pagination:PaginationDto): Promise<Result<Array<string>>>;
+    findAllTrainerFollowersId(id:string, pagination:PaginationDto): Promise<Result<string[]>>;
     getFollowerCount(id:string):Promise<Result<number>>;
+    getUserFollowingCount(userId:string):Promise<Result<number>>;
     checkIfFollowerExists(trainerID:string, followerID:string):Promise<Result<boolean>>;
 
     //to-do updateTrainerLocation(id:string, newLocation:string): Promise<Result<Trainer>>; //to-do Location revamp

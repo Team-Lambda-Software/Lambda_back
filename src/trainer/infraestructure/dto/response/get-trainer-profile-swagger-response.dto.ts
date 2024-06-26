@@ -26,7 +26,7 @@ export class GetTrainerProfileSwaggerResponseDto
     userFollow: boolean;
 
     @ApiProperty( {
-        example: '-46.8772 30.2114',
+        example: '-46.8772, 30.2114',
     } )
     location:string;
 
