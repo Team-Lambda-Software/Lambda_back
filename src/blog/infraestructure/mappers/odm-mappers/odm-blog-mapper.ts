@@ -9,6 +9,7 @@ import { BlogImage } from "src/blog/domain/value-objects/blog-image"
 import { Trainer } from "src/trainer/domain/trainer"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 export class OdmBlogMapper implements IMapper<Blog, OdmBlogEntity>
 {
@@ -22,11 +23,7 @@ export class OdmBlogMapper implements IMapper<Blog, OdmBlogEntity>
         BlogTitle.create(resultBlog.title), 
         BlogBody.create(resultBlog.body), 
         resultBlog.images.map(image => BlogImage.create(image.url)), 
-        BlogPublicationDate.create(resultBlog.publication_date), 
-        Trainer.create(resultBlog.trainer.id, resultBlog.trainer.first_name, resultBlog.trainer.first_last_name, 
-            resultBlog.trainer.second_last_name, resultBlog.trainer.email, resultBlog.trainer.phone, 
-            resultBlog.trainer.followers.map(follower => follower.id), 
-            resultBlog.trainer.latitude, resultBlog.trainer.longitude), 
+        BlogPublicationDate.create(resultBlog.publication_date), TrainerId.create(resultBlog.trainer.id), 
         CategoryId.create(resultBlog.category.id), 
         resultBlog.tags.map(tag => BlogTag.create(tag)))
     }

@@ -35,9 +35,13 @@ export class BlogQueryRepositoryMock implements BlogQueryRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    findBlogById ( id: string ): Promise<Result<OdmBlogEntity>>
+    async findBlogById ( id: string ): Promise<Result<OdmBlogEntity>>
     {
-        throw new Error( "Method not implemented." )
+        const blog = this.blogs.find( blog => blog.id === id )
+        if ( blog ){
+            return Result.success<OdmBlogEntity>( blog, 200 )
+        }
+        return Result.fail<OdmBlogEntity>( new Error( 'Blog not found' ), 404, 'Blog not found' )
     }
     findAllBlogs ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
     {

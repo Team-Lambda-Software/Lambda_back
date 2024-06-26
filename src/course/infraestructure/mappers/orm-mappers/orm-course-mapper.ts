@@ -16,18 +16,17 @@ import { CourseLevel } from "src/course/domain/value-objects/course-level"
 import { CourseImage } from "src/course/domain/value-objects/course-image"
 import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
 export class OrmCourseMapper implements IMapper<Course, OrmCourse>
 {
     private readonly ormSectionMapper: OrmSectionMapper
-    private readonly ormTrainerMapper: OrmTrainerMapper
 
-    constructor ( ormSectionMapper: OrmSectionMapper, ormTrainerMapper: OrmTrainerMapper)
+    constructor ( ormSectionMapper: OrmSectionMapper)
     {
         this.ormSectionMapper = ormSectionMapper
-        this.ormTrainerMapper = ormTrainerMapper
     }
 
     async fromDomainToPersistence ( domain: Course ): Promise<OrmCourse>
@@ -36,7 +35,7 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         domain.Tags.forEach(tag => {
             tags.push(OrmCourseTags.create(tag.Value))
         })
-        return OrmCourse.create( domain.Id.Value, domain.Name.Value, domain.Description.Value, domain.Level.Value, domain.WeeksDuration.Value, domain.MinutesDuration.Value, domain.Trainer.Id, domain.CategoryId.Value, domain.Image.Value, tags)
+        return OrmCourse.create( domain.Id.Value, domain.Name.Value, domain.Description.Value, domain.Level.Value, domain.WeeksDuration.Value, domain.MinutesDuration.Value, domain.TrainerId.Value, domain.CategoryId.Value, domain.Image.Value, tags)
     }
     async fromPersistenceToDomain ( persistence: OrmCourse ): Promise<Course>
     {
@@ -57,9 +56,8 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         }
         //TODO relacion con trainer y con categoria
 
-        const trainer = await this.ormTrainerMapper.fromPersistenceToDomain(persistence.trainer)
         const course: Course =
-            Course.create( CourseId.create(persistence.id), trainer, CourseName.create(persistence.name), CourseDescription.create(persistence.description), CourseWeeksDuration.create(persistence.weeks_duration), CourseMinutesDuration.create(persistence.minutes_per_section), CourseLevel.create(persistence.level), sections, CategoryId.create(persistence.category_id), CourseImage.create(persistence.image_url), tags, CourseDate.create(persistence.date))
+            Course.create( CourseId.create(persistence.id), TrainerId.create(persistence.trainer.id), CourseName.create(persistence.name), CourseDescription.create(persistence.description), CourseWeeksDuration.create(persistence.weeks_duration), CourseMinutesDuration.create(persistence.minutes_per_section), CourseLevel.create(persistence.level), sections, CategoryId.create(persistence.category_id), CourseImage.create(persistence.image_url), tags, CourseDate.create(persistence.date))
 
         return course
     }

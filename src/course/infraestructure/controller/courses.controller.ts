@@ -1,7 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
-import { DataSource, Not } from "typeorm"
+import { DataSource } from "typeorm"
 import { OrmCourseRepository } from "../repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
@@ -13,16 +13,13 @@ import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
-import { User } from "src/user/domain/user"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { OrmProgressCourseRepository } from '../../../progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository'
 import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
 import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 //import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { SearchCourseQueryParametersDto } from "../dto/queryParameters/search-course-query-parameters.dto"
-import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
-import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { CreateCourseApplicationService } from "src/course/application/services/commands/create-course-application.service"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
@@ -47,9 +44,7 @@ import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-
 import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { CourseCreated } from "src/course/domain/events/course-created-event"
-import { Course } from "src/course/domain/course"
 import { SectionCreated } from "src/course/domain/events/section-created-event"
-import { Section } from "src/course/domain/entities/section/section"
 import { GetCourseService } from "../query-services/services/get-course.service"
 import { SearchCoursesByCategoryServiceEntryDto } from "../query-services/dto/param/search-courses-by-category-service-entry.dto"
 import { SearchMostPopularCoursesByCategoryService } from "../query-services/services/search-most-popular-courses-by-category.service"
@@ -63,10 +58,12 @@ import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CategoryName } from "src/categories/domain/value-objects/category-title"
 import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
-import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer';
-import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer';
+import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer'
+import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer'
 import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-course-count-query-parameters.dto"
 import { GetCourseCountService } from "../query-services/services/get-course-count.service"
+import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
+import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-mapper/odm-trainer-mapper'
 
 
 @ApiTags( 'Course' )
@@ -80,9 +77,11 @@ export class CourseController
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly odmCourseRepository: OdmCourseRepository
+    private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly odmCourseMapper: OdmCourseMapper
+    private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
@@ -96,8 +95,7 @@ export class CourseController
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
-                    new OrmSectionMapper(),
-                    new OrmTrainerMapper()
+                    new OrmSectionMapper()
                 ),
                 new OrmSectionMapper(),
                 new OrmSectionCommentMapper(),
@@ -125,18 +123,22 @@ export class CourseController
 
         this.odmCourseMapper = new OdmCourseMapper()
 
+        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel )
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
         this.courseQuerySyncronizer = new CourseQuerySyncronizer(
             this.odmCourseRepository,
             this.courseModel,
-            this.categoryModel,
-            this.trainerModel
+            this.odmCategoryRepository,
+            this.odmTrainerRepository
         )
+
+        this.odmTrainerMapper = new OdmTrainerMapper()
 
         this.sectionQuerySyncronizer = new SectionQuerySyncronizer(
             this.odmCourseRepository
         )
 
-        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
+        
     }
 
     @Post( 'create' )
@@ -180,7 +182,6 @@ export class CourseController
                         new CreateCourseApplicationService(
                             this.courseRepository,
                             this.idGenerator,
-                            this.trainerRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -199,12 +200,17 @@ export class CourseController
         const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
         if ( !category.Value )
         {
-            throw new NotFoundException( 'No se encontro la categoria' )
+            throw new NotFoundException( category.Message )
         }
         const resultCategory = Category.create(CategoryId.create(category.Value.id), 
         CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
-
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory} )
+        const trainer = await this.odmTrainerRepository.findTrainerById( createCourseServiceEntryDto.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            throw new NotFoundException( trainer.Message )
+        }
+        const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
         return result.Value
     }
 

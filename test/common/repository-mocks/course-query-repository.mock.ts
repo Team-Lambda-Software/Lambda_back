@@ -10,7 +10,6 @@ export class CourseQueryRepositoryMock implements CourseQueryRepository{
 
     private readonly courses: OdmCourseEntity[] = []
     private readonly sectionComments: OdmSectionCommentEntity[] = []
-    private readonly sections: { id: string; name: string; duration: number; description: string; video: string }[] = []
 
     async saveCourse ( course: OdmCourseEntity ): Promise<void>
     {
@@ -18,7 +17,13 @@ export class CourseQueryRepositoryMock implements CourseQueryRepository{
     }
     async addSectionToCourse ( courseId: string, section: { id: string; name: string; duration: number; description: string; video: string } ): Promise<void>
     {
-        this.sections.push( section )
+        const course = this.courses.find( course => course.id === courseId )
+        if ( !course ){
+            throw new Error( 'Course not found' )
+        }
+        this.courses.filter( course => course.id !== courseId )
+        course.sections.push( section )
+        this.courses.push( course )
     }
     async addCommentToSection ( comment: OdmSectionCommentEntity ): Promise<void>
     {
@@ -28,9 +33,13 @@ export class CourseQueryRepositoryMock implements CourseQueryRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    findCourseById ( courseId: string ): Promise<Result<OdmCourseEntity>>
+    async findCourseById ( courseId: string ): Promise<Result<OdmCourseEntity>>
     {
-        throw new Error( "Method not implemented." )
+        const course = this.courses.find( course => course.id === courseId )
+        if ( course ){
+            return Result.success<OdmCourseEntity>( course, 200 )
+        }
+        return Result.fail<OdmCourseEntity>( new Error( 'Course not found' ), 404, 'Course not found' )
     }
     findSectionComments ( sectionId: string, pagination: PaginationDto ): Promise<Result<OdmSectionCommentEntity[]>>
     {
@@ -44,13 +53,22 @@ export class CourseQueryRepositoryMock implements CourseQueryRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    findSectionById ( sectionId: string ): Promise<Result<{ id: string; name: string; duration: number; description: string; video: string }>>
+    async findSectionById ( sectionId: string ): Promise<Result<{ id: string; name: string; duration: number; description: string; video: string }>>
     {
-        throw new Error( "Method not implemented." )
+        const course = this.courses.find( course => course.sections.find( section => section.id === sectionId ) )
+        if ( course ){
+            const section = course.sections.find( section => section.id === sectionId )
+            return Result.success<{ id: string; name: string; duration: number; description: string; video: string }>( section, 200 )
+        }
+        return Result.fail<{ id: string; name: string; duration: number; description: string; video: string }>( new Error( 'Section not found' ), 404, 'Section not found' )
     }
-    findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>
+    async findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>
     {
-        throw new Error( "Method not implemented." )
+        const course = this.courses.find( course => course.sections.find( section => section.id === sectionId ) )
+        if ( course ){
+            return Result.success<OdmCourseEntity>( course, 200 )
+        }
+        return Result.fail<OdmCourseEntity>( new Error( 'Course not found' ), 404, 'Course not found' )
     }
     findCourseCountByTrainer ( trainerId: string ): Promise<Result<number>>
     {

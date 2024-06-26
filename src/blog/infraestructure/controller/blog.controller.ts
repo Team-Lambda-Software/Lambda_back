@@ -12,10 +12,6 @@ import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swag
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
-import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
-import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { SearchBlogQueryParametersDto } from "../dto/queryParameters/search-blog-query-parameters.dto"
 import { CreateBlogEntryDto } from "../dto/entry/create-blog-entry.dto"
 import { CreateBlogApplicationService } from "src/blog/application/services/commands/create-blog-application.service"
@@ -47,6 +43,7 @@ import { BlogQuerySyncronizer } from '../query-synchronizer/blog-query-synchroni
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
 import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
 import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
+import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -55,9 +52,8 @@ export class BlogController
 
     private readonly blogRepository: OrmBlogRepository
     private readonly auditingRepository: OrmAuditingRepository
-    private readonly categoryRepository: OrmCategoryRepository
-    private readonly trainerRepository: OrmTrainerRepository
     private readonly odmBlogRepository: OdmBlogRepository
+    private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
@@ -72,22 +68,11 @@ export class BlogController
     {
         this.blogRepository =
             new OrmBlogRepository(
-                new OrmBlogMapper(
-                    new OrmTrainerMapper()
-                ),
+                new OrmBlogMapper(),
                 new OrmBlogCommentMapper(),
                 dataSource
             )
         this.auditingRepository = new OrmAuditingRepository( dataSource )
-
-        this.categoryRepository = new OrmCategoryRepository(
-            new OrmCategoryMapper(),
-            dataSource )
-
-        this.trainerRepository = new OrmTrainerRepository(
-            new OrmTrainerMapper(),
-            dataSource
-        )
         this.idGenerator = new UuidGenerator()
         this.fileUploader = new AzureFileUploader()
 
@@ -95,14 +80,17 @@ export class BlogController
             blogModel,
             blogCommentModel
         )
+
+        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel )
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
         this.blogQuerySyncronizer = new BlogQuerySyncronizer(
             this.odmBlogRepository,
             this.blogModel,
             this.odmCategoryRepository,
-            this.trainerModel
+            this.odmTrainerRepository
         )
 
-        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
+        
     }
 
 
@@ -144,7 +132,6 @@ export class BlogController
                         new CreateBlogApplicationService(
                             this.blogRepository,
                             this.idGenerator,
-                            this.trainerRepository,
                             this.fileUploader,
                             eventBus
                         ),
@@ -166,7 +153,12 @@ export class BlogController
         const category = await this.odmCategoryRepository.findCategoryById( createBlogParams.categoryId )
         if ( !category.Value )
         {
-            throw new NotFoundException( 'No se encontro la categoria' )
+            throw new NotFoundException( category.Message )
+        }
+        const trainer = await this.odmTrainerRepository.findTrainerById( createBlogParams.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            throw new NotFoundException( trainer.Message )
         }
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
         return result.Value

@@ -26,6 +26,7 @@ import { SectionDuration } from "./entities/section/value-objects/section-durati
 import { SectionVideo } from "./entities/section/value-objects/section-video"
 import { SectionCreated } from "./events/section-created-event"
 import { UserId } from "src/user/domain/value-objects/user-id"
+import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -34,7 +35,7 @@ export class Course extends AggregateRoot<CourseId>
 {
     
 
-    private trainer: Trainer
+    private trainerId: TrainerId
     private name: CourseName
     private description: CourseDescription
     private weeksDuration: CourseWeeksDuration
@@ -52,9 +53,9 @@ export class Course extends AggregateRoot<CourseId>
         return this.tags
     }
 
-    get Trainer (): Trainer
+    get TrainerId (): TrainerId
     {
-        return this.trainer
+        return this.trainerId
     }
 
     get Name (): CourseName
@@ -102,9 +103,9 @@ export class Course extends AggregateRoot<CourseId>
         return this.date
     }
 
-    protected constructor ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
+    protected constructor ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
     {
-        const courseCreated: CourseCreated = CourseCreated.create( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
+        const courseCreated: CourseCreated = CourseCreated.create( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
         super( id, courseCreated)
         
     }
@@ -114,7 +115,7 @@ export class Course extends AggregateRoot<CourseId>
         switch ( event.eventName ){
             case 'CourseCreated':
                 const courseCreated: CourseCreated = event as CourseCreated
-                this.trainer = courseCreated.trainer
+                this.trainerId = courseCreated.trainerId
                 this.name = courseCreated.name
                 this.description = courseCreated.description
                 this.weeksDuration = courseCreated.weeksDuration
@@ -132,7 +133,7 @@ export class Course extends AggregateRoot<CourseId>
 
     protected ensureValidState (): void
     {
-        if ( !this.trainer || !this.name || !this.description || !this.weeksDuration || !this.minutesDuration || !this.level || !this.sections || !this.categoryId || !this.image || !this.tags || !this.date )
+        if ( !this.trainerId || !this.name || !this.description || !this.weeksDuration || !this.minutesDuration || !this.level || !this.sections || !this.categoryId || !this.image || !this.tags || !this.date )
             throw new InvalidCourseException()
     }
 
@@ -156,9 +157,9 @@ export class Course extends AggregateRoot<CourseId>
         return section
     }
 
-    static create ( id: CourseId, trainer: Trainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): Course
+    static create ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): Course
     {
-        return new Course( id, trainer, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
+        return new Course( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }
 
 }

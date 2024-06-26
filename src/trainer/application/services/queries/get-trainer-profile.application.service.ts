@@ -29,23 +29,23 @@ export class GetTrainerProfileApplicationService implements IApplicationService<
         }
         const trainer = resultTrainer.Value;
 
-        const resultCount = await this.trainerRepository.getFollowerCount(trainer.Id);
+        const resultCount = await this.trainerRepository.getFollowerCount(trainer.Id.Value);
         if (!resultCount.isSuccess())
         {
             return Result.fail<GetTrainerProfileServiceResponseDto>( resultCount.Error, resultCount.StatusCode, resultCount.Message );
         }
         const followerCount = resultCount.Value;
 
-        const resultFollowFlag = await this.trainerRepository.checkIfFollowerExists(trainer.Id, data.userId);
+        const resultFollowFlag = await this.trainerRepository.checkIfFollowerExists(trainer.Id.Value, data.userId);
         if (!resultFollowFlag.isSuccess())
         {
             return Result.fail<GetTrainerProfileServiceResponseDto>( resultFollowFlag.Error, resultFollowFlag.StatusCode, resultFollowFlag.Message );
         }
         const doesUserFollow = resultFollowFlag.Value;
 
-        const trainerName = trainer.FirstName + " " + trainer.FirstLastName + " " + trainer.SecondLastName;
-        const trainerId = trainer.Id;
-        const trainerLocation = trainer.Location;
+        const trainerName = trainer.Name.FirstName + " " + trainer.Name.FirstLastName + " " + trainer.Name.SecondLastName;
+        const trainerId = trainer.Id.Value;
+        const trainerLocation = trainer.Location.Latitude + "," + trainer.Location.Longitude;
 
         //. Same reason as above 'unused' flag
         // const resultCourses = await this.courseRepository.findAllTrainerCourses(trainer.Id, data.coursesPagination);
