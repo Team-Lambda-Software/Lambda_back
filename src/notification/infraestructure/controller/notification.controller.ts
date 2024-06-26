@@ -40,6 +40,10 @@ import { INotificationAddressRepository } from "../repositories/interface/notifi
 import { OdmNotificationAddressRepository } from "../repositories/odm-notification-address-repository";
 import { OdmNotificationAlertRepository } from "../repositories/odm-notification-alert-repository";
 import { DeleteNotificationsInfraService } from "../service/notification-service/delete-notifications-services";
+import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface";
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository";
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -47,7 +51,7 @@ export class NotificationController {
  
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
-    private readonly courseRepository: ICourseRepository
+    private readonly queryCourseRepository: CourseQueryRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly logger: Logger
     private readonly pushNotifier: INotifier
@@ -56,18 +60,15 @@ export class NotificationController {
         @Inject('DataSource') dataSource: DataSource,
         @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
         @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
+        @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
+        @InjectModel( 'SectionComment' ) private readonly sectionCommentModel: Model<OdmSectionCommentEntity>,
     ) {
         this.logger = new Logger('NotificationController')
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.uuidGenerator = new UuidGenerator()
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.pushNotifier = FirebaseNotifier.getInstance()
-        this.courseRepository = new OrmCourseRepository( 
-            new OrmCourseMapper( new OrmSectionMapper() ),
-            new OrmSectionMapper(),
-            new OrmSectionCommentMapper(),
-            dataSource
-        )
+        this.queryCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel)
     }
 
     @Get('count/not-readed')
@@ -163,15 +164,15 @@ export class NotificationController {
         return (await service.execute( { userId: 'none' } )).Value    
     }
 
-    //@Cron(CronExpression.EVERY_DAY_AT_1PM)
+    @Cron(CronExpression.EVERY_DAY_AT_1PM)
     @Get('recommend')
     async recommendCoursesRandomNotification() {
-        /*const service = new ExceptionDecorator( 
+        const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new NotifyRecommendCourseInfraService( 
                     this.notiAddressRepository,  
                     this.notiAlertRepository,
-                    this.courseRepository,
+                    this.queryCourseRepository,
                     this.uuidGenerator,
                     this.pushNotifier
                 ),
@@ -179,7 +180,7 @@ export class NotificationController {
             ),
             new HttpExceptionHandler()    
         )
-        return (await service.execute( { userId: 'none' } )).Value*/
+        return (await service.execute( { userId: 'none' } )).Value
     }
 
     @Post('savetoken')
