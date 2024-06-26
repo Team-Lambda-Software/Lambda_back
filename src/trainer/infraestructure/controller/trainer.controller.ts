@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
 import { OrmTrainerRepository } from "../repositories/orm-repositories/orm-trainer-repository"
 import { OrmTrainerMapper } from "../mappers/orm-mapper/orm-trainer-mapper"
 import { DataSource } from "typeorm"
@@ -28,21 +28,33 @@ import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/f
 import { Trainer } from "src/trainer/domain/trainer"
 import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service"
 import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"
+import { GetTrainerService } from "../query-services/services/get-trainer.service"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
+import { OdmTrainerRepository } from "../repositories/odm-repositories/odm-trainer-repository"
+import { ToggleTrainerFollowApplicationService } from "src/trainer/application/services/commands/toggle-trainer-follow.application.service"
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 
 @ApiTags('Trainer')
 @Controller('trainer')
 export class TrainerController {
 
     private readonly trainerRepository:OrmTrainerRepository;
+    private readonly odmTrainerRepository:OdmTrainerRepository;
     //Course and Blog coupling
     private readonly courseRepository:OrmCourseRepository;
     private readonly blogRepository:OrmBlogRepository;
     //CCC Logging
     private readonly logger:Logger = new Logger( "TrainerController" );
 
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+        @InjectModel('Trainer') private readonly trainerModel: Model<OdmTrainerEntity>       
+    )
     {
         this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource);
+        this.odmTrainerRepository = new OdmTrainerRepository(trainerModel);
+
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -60,7 +72,7 @@ export class TrainerController {
             );
     }
     
-    @Get( '/trainer/one/:id' )
+    @Get( '/one/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve informacion sobre un entrenador, todos sus seguidores, cursos y blogs que haya creado; dado su id.', type: GetTrainerProfileSwaggerResponseDto})
@@ -82,36 +94,46 @@ export class TrainerController {
         return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
     }
 
-    @Post( '/trainer/toggle/follow/:id' )
+    @Post( '/toggle/follow/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
     async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
-        let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>; //to-do Maybe this should return some primitive type or DTO instead of trainer?
+        const eventBus = EventBus.getInstance();
+        //to-do Sync databases on follow/unfollow event instance
 
-        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
-        if (doesFollowResult.isSuccess())
+        const trainerResult = await this.trainerRepository.findTrainerById(id);
+        if (!trainerResult.isSuccess())
         {
-            const doesFollow = doesFollowResult.Value;
-            if (doesFollow)
-            {
-                baseService = new UnfollowTrainerUserApplicationService(this.trainerRepository);
-            }
-            else
-            {
-                baseService = new FollowTrainerUserApplicationService(this.trainerRepository);
-            }
+            throw new NotFoundException( trainerResult.Message );
         }
+        const trainer = trainerResult.Value;
+        
+        // let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>;
+
+        // const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
+        // if (doesFollowResult.isSuccess())
+        // {
+        //     const doesFollow = doesFollowResult.Value;
+        //     if (doesFollow)
+        //     {
+        //         baseService = new UnfollowTrainerUserApplicationService(this.trainerRepository);
+        //     }
+        //     else
+        //     {
+        //         baseService = new FollowTrainerUserApplicationService(this.trainerRepository);
+        //     }
+        // }
 
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                baseService,
+                new ToggleTrainerFollowApplicationService( this.trainerRepository, eventBus ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
         );
-        await service.execute({userId: user.id, trainerId: id})
+        await service.execute({userId: user.id, trainer: trainer})
     }
 }

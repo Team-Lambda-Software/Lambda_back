@@ -46,7 +46,7 @@ export class GetTrainerProfileApplicationService implements IApplicationService<
 
         const trainerName = trainer.Name.FirstName + " " + trainer.Name.FirstLastName + " " + trainer.Name.SecondLastName;
         const trainerId = trainer.Id.Value;
-        let trainerLocation:string = "not available";
+        let trainerLocation:string = "no disponible";
         let locationVO: TrainerLocation = trainer.Location;
         if (locationVO)
         {
