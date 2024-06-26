@@ -26,7 +26,7 @@ import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/follow-unfollow-entry-Service"
 import { Trainer } from "src/trainer/domain/trainer"
-import { GetTrainerService } from "../query-services/services/get-trainer.service"
+//import { GetTrainerService } from "../query-services/services/get-trainer.service"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
