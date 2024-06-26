@@ -40,7 +40,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
     {
         try
         {
-            const trainers = await this.find( {where: {latitude: latitude, longitude: longitude}, skip:pagination.page, take:pagination.perPage } );
+            const trainers = await this.find( {where: {latitude: latitude, longitude: longitude}, skip: (pagination.page-1)*pagination.perPage, take:pagination.perPage } );
 
             if (trainers.length > 0)
             {
@@ -62,7 +62,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
             const trainers = await this.createQueryBuilder().select('trainer').from(OrmTrainer, 'trainer')
                                     .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.follower_id = :id', {id: followerID})
-                                    .skip(pagination.page)
+                                    .skip((pagination.page-1)*pagination.perPage)
                                     .take(pagination.perPage)
                                     .getMany();
             if (trainers.length > 0)
@@ -82,7 +82,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
     {
         try
         {
-            const ormTrainers = await this.find( {order: {first_last_name: 'ASC'}, skip:pagination.page, take:pagination.perPage} );
+            const ormTrainers = await this.find( {order: {first_last_name: 'ASC'}, skip:(pagination.page-1)*pagination.perPage, take:pagination.perPage} );
             const trainers = await Promise.all( ormTrainers.map( async trainer => await this.ormTrainerMapper.fromPersistenceToDomain(trainer) ) );
             return Result.success<Trainer[]>( trainers, 200 );
         }
@@ -122,7 +122,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
             const followersID = await this.createQueryBuilder().select('follows.follower_id').from(OrmTrainer, 'trainer')
                                     .innerJoin('follows', 'follows', 'follows.trainer_id = trainer.id')
                                     .where('follows.trainer_id = :target', {target: id})
-                                    .skip(pagination.page)
+                                    .skip( (pagination.page-1) * pagination.perPage)
                                     .take(pagination.perPage)
                                     .getRawMany<string>();
             if (followersID.length > 0)
