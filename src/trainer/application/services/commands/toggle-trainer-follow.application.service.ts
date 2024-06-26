@@ -8,7 +8,7 @@ import { Trainer } from "src/trainer/domain/trainer";
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id";
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface";
 
-export class ToggleTrainerFollowApplicationService implements IApplicationService<TogggleTrainerFollowServiceEntryDto, void> {
+export class ToggleTrainerFollowApplicationService implements IApplicationService<TogggleTrainerFollowServiceEntryDto, string> {
     private readonly trainerRepository: ITrainerRepository;
     private readonly eventHandler: IEventHandler;
 
@@ -18,7 +18,9 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
         this.eventHandler = eventHandler;
     }
     
-    async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<void>> {
+    async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<string>> {
+        //TEST
+            console.log("service execution started");
         let isIncluded:boolean = false;
         const trainerValue = data.trainer;
         let trainerFollowers:TrainerFollowers = trainerValue.FollowersID;
@@ -33,8 +35,10 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
                 break;
             }
         }
+        //TEST
+            console.log("Follow check done.", isIncluded);
 
-        let toggleResult:Result<void>;
+        let toggleResult:Result<string>;
         if (isIncluded)
         {
             toggleResult = trainerValue.removeFollower(userId);
@@ -43,10 +47,14 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
         {
             toggleResult = trainerValue.addFollower(userId);
         }
+        //TEST
+            console.log("Domain toggle finished.", toggleResult);
         if (!toggleResult.isSuccess())
         {
-            return Result.fail<void>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
+            return Result.fail<string>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
         }
+        //TEST
+            console.log("Domain toggle success");
 
         let persistenceUpdateResult: Result<Trainer>
         if (isIncluded)
@@ -59,10 +67,14 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
         }
         if (!persistenceUpdateResult.isSuccess())
         {
-            return Result.fail<void>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
+            return Result.fail<string>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
         }
+        //TEST
+            console.log("Persistence toggle success");
         this.eventHandler.publish( trainerValue.pullEvents() );
-        return Result.success<void>( undefined, 200 );
+        //TEST
+            console.log("service execution success");
+        return Result.success<string>( "Cambio realizado exitosamente", 200 );
     }
 
     get name():string

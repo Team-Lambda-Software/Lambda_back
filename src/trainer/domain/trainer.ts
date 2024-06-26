@@ -108,7 +108,7 @@ export class Trainer extends AggregateRoot<TrainerId> {
         this.followers = TrainerFollowers.create(updatedFollowers);
     }
 
-    public addFollower(userId: UserId):Result<void>
+    public addFollower(userId: UserId):Result<string>
     {
         let followersID:UserId[] = this.FollowersID.Value;
         let isIncluded:boolean = false;
@@ -122,16 +122,16 @@ export class Trainer extends AggregateRoot<TrainerId> {
         }
         if (isIncluded) //User is already following this trainer. Cannot add
         {
-            return Result.fail<void>(new CannotFollowTrainerException(), 409, "El usuario ya se encuentra siguiendo al entrenador. No puede suscribirse nuevamente");
+            return Result.fail<string>(new CannotFollowTrainerException(), 409, "El usuario ya se encuentra siguiendo al entrenador. No puede suscribirse nuevamente");
         }
         else //May follow the desired trainer
         {
             this.onEvent(TrainerFollowed.create(this.Id, userId));
-            return Result.success<void>( undefined, 200 );
+            return Result.success<string>( "Cambio exitoso", 200 );
         }
     }
 
-    public removeFollower(userId:UserId):Result<void>
+    public removeFollower(userId:UserId):Result<string>
     {
         let followersID:UserId[] = this.FollowersID.Value;
         let isIncluded:boolean = false;
@@ -145,12 +145,12 @@ export class Trainer extends AggregateRoot<TrainerId> {
         }
         if (!isIncluded) //User is not following this trainer. Cannot remove
         {
-            return Result.fail<void>(new CannotUnfollowTrainerException(), 409, "El usuario no se encuentra siguiendo al entrenador. No puede desuscribirse nuevamente");
+            return Result.fail<string>(new CannotUnfollowTrainerException(), 409, "El usuario no se encuentra siguiendo al entrenador. No puede desuscribirse nuevamente");
         }
         else //May unfollow the desired trainer
         {
             this.onEvent(TrainerUnfollowed.create(this.Id, userId));
-            return Result.success<void>( undefined, 200 );
+            return Result.success<string>( "Cambio exitoso", 200 );
         }
     }
 }

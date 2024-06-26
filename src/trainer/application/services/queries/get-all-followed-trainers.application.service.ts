@@ -25,8 +25,7 @@ export class GetAllFollowedTrainersApplicationService implements IApplicationSer
         }
         const trainers = trainersResult.Value;
 
-        let trainersResponse:GetManyTrainersServiceResponseDto;
-        trainersResponse.trainers = [];
+        let trainersResponse:GetManyTrainersServiceResponseDto = {trainers: []};
         for (const trainer of trainers)
         {
             const trainerId = trainer.Id.Value;

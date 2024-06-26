@@ -105,7 +105,6 @@ export class TrainerController {
     @Post( 'toggle/follow/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
     async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         const eventBus = EventBus.getInstance();
@@ -117,6 +116,9 @@ export class TrainerController {
             throw new NotFoundException( trainerResult.Message );
         }
         const trainer = trainerResult.Value;
+
+        //TEST
+            console.log("Trainer found. Continuing...");
         
         //unused Modified for a new service that considers both cases within
         // let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>;
@@ -156,13 +158,25 @@ export class TrainerController {
         const pagination:PaginationDto = {page: data.page, perPage: data.perPage};
         let baseService:IApplicationService<GetManyTrainersServiceEntryDto, GetManyTrainersServiceResponseDto>;
 
-        if (data.userFollow)
+        let doFollowFilter:boolean = false;
+        if (data.userFollow != undefined)
+        {
+            //TEST
+                console.log("Not undefined. Value string: ", data.userFollow);
+            doFollowFilter = data.userFollow;
+        }
+
+        if (doFollowFilter == true)
         {
             baseService = new GetAllFollowedTrainersApplicationService( this.trainerRepository );
+            //TEST
+                console.log("Generated followers' filter");
         }
         else
         {
             baseService = new GetAllTrainersApplicationService( this.trainerRepository );
+            //TEST
+                console.log("Generated unfiltered service");
         }
 
         const service = 

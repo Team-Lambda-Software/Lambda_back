@@ -24,11 +24,15 @@ export class GetAllTrainersApplicationService implements IApplicationService<Get
             return Result.fail<GetManyTrainersServiceResponseDto>(trainersResult.Error, trainersResult.StatusCode, trainersResult.Message);
         }
         const trainers = trainersResult.Value;
+        //TEST
+            console.log("Trainers searched.");
+            console.log(trainers);
 
-        let trainersResponse:GetManyTrainersServiceResponseDto;
-        trainersResponse.trainers = [];
+        let trainersResponse:GetManyTrainersServiceResponseDto = {trainers: []};
         for (const trainer of trainers)
         {
+            //TEST
+                console.log("Foreach cycle started");
             const trainerId = trainer.Id.Value;
 
             const trainerNameVO:TrainerName = trainer.Name;
@@ -67,6 +71,9 @@ export class GetAllTrainersApplicationService implements IApplicationService<Get
                 followerCount: followerCount,
                 doesUserFollow: doesUserFollow
             }
+            //TEST
+                console.log("Constructed response...");
+                console.log(trainerResponse);
             trainersResponse.trainers.push(trainerResponse);
         }
 
