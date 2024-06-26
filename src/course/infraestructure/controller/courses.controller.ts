@@ -64,6 +64,8 @@ import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-cou
 import { GetCourseCountService } from "../query-services/services/get-course-count.service"
 import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
 import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-mapper/odm-trainer-mapper'
+import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer"
+import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
 
 
 @ApiTags( 'Course' )
@@ -84,6 +86,8 @@ export class CourseController
     private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
+    private readonly imageTransformer: BufferBase64ImageTransformer
+    private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
@@ -138,6 +142,8 @@ export class CourseController
             this.odmCourseRepository
         )
 
+        this.imageTransformer = new BufferBase64ImageTransformer()
+        this.imageGetter = new AzureBufferImageHelper()
         
     }
 
@@ -293,7 +299,9 @@ export class CourseController
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetCourseService(
-                        this.odmCourseRepository
+                        this.odmCourseRepository,
+                        this.imageGetter,
+                        this.imageTransformer
                     ),
                     new NativeLogger( this.logger )
                 ),
