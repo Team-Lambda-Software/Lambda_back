@@ -26,14 +26,11 @@ import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/follow-unfollow-entry-Service"
 import { Trainer } from "src/trainer/domain/trainer"
-import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service"
-import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"
 import { GetTrainerService } from "../query-services/services/get-trainer.service"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
 import { OdmTrainerRepository } from "../repositories/odm-repositories/odm-trainer-repository"
-import { ToggleTrainerFollowApplicationService } from "src/trainer/application/services/commands/toggle-trainer-follow.application.service"
 import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { GetManyTrainersSwaggerResponseDto } from "../dto/response/get-many-trainers-response.dto"
 import { GetManyTrainersSwaggerEntryDto } from "../dto/entry/get-many-trainers-entry.dto"
@@ -43,6 +40,10 @@ import { GetAllFollowedTrainersApplicationService } from "src/trainer/applicatio
 import { GetAllTrainersApplicationService } from "src/trainer/application/services/queries/get-all-trainers.application.service"
 import { GetUserFollowingCountSwaggerResponseDto } from "../dto/response/get-user-following-count-response.dto"
 import { GetUserFollowingCountApplicationService } from "src/trainer/application/services/queries/get-user-following-count.application.service"
+import { TogggleTrainerFollowServiceEntryDto } from "src/trainer/application/dto/parameters/toggle-trainer-follow-service-entry.dto"
+import { ToggleTrainerFollowServiceResponseDto } from "src/trainer/application/dto/responses/toggle-trainer-follow-service-response.dto"
+import { UnfollowTrainerApplicationService } from "src/trainer/application/services/commands/unfollow-trainer.application.service"
+import { FollowTrainerApplicationService } from "src/trainer/application/services/commands/follow-trainer.application.service"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -120,27 +121,26 @@ export class TrainerController {
         //TEST
             console.log("Trainer found. Continuing...");
         
-        //unused Modified for a new service that considers both cases within
-        // let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>;
+        let baseService:IApplicationService<TogggleTrainerFollowServiceEntryDto, ToggleTrainerFollowServiceResponseDto>;
 
-        // const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
-        // if (doesFollowResult.isSuccess())
-        // {
-        //     const doesFollow = doesFollowResult.Value;
-        //     if (doesFollow)
-        //     {
-        //         baseService = new UnfollowTrainerUserApplicationService(this.trainerRepository);
-        //     }
-        //     else
-        //     {
-        //         baseService = new FollowTrainerUserApplicationService(this.trainerRepository);
-        //     }
-        // }
+        const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
+        if (doesFollowResult.isSuccess())
+        {
+            const doesFollow = doesFollowResult.Value;
+            if (doesFollow)
+            {
+                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, eventBus);
+            }
+            else
+            {
+                baseService = new FollowTrainerApplicationService(this.trainerRepository, eventBus);
+            }
+        }
 
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                new ToggleTrainerFollowApplicationService( this.trainerRepository, eventBus ),
+                baseService,
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()

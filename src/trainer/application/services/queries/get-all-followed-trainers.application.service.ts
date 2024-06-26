@@ -33,7 +33,7 @@ export class GetAllFollowedTrainersApplicationService implements IApplicationSer
             const trainerNameVO:TrainerName = trainer.Name;
             const trainerName:string = trainerNameVO.FirstName + " " + trainerNameVO.FirstLastName + " " + trainerNameVO.SecondLastName;
 
-            let trainerLocation:string = "no disponible";
+            let trainerLocation:string = null;
             let locationVO: TrainerLocation = trainer.Location;
             if (locationVO)
             {

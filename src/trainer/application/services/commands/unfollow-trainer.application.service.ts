@@ -7,8 +7,9 @@ import { UserId } from "src/user/domain/value-objects/user-id";
 import { Trainer } from "src/trainer/domain/trainer";
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id";
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface";
+import { ToggleTrainerFollowServiceResponseDto } from "../../dto/responses/toggle-trainer-follow-service-response.dto";
 
-export class ToggleTrainerFollowApplicationService implements IApplicationService<TogggleTrainerFollowServiceEntryDto, string> {
+export class UnfollowTrainerApplicationService implements IApplicationService<TogggleTrainerFollowServiceEntryDto, ToggleTrainerFollowServiceResponseDto> {
     private readonly trainerRepository: ITrainerRepository;
     private readonly eventHandler: IEventHandler;
 
@@ -18,7 +19,7 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
         this.eventHandler = eventHandler;
     }
     
-    async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<string>> {
+    async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<ToggleTrainerFollowServiceResponseDto>> {
         //TEST
             console.log("service execution started");
         let isIncluded:boolean = false;
@@ -45,36 +46,28 @@ export class ToggleTrainerFollowApplicationService implements IApplicationServic
         }
         else
         {
-            toggleResult = trainerValue.addFollower(userId);
+            return Result.fail<ToggleTrainerFollowServiceResponseDto>(new Error("No se encuentra siguiendo al entrenador. No es posible desuscribir"), 409, "No se encuentra siguiendo al entrenador. No es posible desuscribir");
         }
         //TEST
             console.log("Domain toggle finished.", toggleResult);
         if (!toggleResult.isSuccess())
         {
-            return Result.fail<string>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
+            return Result.fail<ToggleTrainerFollowServiceResponseDto>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
         }
         //TEST
             console.log("Domain toggle success");
 
-        let persistenceUpdateResult: Result<Trainer>
-        if (isIncluded)
-        {
-            persistenceUpdateResult = await this.trainerRepository.unfollowTrainer(trainerId.Value, userId.Id);
-        }
-        else
-        {
-            persistenceUpdateResult = await this.trainerRepository.followTrainer(trainerId.Value, userId.Id);
-        }
+        const persistenceUpdateResult = await this.trainerRepository.unfollowTrainer(trainerId.Value, userId.Id);
         if (!persistenceUpdateResult.isSuccess())
         {
-            return Result.fail<string>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
+            return Result.fail<ToggleTrainerFollowServiceResponseDto>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
         }
         //TEST
             console.log("Persistence toggle success");
         this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
             console.log("service execution success");
-        return Result.success<string>( "Cambio realizado exitosamente", 200 );
+        return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscripcion eliminada exitosamente"}, 200 );
     }
 
     get name():string
