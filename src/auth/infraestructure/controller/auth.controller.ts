@@ -49,6 +49,8 @@ import { InjectModel } from "@nestjs/mongoose";
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
 import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
+import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file";
+import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -82,13 +84,25 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ description: 'Obtener usuario actual', type: CurrentUserSwaggerResponseDto })
     @ApiBearerAuth()
-    async currentUser( @GetUser() user ) {        
+    async currentUser( @GetUser() user ) {  
+        
+        const imageTransformer = new BufferBase64ImageTransformer()
+        const imageGetter = new AzureBufferImageHelper()
+        
+        const imageResult = await imageGetter.getFile( user.image.split( '/' ).pop() )
+        if ( !imageResult.isSuccess() ) return { error: imageResult.Message }
+
+        const image = await imageTransformer.transformFile(imageResult.Value)
+        if ( !image.isSuccess() ) return { error: image.Message }
+
+        const finalImage = 'data:image/png;base64,' + image.Value
+      
         return {
             id: user.id,
             email: user.email,
             name: user.name,
             phone: user.phone,
-            image: user.image
+            image: finalImage
         } 
     }
 
