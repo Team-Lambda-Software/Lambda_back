@@ -6,6 +6,14 @@ import { Trainer } from "src/trainer/domain/trainer"
 
 
 export class TrainerMockRepository implements ITrainerRepository {
+    findAllTrainers ( pagination: PaginationDto ): Promise<Result<Trainer[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
+    getUserFollowingCount ( userId: string ): Promise<Result<number>>
+    {
+        throw new Error( "Method not implemented." )
+    }
     
     private readonly trainers: Trainer[] = []
     

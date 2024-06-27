@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
 import { OrmTrainerRepository } from "../repositories/orm-repositories/orm-trainer-repository"
 import { OrmTrainerMapper } from "../mappers/orm-mapper/orm-trainer-mapper"
 import { DataSource } from "typeorm"
@@ -26,23 +26,44 @@ import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/follow-unfollow-entry-Service"
 import { Trainer } from "src/trainer/domain/trainer"
-import { UnfollowTrainerUserApplicationService } from "src/user/application/services/command/unfollow-trainer-user.application.service"
-import { FollowTrainerUserApplicationService } from "src/user/application/services/command/follow-trainer-user.application.service"
+//import { GetTrainerService } from "../query-services/services/get-trainer.service"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
+import { OdmTrainerRepository } from "../repositories/odm-repositories/odm-trainer-repository"
+import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
+import { GetManyTrainersSwaggerResponseDto } from "../dto/response/get-many-trainers-response.dto"
+import { GetManyTrainersSwaggerEntryDto } from "../dto/entry/get-many-trainers-entry.dto"
+import { GetManyTrainersServiceEntryDto } from "src/trainer/application/dto/parameters/get-many-trainers-service-entry.dto"
+import { GetManyTrainersServiceResponseDto } from "src/trainer/application/dto/responses/get-many-trainers-service-response.dto"
+import { GetAllFollowedTrainersApplicationService } from "src/trainer/application/services/queries/get-all-followed-trainers.application.service"
+import { GetAllTrainersApplicationService } from "src/trainer/application/services/queries/get-all-trainers.application.service"
+import { GetUserFollowingCountSwaggerResponseDto } from "../dto/response/get-user-following-count-response.dto"
+import { GetUserFollowingCountApplicationService } from "src/trainer/application/services/queries/get-user-following-count.application.service"
+import { TogggleTrainerFollowServiceEntryDto } from "src/trainer/application/dto/parameters/toggle-trainer-follow-service-entry.dto"
+import { ToggleTrainerFollowServiceResponseDto } from "src/trainer/application/dto/responses/toggle-trainer-follow-service-response.dto"
+import { UnfollowTrainerApplicationService } from "src/trainer/application/services/commands/unfollow-trainer.application.service"
+import { FollowTrainerApplicationService } from "src/trainer/application/services/commands/follow-trainer.application.service"
 
 @ApiTags('Trainer')
 @Controller('trainer')
 export class TrainerController {
 
     private readonly trainerRepository:OrmTrainerRepository;
+    private readonly odmTrainerRepository:OdmTrainerRepository;
     //Course and Blog coupling
     private readonly courseRepository:OrmCourseRepository;
     private readonly blogRepository:OrmBlogRepository;
     //CCC Logging
     private readonly logger:Logger = new Logger( "TrainerController" );
 
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource )
+    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+        @InjectModel('Trainer') private readonly trainerModel: Model<OdmTrainerEntity>       
+    )
     {
         this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource);
+        this.odmTrainerRepository = new OdmTrainerRepository(trainerModel);
+
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -60,11 +81,11 @@ export class TrainerController {
             );
     }
     
-    @Get( '/trainer/one/:id' )
+    @Get( 'one/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @ApiOkResponse({ description: 'Devuelve informacion sobre un entrenador, todos sus seguidores, cursos y blogs que haya creado; dado su id.', type: GetTrainerProfileSwaggerResponseDto})
-    async getTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
+    async GetTrainerProfile( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
         const service = 
             new ExceptionDecorator(
@@ -82,13 +103,25 @@ export class TrainerController {
         return {name: value.trainerName, id: value.trainerId, followers:value.followerCount, userFollow: value.doesUserFollow, location: value.trainerLocation};
     }
 
-    @Post( '/trainer/toggle/follow/:id' )
+    @Post( 'toggle/follow/:id' )
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOkResponse({ description: 'Alterna el estado de "seguidor" entre un usuario y un entrenador'})
-    async toggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
+    async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
-        let baseService:IApplicationService<FollowUnfollowEntryDtoService, Trainer>; //to-do Maybe this should return some primitive type or DTO instead of trainer?
+        const eventBus = EventBus.getInstance();
+        //to-do Sync databases on follow/unfollow event instance
+
+        const trainerResult = await this.trainerRepository.findTrainerById(id);
+        if (!trainerResult.isSuccess())
+        {
+            throw new NotFoundException( trainerResult.Message );
+        }
+        const trainer = trainerResult.Value;
+
+        //TEST
+            console.log("Trainer found. Continuing...");
+        
+        let baseService:IApplicationService<TogggleTrainerFollowServiceEntryDto, ToggleTrainerFollowServiceResponseDto>;
 
         const doesFollowResult = await this.trainerRepository.checkIfFollowerExists(id, user.id);
         if (doesFollowResult.isSuccess())
@@ -96,11 +129,11 @@ export class TrainerController {
             const doesFollow = doesFollowResult.Value;
             if (doesFollow)
             {
-                baseService = new UnfollowTrainerUserApplicationService(this.trainerRepository);
+                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, eventBus);
             }
             else
             {
-                baseService = new FollowTrainerUserApplicationService(this.trainerRepository);
+                baseService = new FollowTrainerApplicationService(this.trainerRepository, eventBus);
             }
         }
 
@@ -112,6 +145,87 @@ export class TrainerController {
             ),
             new HttpExceptionHandler()
         );
-        await service.execute({userId: user.id, trainerId: id})
+        await service.execute({userId: user.id, trainer: trainer})
+    }
+
+    @Get('many')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene todos los entrenadores existentes. Se puede filtrar a sólo aquellos que el usuario está siguiendo', type: GetManyTrainersSwaggerResponseDto, isArray: true})
+    //Gets all available trainers. May be filtered to only those that the user follows
+    async GetManyTrainers(@Query() data:GetManyTrainersSwaggerEntryDto, @GetUser() user)
+    {
+        const pagination:PaginationDto = {page: data.page, perPage: data.perPage};
+        let baseService:IApplicationService<GetManyTrainersServiceEntryDto, GetManyTrainersServiceResponseDto>;
+
+        let doFollowFilter:boolean = false;
+        if (data.userFollow != undefined)
+        {
+            //TEST
+                console.log("Not undefined. Value string: ", data.userFollow);
+            doFollowFilter = data.userFollow;
+        }
+
+        if (doFollowFilter == true)
+        {
+            baseService = new GetAllFollowedTrainersApplicationService( this.trainerRepository );
+            //TEST
+                console.log("Generated followers' filter");
+        }
+        else
+        {
+            baseService = new GetAllTrainersApplicationService( this.trainerRepository );
+            //TEST
+                console.log("Generated unfiltered service");
+        }
+
+        const service = 
+        new ExceptionDecorator(
+            new LoggingDecorator(
+                baseService,
+                new NativeLogger( this.logger )
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const serviceDTO:GetManyTrainersServiceEntryDto = { userId: user.id, pagination: pagination };
+
+        const responseResult = await service.execute(serviceDTO);
+        const responseValue = responseResult.Value;
+        //Map the fields of the DTO to the fields of the swagger response
+        let responseTrainers:GetManyTrainersSwaggerResponseDto[] = [];
+        for (const trainer of responseValue.trainers)
+        {
+            const responseTrainer = {
+                id: trainer.id,
+                name: trainer.name,
+                location: trainer.location,
+                followers: trainer.followerCount,
+                userFollow: trainer.doesUserFollow
+            }
+            responseTrainers.push(responseTrainer);
+        }
+        return responseTrainers;
+    }
+
+    @Get('user/follow')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOkResponse({description: 'Obtiene la cantidad de entrenadores que el usuario está siguiendo', type: GetUserFollowingCountSwaggerResponseDto})
+    //Gets the number of trainers that a given user follows
+    async GetUserFollowingCount(@GetUser() user)
+    {
+        const service = 
+        new ExceptionDecorator(
+            new LoggingDecorator(
+                new GetUserFollowingCountApplicationService( this.trainerRepository ),
+                new NativeLogger( this.logger )
+            ),
+            new HttpExceptionHandler()
+        );
+
+        const countResult = await service.execute({userId: user.id});
+        const followingCount = countResult.Value;
+        return {count: followingCount.count};
     }
 }

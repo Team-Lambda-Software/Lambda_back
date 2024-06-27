@@ -191,33 +191,34 @@ export class ProgressController {
         return responseDTO
     }
 
-    @Get('profile')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
-    @ApiOkResponse({description: 'Obtiene los datos de progreso del perfil del usuario actual: progreso del ultimo curso visto y tiempo de visualizacion total en horas', type:GetProgressProfileSwaggerResponseDto})
-    //Gets data related to the progress-shown-in-profile for the current user
-    async GetProgressProfile(@GetUser() user)
-    {
-        const getProgressProfileDto = {userId: user.id};
+    //unused. This endpoint was discarded in the API v3. June 26th 2024
+    // @Get('profile')
+    // @UseGuards(JwtAuthGuard)
+    // @ApiBearerAuth()
+    // @ApiOkResponse({description: 'Obtiene los datos de progreso del perfil del usuario actual: progreso del ultimo curso visto y tiempo de visualizacion total en horas', type:GetProgressProfileSwaggerResponseDto})
+    // //Gets data related to the progress-shown-in-profile for the current user
+    // async GetProgressProfile(@GetUser() user)
+    // {
+    //     const getProgressProfileDto = {userId: user.id};
 
-        const getProgressProfileApplicationService = new ExceptionDecorator(
-            new LoggingDecorator(
-                new GetProgressProfileApplicationService(this.progressRepository),
-                new NativeLogger(this.logger)
-            ),
-            new HttpExceptionHandler()
-        );
+    //     const getProgressProfileApplicationService = new ExceptionDecorator(
+    //         new LoggingDecorator(
+    //             new GetProgressProfileApplicationService(this.progressRepository),
+    //             new NativeLogger(this.logger)
+    //         ),
+    //         new HttpExceptionHandler()
+    //     );
 
-        const returnDataResult = await getProgressProfileApplicationService.execute(getProgressProfileDto);
-        const returnData = returnDataResult.Value;
+    //     const returnDataResult = await getProgressProfileApplicationService.execute(getProgressProfileDto);
+    //     const returnData = returnDataResult.Value;
 
-        const responseDTO:GetProgressProfileSwaggerResponseDto =
-        {
-            percent: returnData.latestCompletionPercent,
-            time: returnData.totalViewtimeInHours
-        }
-        return responseDTO
-    }
+    //     const responseDTO:GetProgressProfileSwaggerResponseDto =
+    //     {
+    //         percent: returnData.latestCompletionPercent,
+    //         time: returnData.totalViewtimeInHours
+    //     }
+    //     return responseDTO
+    // }
 
     @Get('courses')
     @UseGuards(JwtAuthGuard)
