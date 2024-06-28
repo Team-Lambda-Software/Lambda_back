@@ -94,15 +94,13 @@ export class AuthController {
 
         const image = await imageTransformer.transformFile(imageResult.Value)
         if ( !image.isSuccess() ) return { error: image.Message }
-
-        const finalImage = 'data:image/png;base64,' + image.Value
-      
+        
         return {
             id: user.id,
             email: user.email,
             name: user.name,
             phone: user.phone,
-            image: finalImage
+            image: image.Value
         } 
     }
 
