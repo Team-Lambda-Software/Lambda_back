@@ -30,21 +30,20 @@ export class BlogCommentQuerySyncronizer implements Querysynchronizer<BlogCommen
 
     async execute ( event: BlogCommentCreated ): Promise<Result<string>>
     {
-        const blogComment = BlogComment.create(event.id, event.userId, event.text, event.date, event.blogId)
-        const blog = await this.blogRepository.findBlogById(  blogComment.BlogId.Value )
+        const blog = await this.blogRepository.findBlogById(  event.blogId )
         if ( !blog.isSuccess() ){
             return Result.fail<string>( blog.Error, blog.StatusCode, blog.Message )
         }
         const resultBlog = blog.Value
-        const user = await this.userRepository.findUserById( blogComment.UserId.Id )
+        const user = await this.userRepository.findUserById( event.userId )
         if ( !user.isSuccess() ){
             return Result.fail<string>( user.Error, user.StatusCode, user.Message )
         }
         const resultUser = user.Value
         const odmBlogComment = new this.blogCommentModel({
-            id: blogComment.Id.Value,
-            text: blogComment.Text.Value,
-            date: blogComment.Date.Value,
+            id: event.id,
+            text: event.text,
+            date: event.date,
             blog: resultBlog,
             user: resultUser
         })

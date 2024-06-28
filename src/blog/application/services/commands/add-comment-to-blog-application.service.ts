@@ -30,13 +30,14 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
     async execute ( data: AddCommentToBlogServiceEntryDto ): Promise<Result<string>>
     {
         const blogValue = data.blog
+        blogValue.pullEvents()
         const comment = blogValue.createComment( BlogCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), BlogCommentText.create(data.comment), BlogCommentDate.create(new Date()) )
         const result = await this.blogRepository.addCommentToBlog( comment )
         if ( !result.isSuccess() )
         {
             return Result.fail<string>( result.Error, result.StatusCode, result.Message )
         }
-        this.eventHandler.publish( blogValue.pullEvents())
+        await this.eventHandler.publish( blogValue.pullEvents())
         return Result.success<string>("comentario agregado con exito",200)
     }
 

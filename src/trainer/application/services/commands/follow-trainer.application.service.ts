@@ -65,7 +65,7 @@ export class FollowTrainerApplicationService implements IApplicationService<Togg
         }
         //TEST
             console.log("Persistence toggle success");
-        this.eventHandler.publish( trainerValue.pullEvents() );
+        await this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
             console.log("service execution success");
         return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscrito exitosamente"}, 200 );

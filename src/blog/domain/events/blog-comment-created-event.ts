@@ -1,25 +1,19 @@
 import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
 
-import { BlogCommentId } from "../entities/value-objects/blog-comment-id"
-import { BlogCommentText } from "../entities/value-objects/blog-comment-text"
-import { BlogCommentDate } from "../entities/value-objects/blog-comment-date"
-import { BlogId } from "../value-objects/blog-id"
-import { UserId } from "src/user/domain/value-objects/user-id"
-
 
 
 export class BlogCommentCreated extends DomainEvent{
     protected constructor ( 
-        public id: BlogCommentId,
-        public text: BlogCommentText,
-        public date: BlogCommentDate,
-        public userId: UserId,
-        public blogId: BlogId)
+        public id: string,
+        public text: string,
+        public date: Date,
+        public userId: string,
+        public blogId: string)
     {
         super()
     }
 
-    static create ( id: BlogCommentId, userId: UserId, text: BlogCommentText, date: BlogCommentDate, blogId: BlogId): BlogCommentCreated
+    static create ( id: string, userId: string, text: string, date: Date, blogId: string): BlogCommentCreated
     {
         return new BlogCommentCreated( id, text, date, userId, blogId)
     }

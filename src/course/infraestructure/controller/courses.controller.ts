@@ -66,6 +66,16 @@ import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositor
 import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-mapper/odm-trainer-mapper'
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer"
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
+import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
+import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
+import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
+import { OdmNotificationAlertEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-alert.entity"
+import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
+import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
+import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
 
 
 @ApiTags( 'Course' )
@@ -73,6 +83,8 @@ import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-ge
 export class CourseController
 {
 
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: OrmCourseRepository
     private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
@@ -89,13 +101,18 @@ export class CourseController
     private readonly imageTransformer: BufferBase64ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+    constructor ( 
+        @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
+        @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
+        @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
         @InjectModel( 'SectionComment' ) private readonly sectionCommentModel: Model<OdmSectionCommentEntity>,
         @InjectModel( 'Category' ) private readonly categoryModel: Model<OdmCategoryEntity>,
         @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
+        this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
+        this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -175,11 +192,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'image' ) )
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
-        const eventBus = EventBus.getInstance()
-        
-        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
-            this.courseQuerySyncronizer.execute( event )
-        })
+        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -217,6 +230,19 @@ export class CourseController
         }
         const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
+                    
+        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
+            this.courseQuerySyncronizer.execute( event )
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance(),
+                this.odmTrainerRepository
+            )
+            pushService.execute( { userId:'', publicationName: event.name, trainerId: event.trainerId, publicationType: 'Course' } )
+        })
+        
         return result.Value
     }
 
@@ -245,11 +271,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'file' ) )
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
-        const eventBus = EventBus.getInstance()
-
-        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
-            this.sectionQuerySyncronizer.execute(event)
-        })
+        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -286,6 +308,9 @@ export class CourseController
         const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
+        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
+            this.sectionQuerySyncronizer.execute(event)
+        })
         return result.Value
     }
 

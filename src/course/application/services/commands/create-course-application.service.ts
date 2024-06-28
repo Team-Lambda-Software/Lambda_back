@@ -69,7 +69,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             date: course.Date.Value,
             lessons: []
         }
-        this.eventHandler.publish( course.pullEvents())
+        await this.eventHandler.publish( course.pullEvents())
         return Result.success<CreateCourseServiceResponseDto>( responseCourse, 200 )
     }
 

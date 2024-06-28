@@ -3,12 +3,6 @@ import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decora
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { DataSource } from "typeorm";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
-import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
-import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
-import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { SaveTokenAddressInfraService } from "src/notification/infraestructure/service/notification-service/save-token-address-services.service";
 import { NotifyGoodDayInfraService } from "src/notification/infraestructure/service/notification-service/notify-good-day-services.service";
@@ -19,7 +13,6 @@ import { ExceptionDecorator } from "src/common/Application/application-services/
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
 import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
-import { INotifier } from "src/common/Application/notifier/notifier.application";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { GetManyNotificationByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-by-user.service";
 import { GetNumberNotificationNotSeenByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-count-not-readed.service";
@@ -44,6 +37,7 @@ import { CourseQueryRepository } from "src/course/infraestructure/repositories/c
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository";
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
 import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
+import { IPushSender } from "src/common/Application/push-sender/push-sender.interface";
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -51,11 +45,11 @@ export class NotificationController {
  
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
+    private readonly pushNotifier: IPushSender
     private readonly queryCourseRepository: CourseQueryRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly logger: Logger
-    private readonly pushNotifier: INotifier
-
+    
     constructor(
         @Inject('DataSource') dataSource: DataSource,
         @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
@@ -65,8 +59,8 @@ export class NotificationController {
     ) {
         this.logger = new Logger('NotificationController')
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
-        this.uuidGenerator = new UuidGenerator()
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
+        this.uuidGenerator = new UuidGenerator()
         this.pushNotifier = FirebaseNotifier.getInstance()
         this.queryCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel)
     }
@@ -141,7 +135,7 @@ export class NotificationController {
         const listTokens = findResult.Value
         listTokens.forEach( async e => {
             const pushMessage = { token: e.token, notification: { title: dtoTester.title, body: dtoTester.body } }    
-            const result = await this.pushNotifier.sendNotification( pushMessage )
+            const result = await this.pushNotifier.sendNotificationPush( pushMessage )
         })
         return 'tested'  
     }

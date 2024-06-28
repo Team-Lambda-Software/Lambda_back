@@ -16,23 +16,23 @@ import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 export class CourseCreated extends DomainEvent{
     protected constructor ( 
-        public id: CourseId,
-        public trainerId: TrainerId,
-        public name: CourseName,
-        public description: CourseDescription,
-        public weeksDuration: CourseWeeksDuration,
-        public minutesDuration: CourseMinutesDuration,
-        public level: CourseLevel,
-        public sections: Section[],
-        public categoryId: CategoryId,
-        public image: CourseImage,
-        public tags: CourseTag[],
-        public date: CourseDate)
+        public id: string,
+        public trainerId: string,
+        public name: string,
+        public description: string,
+        public weeksDuration: number,
+        public minutesDuration: number,
+        public level: number,
+        public sections: {id: string, name: string, description:string, duration:number, video:string}[],
+        public categoryId: string,
+        public image: string,
+        public tags: string[],
+        public date: Date)
     {
         super()
     }
 
-    static create ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): CourseCreated
+    static create ( id: string, trainerId: string, name: string, description: string, weeksDuration: number, minutesDuration: number, level: number, sections: {id: string, name: string, description:string, duration:number, video:string}[], categoryId: string, image: string, tags: string[], date: Date): CourseCreated
     {
         return new CourseCreated( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }
