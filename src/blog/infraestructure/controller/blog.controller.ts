@@ -182,7 +182,8 @@ export class BlogController
                 this.notiAddressRepository,
                 this.notiAlertRepository,
                 this.idGenerator,
-                FirebaseNotifier.getInstance() 
+                FirebaseNotifier.getInstance() ,
+                this.odmTrainerRepository
             )
             pushService.execute( { userId:'', publicationName: event.title, trainerId: event.trainerId, publicationType: 'Blog' } )
         

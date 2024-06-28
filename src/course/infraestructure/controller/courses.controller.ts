@@ -230,14 +230,15 @@ export class CourseController
         }
         const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
-                
+                    
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
             const pushService = new NewPublicationPushInfraService(
                 this.notiAddressRepository,
                 this.notiAlertRepository,
                 this.idGenerator,
-                FirebaseNotifier.getInstance()
+                FirebaseNotifier.getInstance(),
+                this.odmTrainerRepository
             )
             pushService.execute( { userId:'', publicationName: event.name, trainerId: event.trainerId, publicationType: 'Course' } )
         })
