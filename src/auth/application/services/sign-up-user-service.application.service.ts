@@ -40,7 +40,7 @@ export class SignUpUserApplicationService implements IApplicationService<SignUpE
         const userResult = await this.userRepository.saveUserAggregate( create )
         if ( !userResult.isSuccess() ) return Result.fail( userResult.Error, userResult.StatusCode, userResult.Message )        
         
-        this.eventHandler.publish( create.pullEvents() )
+        await this.eventHandler.publish( create.pullEvents() )
 
         const answer = { 
             id: idUser,

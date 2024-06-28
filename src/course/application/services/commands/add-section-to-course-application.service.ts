@@ -59,7 +59,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
             video: section.Video.Value,
             duration: section.Duration.Value
         }
-        this.eventHandler.publish( courseValue.pullEvents())
+        await this.eventHandler.publish( courseValue.pullEvents())
         return Result.success<AddSectionToCourseServiceResponseDto>( responseSection, 200 )
     }
 

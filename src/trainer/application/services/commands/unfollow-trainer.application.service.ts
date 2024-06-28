@@ -64,7 +64,7 @@ export class UnfollowTrainerApplicationService implements IApplicationService<To
         }
         //TEST
             console.log("Persistence toggle success");
-        this.eventHandler.publish( trainerValue.pullEvents() );
+        await this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
             console.log("service execution success");
         return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscripcion eliminada exitosamente"}, 200 );

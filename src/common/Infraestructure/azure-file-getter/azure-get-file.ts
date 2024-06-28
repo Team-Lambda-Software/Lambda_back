@@ -68,7 +68,7 @@ import { Result } from 'src/common/Domain/result-handler/Result'
       let blobDownloaded: BlobDownloadResponseParsed;
       let errorDownloading: any;
       try {
-        console.log('blobClientResult', blobClientResult.Value);
+        
         blobDownloaded = await blobClientResult.Value.download();
       } catch (err) {
         errorDownloading = err;

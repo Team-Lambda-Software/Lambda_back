@@ -44,6 +44,7 @@ import { OdmCategoryRepository } from "src/categories/infraesctructure/repositor
 import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
 import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
 import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
 import { OdmNotificationAlertEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-alert.entity"
 import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
@@ -52,6 +53,7 @@ import { INotificationAlertRepository } from "src/notification/infraestructure/r
 import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
 import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
 import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
+
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -135,18 +137,9 @@ export class BlogController
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
-        const eventBus = EventBus.getInstance();
-        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.blogQuerySyncronizer.execute(event)
-            const pushService = new NewPublicationPushInfraService(
-                this.notiAddressRepository,
-                this.notiAlertRepository,
-                this.idGenerator,
-                FirebaseNotifier.getInstance() 
-            )
-            pushService.execute( { userId:'', publicationName: event.title.Value, trainerId: event.trainerId.Value, publicationType: 'Blog' } )
-        
-        })
+
+        const eventBus = RabbitEventBus.getInstance();
+
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -183,6 +176,17 @@ export class BlogController
             throw new NotFoundException( trainer.Message )
         }
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
+        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+            this.blogQuerySyncronizer.execute(event)
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance() 
+            )
+            pushService.execute( { userId:'', publicationName: event.title, trainerId: event.trainerId, publicationType: 'Blog' } )
+        
+        })
         return result.Value
     }
 

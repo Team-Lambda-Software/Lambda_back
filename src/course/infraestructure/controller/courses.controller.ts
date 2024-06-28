@@ -66,6 +66,7 @@ import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositor
 import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-mapper/odm-trainer-mapper'
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer"
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
 import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
 import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
@@ -191,18 +192,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'image' ) )
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
-        const eventBus = EventBus.getInstance()
-        
-        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
-            this.courseQuerySyncronizer.execute( event )
-            const pushService = new NewPublicationPushInfraService(
-                this.notiAddressRepository,
-                this.notiAlertRepository,
-                this.idGenerator,
-                FirebaseNotifier.getInstance()
-            )
-            pushService.execute( { userId:'', publicationName: event.name.Value, trainerId: event.trainerId.Value, publicationType: 'Course' } )
-        })
+        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -240,6 +230,18 @@ export class CourseController
         }
         const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
+                
+        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
+            this.courseQuerySyncronizer.execute( event )
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance()
+            )
+            pushService.execute( { userId:'', publicationName: event.name, trainerId: event.trainerId, publicationType: 'Course' } )
+        })
+        
         return result.Value
     }
 
@@ -268,11 +270,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'file' ) )
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
-        const eventBus = EventBus.getInstance()
-
-        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
-            this.sectionQuerySyncronizer.execute(event)
-        })
+        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -309,6 +307,9 @@ export class CourseController
         const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
+        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
+            this.sectionQuerySyncronizer.execute(event)
+        })
         return result.Value
     }
 

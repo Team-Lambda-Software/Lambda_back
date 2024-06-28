@@ -11,17 +11,17 @@ import { UserId } from "src/user/domain/value-objects/user-id"
 
 export class SectionCommentCreated extends DomainEvent{
     protected constructor ( 
-        public id: SectionCommentId,
-        public text: SectionCommentText,
-        public date: SectionCommentDate,
-        public userId: UserId,
-        public sectionId: SectionId,
-        public courseId: CourseId)
+        public id: string,
+        public text: string,
+        public date: Date,
+        public userId: string,
+        public sectionId: string,
+        public courseId: string)
     {
         super()
     }
 
-    static create ( id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId, courseId: CourseId): SectionCommentCreated
+    static create ( id: string, userId: string, text: string, date: Date, sectionId: string, courseId: string): SectionCommentCreated
     {
         return new SectionCommentCreated( id, text, date, userId, sectionId, courseId)
     }
