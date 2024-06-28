@@ -52,7 +52,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             return Result.fail<string>( result.Error, result.StatusCode, result.Message )
         }
 
-        this.eventHandler.publish( blog.pullEvents())
+        await this.eventHandler.publish( blog.pullEvents())
         return Result.success<string>( "Blog guardado", 200 )
     }
 
