@@ -44,12 +44,21 @@ import { OdmCategoryRepository } from "src/categories/infraesctructure/repositor
 import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
 import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
 import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
+import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
+import { OdmNotificationAlertEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-alert.entity"
+import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
+import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
+import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
+import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
+import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
 export class BlogController
 {
-
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly blogRepository: OrmBlogRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly odmBlogRepository: OdmBlogRepository
@@ -59,13 +68,18 @@ export class BlogController
     private readonly fileUploader: AzureFileUploader
     private readonly blogQuerySyncronizer: BlogQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+    constructor ( 
+        @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
+        @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
+        @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
         @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
         @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
         @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
         @InjectModel('User') private userModel: Model<OdmUserEntity>)
     {
+        this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
+        this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.blogRepository =
             new OrmBlogRepository(
                 new OrmBlogMapper(),
@@ -124,6 +138,14 @@ export class BlogController
         const eventBus = EventBus.getInstance();
         eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
             this.blogQuerySyncronizer.execute(event)
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance() 
+            )
+            pushService.execute( { userId:'', publicationName: event.title.Value, trainerId: event.trainerId.Value, publicationType: 'Blog' } )
+        
         })
         const service =
             new ExceptionDecorator(
