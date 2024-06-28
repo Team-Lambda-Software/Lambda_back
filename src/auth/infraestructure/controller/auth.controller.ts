@@ -86,21 +86,22 @@ export class AuthController {
     @ApiBearerAuth()
     async currentUser( @GetUser() user ) {  
         
-        const imageTransformer = new BufferBase64ImageTransformer()
-        const imageGetter = new AzureBufferImageHelper()
-        
-        const imageResult = await imageGetter.getFile( user.image.split( '/' ).pop() )
-        if ( !imageResult.isSuccess() ) return { error: imageResult.Message }
+        let image = undefined
+        if (user.image != null){
+            const imageTransformer = new BufferBase64ImageTransformer()
+            const imageGetter = new AzureBufferImageHelper()
+            const imageResult = await imageGetter.getFile( user.image.split( '/' ).pop() )
+            if ( !imageResult.isSuccess() ) return { error: imageResult.Message }
+            image = await imageTransformer.transformFile(imageResult.Value)
+            if ( !image.isSuccess() ) return { error: image.Message }
+        }
 
-        const image = await imageTransformer.transformFile(imageResult.Value)
-        if ( !image.isSuccess() ) return { error: image.Message }
-        
         return {
             id: user.id,
             email: user.email,
             name: user.name,
             phone: user.phone,
-            image: image.Value
+            image: image
         } 
     }
 
