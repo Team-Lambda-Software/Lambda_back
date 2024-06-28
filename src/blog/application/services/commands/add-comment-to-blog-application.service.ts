@@ -30,6 +30,7 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
     async execute ( data: AddCommentToBlogServiceEntryDto ): Promise<Result<string>>
     {
         const blogValue = data.blog
+        blogValue.pullEvents()
         const comment = blogValue.createComment( BlogCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), BlogCommentText.create(data.comment), BlogCommentDate.create(new Date()) )
         const result = await this.blogRepository.addCommentToBlog( comment )
         if ( !result.isSuccess() )
