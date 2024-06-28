@@ -34,6 +34,7 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
     {
         const section: Section = data.section
         const course = data.course
+        course.pullEvents()
         const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), data.section.Id )
         const result = await this.courseRepository.addCommentToSection( comment )
         if ( !result.isSuccess() )

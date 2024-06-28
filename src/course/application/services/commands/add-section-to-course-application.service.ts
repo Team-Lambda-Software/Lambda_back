@@ -45,6 +45,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoUrl = videoUrl + process.env.SAS_TOKEN
         
         const courseValue = data.course
+        courseValue.pullEvents()
         let section: Section
         section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
         const result = await this.courseRepository.addSectionToCourse( data.course.Id.Value, section )
