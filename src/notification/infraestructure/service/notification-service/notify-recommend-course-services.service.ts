@@ -3,11 +3,11 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { randomInt } from "crypto";
-import { INotifier } from "src/common/Application/notifier/notifier.application";
-import { PushNotificationDto } from "src/common/Application/notifier/dto/token-notification.dto";
 import { INotificationAddressRepository } from "../../repositories/interface/notification-address-repository.interface";
 import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface";
 import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface";
+import { IPushSender } from "src/common/Application/push-sender/push-sender.interface";
+import { PushNotificationDto } from "src/common/Application/push-sender/dto/token-notification.dto";
 
 export class NotifyRecommendCourseInfraService implements IApplicationService<ApplicationServiceEntryDto, any> {
     
@@ -15,14 +15,14 @@ export class NotifyRecommendCourseInfraService implements IApplicationService<Ap
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: CourseQueryRepository
     private readonly uuidGenerator: UuidGenerator
-    private pushNotifier: INotifier
+    private pushNotifier: IPushSender
     
     constructor(
         notiAddressRepository: INotificationAddressRepository,
         notiAlertRepository: INotificationAlertRepository,
         courseRepository: CourseQueryRepository,
         uuidGenerator: UuidGenerator,
-        pushNotifier: INotifier
+        pushNotifier: IPushSender
     ){
         this.notiAddressRepository = notiAddressRepository
         this.notiAlertRepository = notiAlertRepository
@@ -42,16 +42,19 @@ export class NotifyRecommendCourseInfraService implements IApplicationService<Ap
         const listCourses = findResultCourses.Value
         var ran = randomInt(0, listCourses.length)
         const course = listCourses[ran]
+        
+        const pushTitle = 'Recommendation of the day'
+        const pushBody = 'We recommend you ' + course.name
 
         listTokens.forEach( async e => {
-            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: 'Recommendation of the day', body: 'We recommend you ' + course.name}}
-            const result = await this.pushNotifier.sendNotification( pushMessage )
+            const pushMessage:PushNotificationDto = { token: e.token, notification: { title: pushTitle, body: pushBody }}
+            const result = await this.pushNotifier.sendNotificationPush( pushMessage )
             //if ( result.isSuccess() ) {
             this.notiAlertRepository.saveNotificationAlert({
                 alert_id: await this.uuidGenerator.generateId(), 
                 user_id: e.user_id, 
-                title: 'Recommendation of the day', 
-                body: 'We recommend you ' + course.name, 
+                title: pushTitle, 
+                body:  pushBody,
                 date: new Date(), 
                 user_readed: false 
             })

@@ -1,9 +1,9 @@
 import * as admin from 'firebase-admin';
-import { PushNotificationDto } from 'src/common/Application/notifier/dto/token-notification.dto';
-import { INotifier } from 'src/common/Application/notifier/notifier.application';
+import { PushMulticastDto, PushNotificationDto } from 'src/common/Application/push-sender/dto/token-notification.dto';
+import { IPushSender } from 'src/common/Application/push-sender/push-sender.interface';
 import { Result } from 'src/common/Domain/result-handler/Result';
 
-export class FirebaseNotifier implements INotifier {
+export class FirebaseNotifier implements IPushSender {
 
     private static instance: FirebaseNotifier
 
@@ -24,32 +24,29 @@ export class FirebaseNotifier implements INotifier {
         admin.initializeApp({ credential: admin.credential.cert(credentials) })
     }
 
+    async sendMulticastPush(message: PushMulticastDto): Promise<void> {
+        const icon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/icon-128x128.png?alt=media&token=073a48a1-3adf-4bd8-a259-2ee99daf55c7'
+        const msg = {
+            tokens: message.token,
+            android: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
+            webpush: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
+        }  
+        const res = await admin.messaging().sendEachForMulticast(msg)
+    }
+
     public static getInstance(): FirebaseNotifier {
         if (!FirebaseNotifier.instance) FirebaseNotifier.instance = new FirebaseNotifier();
         return FirebaseNotifier.instance;
     }
 
-    async sendNotification(message: PushNotificationDto): Promise<Result<string>> {
+    async sendNotificationPush(message: PushNotificationDto): Promise<Result<string>> {
+        const icon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/icon-128x128.png?alt=media&token=073a48a1-3adf-4bd8-a259-2ee99daf55c7'
+        const msg = {
+            token: message.token,
+            android: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
+            webpush: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
+        }  
         try { 
-            const icon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/icon-128x128.png?alt=media&token=073a48a1-3adf-4bd8-a259-2ee99daf55c7'
-            const msg = {
-                // notification : {  }
-                token: message.token,
-                android: { 
-                    notification: {
-                        title: message.notification.title,
-                        body: message.notification.body,
-                        icon: icon, //color: '' icon color in `#rrggbb` format
-                    },
-                },
-                webpush: {
-                    notification: {
-                        title: message.notification.title,
-                        body: message.notification.body,
-                        icon: icon, //priority: 'high', sound: 'ringtone', sticky: true
-                    } 
-                },
-            }
             const res = await admin.messaging().send(msg).then( e => { console.log(' sended ') })
             return Result.success<string>('push_sended', 200)
         } catch(e) { 
