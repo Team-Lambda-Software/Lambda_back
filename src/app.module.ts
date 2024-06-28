@@ -14,7 +14,7 @@ import { SearchController } from './search/infraestructure/controller/search.con
 import { ProgressController } from './progress/infraestructure/controller/progress.controller'
 import { CommentController } from './comment/infraestructure/controller/comment.controller'
 import { MongooseModule } from '@nestjs/mongoose'
-import { OdmUserEntity, UserSchema } from './user/infraestructure/entities/odm-entities/odm-user.entity'
+import { UserSchema } from './user/infraestructure/entities/odm-entities/odm-user.entity'
 import { TrainerSchema } from './trainer/infraestructure/entities/odm-entities/odm-trainer.entity'
 import { CategorySchema } from './categories/infraesctructure/entities/odm-entities/odm-category.entity'
 import { BlogSchema } from './blog/infraestructure/entities/odm-entities/odm-blog.entity'
@@ -26,74 +26,24 @@ import { NotificationAddressSchema } from './notification/infraestructure/entiti
 
 @Module( {
   imports: [
-
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_DB,
-      {
-        dbName: 'lambdaMongoDb',
-      }),
+    MongooseModule.forRoot( process.env.MONGO_DB, { dbName: 'lambdaMongoDb', } ),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
-      signOptions: {
-        expiresIn: '48h'
-      }
+      signOptions: { expiresIn: '48h' }
     }),
     MongooseModule.forFeature([
-      {
-        name: 'User',
-        schema: UserSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'Trainer',
-        schema: TrainerSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'Category',
-        schema: CategorySchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'Blog',
-        schema: BlogSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'BlogComment',
-        schema: BlogCommentSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'Course',
-        schema: CourseSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'SectionComment',
-        schema: SectionCommentSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'NotificationAddress',
-        schema: NotificationAddressSchema,
-      }
-    ]),
-    MongooseModule.forFeature([
-      {
-        name: 'NotificationAlert',
-        schema: NotificationAlertSchema,
-      }
+      { name: 'User', schema: UserSchema, },
+      { name: 'Trainer', schema: TrainerSchema, },
+      { name: 'Category', schema: CategorySchema, },
+      { name: 'Blog', schema: BlogSchema, },
+      { name: 'BlogComment', schema: BlogCommentSchema, },
+      { name: 'Course', schema: CourseSchema, },
+      { name: 'SectionComment', schema: SectionCommentSchema, },
+      { name: 'NotificationAddress', schema: NotificationAddressSchema, },
+      { name: 'NotificationAlert', schema: NotificationAlertSchema, }
     ])
-
   ],
   controllers: [
     UserController,
