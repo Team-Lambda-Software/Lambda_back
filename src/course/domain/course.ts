@@ -105,7 +105,15 @@ export class Course extends AggregateRoot<CourseId>
 
     protected constructor ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
     {
-        const courseCreated: CourseCreated = CourseCreated.create( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
+        const courseCreated: CourseCreated = CourseCreated.create( 
+            id.Value, trainerId.Value, 
+            name.Value, description.Value, 
+            weeksDuration.Value, minutesDuration.Value, 
+            level.Value, sections.map( section =>{ return {id: section.Id.Value, 
+                name: section.Name.Value, 
+                description: section.Description.Value,
+                duration: section.Duration.Value,
+                video: section.Video.Value}}), categoryId.Value, image.Value, tags.map(tag => tag.Value), date.Value)
         super( id, courseCreated)
         
     }
@@ -115,17 +123,17 @@ export class Course extends AggregateRoot<CourseId>
         switch ( event.eventName ){
             case 'CourseCreated':
                 const courseCreated: CourseCreated = event as CourseCreated
-                this.trainerId = courseCreated.trainerId
-                this.name = courseCreated.name
-                this.description = courseCreated.description
-                this.weeksDuration = courseCreated.weeksDuration
-                this.minutesDuration = courseCreated.minutesDuration
-                this.level = courseCreated.level
-                this.sections = courseCreated.sections
-                this.categoryId = courseCreated.categoryId
-                this.image = courseCreated.image
-                this.tags = courseCreated.tags
-                this.date = courseCreated.date
+                this.trainerId = TrainerId.create(courseCreated.trainerId)
+                this.name = CourseName.create(courseCreated.name)
+                this.description = CourseDescription.create(courseCreated.description)
+                this.weeksDuration = CourseWeeksDuration.create(courseCreated.weeksDuration)
+                this.minutesDuration = CourseMinutesDuration.create(courseCreated.minutesDuration)
+                this.level = CourseLevel.create(courseCreated.level)
+                this.sections = courseCreated.sections.map( section => Section.create(SectionId.create(section.id), SectionName.create(section.name), SectionDescription.create(section.description), SectionDuration.create(section.duration), SectionVideo.create(section.video)))
+                this.categoryId = CategoryId.create(courseCreated.categoryId)
+                this.image = CourseImage.create(courseCreated.image)
+                this.tags = courseCreated.tags.map(tag => CourseTag.create(tag))
+                this.date = CourseDate.create(courseCreated.date)
 
                 
         }
@@ -144,14 +152,14 @@ export class Course extends AggregateRoot<CourseId>
 
     public createComment (id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{
         const comment: SectionComment = SectionComment.create(id, userId, text, date, sectionId)
-        const sectionCommentCreated: SectionCommentCreated = SectionCommentCreated.create(id, userId, text, date, sectionId,this.Id)
+        const sectionCommentCreated: SectionCommentCreated = SectionCommentCreated.create(id.Value, userId.Id, text.Value, date.Value, sectionId.Value,this.Id.Value)
         this.onEvent(sectionCommentCreated)
         return comment
     }
 
     public createSection ( id: SectionId, name: SectionName, description: SectionDescription, duration: SectionDuration, video: SectionVideo ): Section{
         const section: Section = Section.create( id, name, description, duration, video)
-        const sectionCreated: DomainEvent = SectionCreated.create( id, name, description, duration, video, this.Id)
+        const sectionCreated: DomainEvent = SectionCreated.create( id.Value, name.Value, description.Value, duration.Value, video.Value, this.Id.Value)
         this.sections.push(section)
         this.onEvent(sectionCreated)
         return section

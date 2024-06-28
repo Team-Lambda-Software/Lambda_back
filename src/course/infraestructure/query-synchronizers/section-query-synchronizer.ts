@@ -26,11 +26,10 @@ export class SectionQuerySyncronizer implements Querysynchronizer<SectionCreated
 
     async execute ( event: SectionCreated ): Promise<Result<string>>
     {
-        const section = Section.create(event.id, event.name, event.description, event.duration, event.video)
-        const odmSection = { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value }
+        const odmSection = { id: event.id, name: event.name, duration: event.duration, description: event.description, video: event.video }
         
         try{
-            await this.courseRepository.addSectionToCourse(event.courseId.Value,odmSection)
+            await this.courseRepository.addSectionToCourse(event.courseId,odmSection)
         }catch (error){
             return Result.fail<string>( error, 500, error.message )
         }

@@ -6,14 +6,14 @@ import { CategoryIcon } from "../value-objects/category-image"
 
 export class CategoryCreated extends DomainEvent{
     protected constructor ( 
-        public id: CategoryId,
-        public name: CategoryName,
-        public icon: CategoryIcon)
+        public id: string,
+        public name: string,
+        public icon: string)
     {
         super()
     }
 
-    static create ( id: CategoryId, name: CategoryName, icon: CategoryIcon): CategoryCreated
+    static create ( id: string, name: string, icon: string): CategoryCreated
     {
         return new CategoryCreated( id, name, icon)
     }

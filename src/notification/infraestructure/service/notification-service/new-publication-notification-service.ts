@@ -6,12 +6,16 @@ import { INotificationAddressRepository } from "../../repositories/interface/not
 import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface";
 import { IPushSender } from "src/common/Application/push-sender/push-sender.interface";
 import { PushNotificationDto } from "src/common/Application/push-sender/dto/token-notification.dto";
+import { NewPublicationPushDto } from "./dto/entry/new-publication-push-entry.dto";
+import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
 
-export class NotifyGoodDayInfraService implements IApplicationService<ApplicationServiceEntryDto, any> {
+export class NewPublicationPushInfraService implements IApplicationService<NewPublicationPushDto, any> {
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
+    private readonly trainerRepository: ITrainerRepository
     private uuidGenerator: IdGenerator<string>
     private pushNotifier: IPushSender
+    
     constructor(
         notiAddressRepository: INotificationAddressRepository,
         notiAlertRepository: INotificationAlertRepository,
@@ -24,12 +28,17 @@ export class NotifyGoodDayInfraService implements IApplicationService<Applicatio
         this.pushNotifier = pushNotifier
     }
     
-    async execute(notifyDto: ApplicationServiceEntryDto): Promise<Result<any>> {
+    async execute(notifyDto: NewPublicationPushDto): Promise<Result<any>> {
         const findResult = await this.notiAddressRepository.findAllTokens()
         if ( !findResult.isSuccess() ) return Result.fail( findResult.Error, findResult.StatusCode, findResult.Message )
+        
+        const trainerResult = await this.trainerRepository.findTrainerById(notifyDto.trainerId)
+        if ( !trainerResult.isSuccess() ) return Result.fail( trainerResult.Error, trainerResult.StatusCode, trainerResult.Message )
+            
+        const trainer = trainerResult.Value
         const listTokens = findResult.Value
-        const pushTitle = "Good new Day!"
-        const pushBody = 'be Happy, my budy'
+        const pushTitle = trainer.Name + ' has published a new ' + notifyDto.publicationType
+        const pushBody = 'This new fantastic ' + notifyDto.publicationType + ' is ' + notifyDto.publicationName
 
         listTokens.forEach( async e => {  
             this.notiAlertRepository.saveNotificationAlert({

@@ -40,7 +40,7 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
         {
             return Result.fail<SectionComment>( result.Error, result.StatusCode, result.Message )
         }
-        this.eventHandler.publish( course.pullEvents())
+        await this.eventHandler.publish( course.pullEvents())
         return result
     }
 

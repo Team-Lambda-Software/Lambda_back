@@ -29,26 +29,25 @@ export class BlogQuerySyncronizer implements Querysynchronizer<BlogCreated>{
 
     async execute ( event: BlogCreated ): Promise<Result<string>>
     {
-        const blog = Blog.create(event.id, event.title, event.body, event.images, event.publicationDate, event.trainerId, event.categoryId, event.tags)
-        const blogTrainer = await this.trainerRepository.findTrainerById(  blog.TrainerId.Value )
+        const blogTrainer = await this.trainerRepository.findTrainerById(  event.trainerId )
         if ( !blogTrainer.isSuccess() ){
             return Result.fail<string>( blogTrainer.Error, blogTrainer.StatusCode, blogTrainer.Message )
         }
         const trainer = blogTrainer.Value
-        const blogCategory = await this.categoryRepository.findCategoryById(  blog.CategoryId.Value )
+        const blogCategory = await this.categoryRepository.findCategoryById(  event.categoryId )
         if ( !blogCategory.isSuccess() ){
             return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
         }
         const category = blogCategory.Value
         const blogPersistence = new this.blogModel({
-            id: blog.Id.Value,
-            title: blog.Title.Value,
-            body: blog.Body.Value,
-            publication_date: blog.PublicationDate.Value,
+            id: event.id,
+            title: event.title,
+            body: event.body,
+            publication_date: event.publicationDate,
             category: category,
             trainer: trainer,
-            images: blog.Images.map( image => ( { url: image.Value } ) ),
-            tags: blog.Tags.map( tag => tag.Value )
+            images: event.images.map( image => ( { url: image } ) ),
+            tags: event.tags.map( tag => tag )
         })
         const errors = blogPersistence.validateSync()
         if ( errors ){
