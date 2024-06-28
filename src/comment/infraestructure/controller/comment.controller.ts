@@ -58,6 +58,7 @@ import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-
 import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
 import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer'
 import { OdmUserRepository } from '../../../user/infraestructure/repositories/odm-repository/odm-user-repository';
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 
 
 @ApiTags( 'Comment' )
@@ -186,6 +187,7 @@ export class CommentController
     {
         const { target, targetType, body } = entryData
         const eventBus = EventBus.getInstance();
+        
         if ( targetType === 'LESSON' )
         {
             eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
@@ -229,10 +231,8 @@ export class CommentController
             return
         } else
         {
-            const eventBus = EventBus.getInstance();
-            eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
-                this.blogCommentQuerySynchronizer.execute(event)
-            })
+            const eventBus = RabbitEventBus.getInstance();
+            
             const service =
                 new ExceptionDecorator(
                     new AuditingDecorator(
@@ -260,6 +260,10 @@ export class CommentController
                 comment: body
             }
             const result = await service.execute( data )
+
+            eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
+                this.blogCommentQuerySynchronizer.execute(event)
+            })
             return
         }
     }

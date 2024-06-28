@@ -44,6 +44,7 @@ import { OdmCategoryRepository } from "src/categories/infraesctructure/repositor
 import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
 import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
 import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
@@ -121,10 +122,8 @@ export class BlogController
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
-        const eventBus = EventBus.getInstance();
-        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.blogQuerySyncronizer.execute(event)
-        })
+        const eventBus = RabbitEventBus.getInstance();
+        
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -161,6 +160,9 @@ export class BlogController
             throw new NotFoundException( trainer.Message )
         }
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
+        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+            this.blogQuerySyncronizer.execute(event)
+        })
         return result.Value
     }
 

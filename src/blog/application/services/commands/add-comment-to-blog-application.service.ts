@@ -36,7 +36,7 @@ export class AddCommentToBlogApplicationService implements IApplicationService<A
         {
             return Result.fail<string>( result.Error, result.StatusCode, result.Message )
         }
-        this.eventHandler.publish( blogValue.pullEvents())
+        await this.eventHandler.publish( blogValue.pullEvents())
         return Result.success<string>("comentario agregado con exito",200)
     }
 

@@ -142,7 +142,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
     async findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>{
         try{
             const course = await this.courseModel.findOne( { 'sections.id': sectionId } )
-            console.log(course)
+            
             return Result.success<OdmCourseEntity>( course, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity>( error, 500, error.message )
