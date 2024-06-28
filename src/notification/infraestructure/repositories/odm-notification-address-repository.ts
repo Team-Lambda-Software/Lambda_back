@@ -20,8 +20,14 @@ export class OdmNotificationAddressRepository implements INotificationAddressRep
     }
 
     async saveNotificationAddress(noti_address: NotiAddress) {
-        const noti = new this.notiModel(noti_address)
-        await this.notiModel.create( noti )
+        const findNoti = await this.notiModel.findOne( { token: noti_address.token } )
+        if ( !findNoti ) {
+            const noti = new this.notiModel(noti_address)
+            await this.notiModel.create( noti )
+        } else {
+            findNoti.user_id = noti_address.user_id
+            await this.notiModel.create( findNoti )
+        }
     }
     
     async findAllTokens(): Promise<Result<OdmNotificationAddressEntity[]>> {
