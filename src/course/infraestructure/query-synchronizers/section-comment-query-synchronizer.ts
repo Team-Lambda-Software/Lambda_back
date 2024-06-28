@@ -32,22 +32,21 @@ export class SectionCommentQuerySyncronizer implements Querysynchronizer<Section
 
     async execute ( event: SectionCommentCreated ): Promise<Result<string>>
     {
-        const comment = SectionComment.create(event.id, event.userId, event.text, event.date, event.sectionId)
-        const user = await this.userRepository.findUserById( comment.UserId.Id )
+        const user = await this.userRepository.findUserById( event.userId )
         if ( !user.isSuccess() ){
             return Result.fail<string>( user.Error, user.StatusCode, user.Message )
         }
         const resultUser = user.Value
-        const course = await this.courseRepository.findCourseBySectionId( comment.SectionId.Value )
+        const course = await this.courseRepository.findCourseBySectionId( event.sectionId )
         if ( !course.isSuccess() ){
             return Result.fail<string>( course.Error, course.StatusCode, course.Message )
         }
         const resultCourse = course.Value
-        const section = resultCourse.sections.find( section => section.id === comment.SectionId.Value )
+        const section = resultCourse.sections.find( section => section.id === event.sectionId )
         const odmComment = new this.sectionCommentModel({
-            id: comment.Id.Value,
-            text: comment.Text.Value,
-            date: comment.Date.Value,
+            id: event.id,
+            text: event.text,
+            date: event.date,
             section: section,
             user: resultUser
         })

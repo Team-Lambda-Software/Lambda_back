@@ -24,7 +24,7 @@ export class Category extends AggregateRoot<CategoryId>{
 
     protected constructor ( id: CategoryId, name: CategoryName, icon: CategoryIcon)
     {
-        const categoryCreated: CategoryCreated = CategoryCreated.create(id, name, icon)
+        const categoryCreated: CategoryCreated = CategoryCreated.create(id.Value, name.Value, icon.Value)
         super (id, categoryCreated)  
     }
 
@@ -33,8 +33,8 @@ export class Category extends AggregateRoot<CategoryId>{
         switch (event.eventName){
             case 'CategoryCreated':
                 const categoryCreated: CategoryCreated = event as CategoryCreated
-                this.icon = categoryCreated.icon
-                this.name = categoryCreated.name
+                this.icon = CategoryIcon.create(categoryCreated.icon)
+                this.name = CategoryName.create(categoryCreated.name)
         }
     }
 

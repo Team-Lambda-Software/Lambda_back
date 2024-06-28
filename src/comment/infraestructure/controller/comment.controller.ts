@@ -186,13 +186,11 @@ export class CommentController
     async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user )
     {
         const { target, targetType, body } = entryData
-        const eventBus = EventBus.getInstance();
+        const eventBus = RabbitEventBus.getInstance();
         
         if ( targetType === 'LESSON' )
         {
-            eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
-                this.sectionCommentQuerySyncronizer.execute(event)
-            })
+    
             const service =
                 new ExceptionDecorator(
                     new AuditingDecorator(
@@ -228,6 +226,9 @@ export class CommentController
                 comment: body, course: resultCourse
             }
             const result = await service.execute( data )
+            eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
+                this.sectionCommentQuerySyncronizer.execute(event)
+            })
             return
         } else
         {

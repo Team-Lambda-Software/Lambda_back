@@ -31,30 +31,29 @@ export class CourseQuerySyncronizer implements Querysynchronizer<CourseCreated>{
 
     async execute ( event: CourseCreated ): Promise<Result<string>>
     {
-        const course = Course.create( event.id, event.trainerId, event.name, event.description, event.weeksDuration, event.minutesDuration, event.level, [] ,event.categoryId, event.image, event.tags, event.date)
-        const courseTrainer = await this.trainerRepository.findTrainerById(  course.TrainerId.Value  )
+        const courseTrainer = await this.trainerRepository.findTrainerById(  event.trainerId  )
         if ( !courseTrainer.isSuccess() ){
             return Result.fail<string>( courseTrainer.Error, courseTrainer.StatusCode, courseTrainer.Message )
         }
         const trainer = courseTrainer.Value
-        const blogCategory = await this.categoryRepository.findCategoryById(  course.CategoryId.Value )
+        const blogCategory = await this.categoryRepository.findCategoryById(  event.categoryId )
         if ( !blogCategory.isSuccess() ){
             return Result.fail<string>( blogCategory.Error, blogCategory.StatusCode, blogCategory.Message )
         }
         const category = blogCategory.Value
         const coursePersistence = new this.courseModel({
-            id: course.Id.Value,
-            name: course.Name.Value,
-            description: course.Description.Value,
-            level: course.Level.Value,
-            weeks_duration: course.WeeksDuration.Value,
-            minutes_per_section: course.MinutesDuration.Value,
-            date: course.Date.Value,
+            id: event.id,
+            name: event.name,
+            description: event.description,
+            level: event.level,
+            weeks_duration: event.weeksDuration,
+            minutes_per_section: event.minutesDuration,
+            date: event.date,
             category: category,
             trainer: trainer,
-            image: course.Image.Value,
-            tags: course.Tags.map( tag => tag.Value ),
-            sections: course.Sections.map( section => ( { id: section.Id.Value, name: section.Name.Value, duration: section.Duration.Value, description: section.Description.Value, video: section.Video.Value } ) )
+            image: event.image,
+            tags: event.tags.map( tag => tag ),
+            sections: event.sections.map( section => ( { id: section.id, name: section.name, duration: section.duration, description: section.description, video: section.video } ) )
         })
         const errors = coursePersistence.validateSync()
         if ( errors ){

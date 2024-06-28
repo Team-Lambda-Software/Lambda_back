@@ -25,7 +25,6 @@ export class RabbitEventBus implements IEventHandler{
             const connection = amqp.connect([process.env.RABBITMQ_URL]);
             
             for (const event of events) {
-                console.log('Publishing event:', event.eventName);
                 const channelWrapper = connection.createChannel({
                     setup: (channel: Channel) => {
                       return channel.assertQueue(event.eventName, { durable: true });
