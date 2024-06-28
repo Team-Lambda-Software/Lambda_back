@@ -67,6 +67,15 @@ import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-m
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer"
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
+import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
+import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
+import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
+import { OdmNotificationAlertEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-alert.entity"
+import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
+import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
+import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
 
 
 @ApiTags( 'Course' )
@@ -74,6 +83,8 @@ import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabb
 export class CourseController
 {
 
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: OrmCourseRepository
     private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
@@ -90,13 +101,18 @@ export class CourseController
     private readonly imageTransformer: BufferBase64ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+    constructor ( 
+        @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
+        @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
+        @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
         @InjectModel( 'SectionComment' ) private readonly sectionCommentModel: Model<OdmSectionCommentEntity>,
         @InjectModel( 'Category' ) private readonly categoryModel: Model<OdmCategoryEntity>,
         @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
+        this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
+        this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.courseRepository =
             new OrmCourseRepository(
                 new OrmCourseMapper(
@@ -217,7 +233,15 @@ export class CourseController
                 
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance()
+            )
+            pushService.execute( { userId:'', publicationName: event.name, trainerId: event.trainerId, publicationType: 'Course' } )
         })
+        
         return result.Value
     }
 
