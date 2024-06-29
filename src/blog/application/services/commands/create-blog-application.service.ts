@@ -24,21 +24,35 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
 {
 
     private readonly blogRepository: IBlogRepository
+    private readonly trainerRepository: ITrainerRepository
+    private readonly categoryRepository: ICategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
     private readonly eventHandler: IEventHandler
 
-    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( blogRepository: IBlogRepository  ,idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository)
     {
         this.idGenerator = idGenerator
         this.blogRepository = blogRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
+        this.trainerRepository = trainerRepository
+        this.categoryRepository = categoryRepository
     }
 
     // TODO: Search the progress if exists one for that user
     async execute ( data: CreateBlogServiceEntryDto ): Promise<Result<string>>
     {
+        const trainer = await this.trainerRepository.findTrainerById( data.trainerId )
+        if ( !trainer.isSuccess() )
+        {
+            return Result.fail<string>( trainer.Error, trainer.StatusCode, trainer.Message )
+        }
+        const category = await this.categoryRepository.findCategoryById( data.categoryId )
+        if ( !category.isSuccess() )
+        {
+            return Result.fail<string>( category.Error, category.StatusCode, category.Message )
+        }
         const images: BlogImage[] = []
         for ( const image of data.images ){
             const imageId = await this.idGenerator.generateId()

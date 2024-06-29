@@ -208,22 +208,9 @@ export class CommentController
                     new HttpExceptionHandler()
                 )
 
-            const section = await this.odmCourseRepository.findSectionById(target)
-            if (!section.Value){
-                throw new NotFoundException('No se encontro la seccion')
-            }
-            const resultSection = Section.create(SectionId.create(section.Value.id), SectionName.create(section.Value.name), SectionDescription.create(section.Value.description), SectionDuration.create(section.Value.duration), SectionVideo.create(section.Value.video))
-
-            const course = await this.odmCourseRepository.findCourseBySectionId(target)
-            if (!course.Value){
-                throw new NotFoundException('No se encontro el curso')
-            }
-
-            const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
-
             const data: AddCommentToSectionServiceEntryDto = {
-                section: resultSection, userId: user.id,
-                comment: body, course: resultCourse
+                sectionId: target, userId: user.id,
+                comment: body
             }
             const result = await service.execute( data )
             eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
@@ -233,7 +220,7 @@ export class CommentController
         } else
         {
             const eventBus = RabbitEventBus.getInstance();
-            
+             
             const service =
                 new ExceptionDecorator(
                     new AuditingDecorator(
@@ -250,13 +237,9 @@ export class CommentController
                     ),
                     new HttpExceptionHandler()
                 )
-            const blog = await this.odmBlogRepository.findBlogById(target)
-            if (!blog.Value){
-                throw new NotFoundException('No se encontro el blog')
-            }
-            const resultBlog = blog.Value
+
             const data: AddCommentToBlogServiceEntryDto = {
-                blog: await this.odmBlogMapper.fromPersistenceToDomain(resultBlog), 
+                blogId: target, 
                 userId: user.id,
                 comment: body
             }

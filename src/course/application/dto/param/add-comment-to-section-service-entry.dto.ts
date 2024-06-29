@@ -7,8 +7,7 @@ import { Section } from "src/course/domain/entities/section/section"
 
 export interface AddCommentToSectionServiceEntryDto extends ApplicationServiceEntryDto{
 
-    section: Section
+    sectionId: string
     userId: string
     comment: string
-    course: Course
 }

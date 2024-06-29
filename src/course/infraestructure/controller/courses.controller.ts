@@ -76,6 +76,8 @@ import { OdmNotificationAlertEntity } from "src/notification/infraestructure/ent
 import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
 import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
 import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
+import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository';
+import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 
 
 @ApiTags( 'Course' )
@@ -89,6 +91,7 @@ export class CourseController
     private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
+    private readonly ormCategoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly odmCourseRepository: OdmCourseRepository
     private readonly odmTrainerRepository: OdmTrainerRepository
@@ -161,7 +164,7 @@ export class CourseController
 
         this.imageTransformer = new BufferBase64ImageTransformer()
         this.imageGetter = new AzureBufferImageHelper()
-        
+        this.ormCategoryRepository = new OrmCategoryRepository( new OrmCategoryMapper(), dataSource )  
     }
 
     @Post( 'create' )
@@ -202,7 +205,9 @@ export class CourseController
                             this.courseRepository,
                             this.idGenerator,
                             this.fileUploader,
-                            eventBus
+                            eventBus,
+                            this.trainerRepository,
+                            this.ormCategoryRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -216,20 +221,8 @@ export class CourseController
             return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
         }
         const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
-        const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
-        if ( !category.Value )
-        {
-            throw new NotFoundException( category.Message )
-        }
-        const resultCategory = Category.create(CategoryId.create(category.Value.id), 
-        CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
-        const trainer = await this.odmTrainerRepository.findTrainerById( createCourseServiceEntryDto.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            throw new NotFoundException( trainer.Message )
-        }
-        const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
+        
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, categoryId: createCourseServiceEntryDto.categoryId, trainerId: createCourseServiceEntryDto.trainerId} )
                     
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
@@ -301,13 +294,7 @@ export class CourseController
             }
         }
 
-        const course = await this.odmCourseRepository.findCourseById( courseId )
-        if (!course.Value){
-            throw new NotFoundException('No se encontro el curso')
-        }
-        const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
-
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
         })

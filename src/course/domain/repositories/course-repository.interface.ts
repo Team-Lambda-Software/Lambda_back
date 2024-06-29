@@ -10,6 +10,8 @@ export interface ICourseRepository
 {
 
     findCourseById ( id: string ): Promise<Result<Course>>
+    findSectionById ( id: string ): Promise<Result<Section>>
+    findCourseBySectionId ( id: string ): Promise<Result<Course>>
     findCoursesByName ( name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     findCourseSections ( id: string ): Promise<Result<Section[]>>
     addCommentToSection ( comment: SectionComment ): Promise<Result<SectionComment>>
