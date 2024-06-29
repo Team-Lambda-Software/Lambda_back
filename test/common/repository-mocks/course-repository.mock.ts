@@ -13,9 +13,34 @@ export class CourseRepositoryMock implements ICourseRepository{
     private readonly sections: Section[] = []
     private readonly sectionComments: SectionComment[] = []
     
-    findCourseById ( id: string ): Promise<Result<Course>>
+
+    async findSectionById ( id: string ): Promise<Result<Section>>
     {
-        throw new Error( "Method not implemented." )
+        const section = this.sections.find( section => section.Id.Value === id )
+        if ( !section )
+        {
+            return Result.fail<Section>( new Error('Section not found'), 404, 'Section not found')
+        }
+        return Result.success<Section>( section, 200 )
+    }
+    async findCourseBySectionId ( id: string ): Promise<Result<Course>>
+    {
+        const course = this.courses.find( course => course.Sections.find( section => section.Id.Value === id ) )
+        if ( !course )
+        {
+            return Result.fail<Course>( new Error('Course not found'), 404, 'Course not found')
+        }
+        return Result.success<Course>( course, 200 )
+    }
+
+    async findCourseById ( id: string ): Promise<Result<Course>>
+    {
+        const course = this.courses.find( course => course.Id.Value === id )
+        if ( !course )
+        {
+            return Result.fail<Course>( new Error('Course not found'), 404, 'Course not found')
+        }
+        return Result.success<Course>( course, 200 )
     }
     findCoursesByName ( name: string, pagination: PaginationDto ): Promise<Result<Course[]>>
     {
@@ -38,6 +63,12 @@ export class CourseRepositoryMock implements ICourseRepository{
     async addSectionToCourse ( courseId: string, section: Section ): Promise<Result<Section>>
     {
         this.sections.push( section )
+        const course = this.courses.find( course => course.Id.Value === courseId )
+        if ( !course )
+        {
+            return Result.fail<Section>( new Error('Course not found'), 404, 'Course not found')
+        }
+        course.changeSections( [section] )
         return Result.success( section, 200)
     }
 
