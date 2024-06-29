@@ -9,5 +9,5 @@ export interface AddSectionToCourseServiceEntryDto extends ApplicationServiceEnt
     description: string
     duration: number
     file: File
-    course: Course
+    courseId: string
 }
