@@ -27,42 +27,42 @@ import { UserId } from "src/user/domain/value-objects/user-id"
 export class CourseDomainEventObjectMother {
 
 
-    static createCourseCreatedEvent(): CourseCreated {
+    static createCourseCreatedEvent(trainerId: string, categoryId: string): CourseCreated {
         return CourseCreated.create(
-            CourseId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
-            CourseName.create('title'),
-            CourseDescription.create('description of the course'),
-            CourseWeeksDuration.create(10),
-            CourseMinutesDuration.create(60),
-            CourseLevel.create(2),
+            'c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1',
+            trainerId,
+            'title',
+            'description of the course',
+            10,
+            60,
+            2,
             [],
-            CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
-            CourseImage.create('url.com'),
-            [CourseTag.create('Tag')],
-            CourseDate.create(new Date())
+            categoryId,
+            'url.com',
+            ['Tag'],
+            new Date()
         )
     }
 
     static createSectionCommentCreatedEvent(userId: string, courseId: string, sectionId: string): SectionCommentCreated {
         return SectionCommentCreated.create(
-            SectionCommentId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            UserId.create(userId),
-            SectionCommentText.create('texts of the comment'),
-            SectionCommentDate.create(new Date()),
-            SectionId.create(sectionId),
-            CourseId.create(courseId)
+            'c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1',
+            userId,
+            'texts of the comment',
+            new Date(),
+            sectionId,
+            courseId
         )
     }
 
     static createSectionCreatedEvent(courseId: string): SectionCreated {
         return SectionCreated.create(
-            SectionId.create('c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1'),
-            SectionName.create('section name'),
-            SectionDescription.create('section description'),
-            SectionDuration.create(60),
-            SectionVideo.create('url.com'),
-            CourseId.create(courseId)
+            'c1b1c1b1-c1b1-c1b1-c1b1-c1b1c1b1c1b1',
+            'section name',
+            'section description',
+            60,
+            'url.com',
+            courseId
         )
     }
 }

@@ -1,15 +1,10 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { Course } from "src/course/domain/course"
 import { GetCourseServiceEntryDto } from "../dto/param/get-course-service-entry.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { GetCourseServiceResponseDto } from "../dto/responses/get-course-service-response.dto"
-import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface"
-import { ProgressSection } from "src/progress/domain/entities/progress-section"
-import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
-import { OdmCourseRepository } from "../../repositories/odm-repositories/odm-course-repository"
 import { CourseQueryRepository } from "../../repositories/course-query-repository.interface"
+import { ImageGetter } from "src/common/Application/image-getter/image-getter.inteface"
+import { FileTransformer } from "src/common/Application/file-transformer/file-transformer.interface"
 
 
 
@@ -18,12 +13,16 @@ export class GetCourseService implements IApplicationService<GetCourseServiceEnt
 {
 
     private readonly courseRepository: CourseQueryRepository
+    private readonly imageGeter: ImageGetter
+    private readonly imageTransformer: FileTransformer<Buffer, string>
 
 
-    constructor ( courseRepository: CourseQueryRepository )
+    constructor ( courseRepository: CourseQueryRepository, imageGeter: ImageGetter, imageTransformer: FileTransformer<Buffer, string> )
     {
 
         this.courseRepository = courseRepository
+        this.imageGeter = imageGeter
+        this.imageTransformer = imageTransformer
 
     }
 
@@ -37,12 +36,25 @@ export class GetCourseService implements IApplicationService<GetCourseServiceEnt
         }
 
         const course = resultCourse.Value
-        
+        const imageResult = await this.imageGeter.getFile( course.image.split( '/' ).pop() )
+        if ( !imageResult.isSuccess() )
+        {
+            return Result.fail<GetCourseServiceResponseDto>( imageResult.Error, imageResult.StatusCode, imageResult.Message )
+        }
+
+        const image = await this.imageTransformer.transformFile(imageResult.Value)
+        if ( !image.isSuccess() )
+        {
+            return Result.fail<GetCourseServiceResponseDto>( image.Error, image.StatusCode, image.Message )
+        }
+
+        const finalImage = 'data:image/png;base64,' + image.Value
+
         let responseCourse: GetCourseServiceResponseDto = {
             title: course.name,
             description: course.description,
             category: course.category.categoryName,
-            image: course.image,
+            image: finalImage,
             trainer: {
                 id: course.trainer.id,
                 name: course.trainer.first_name + ' ' + course.trainer.first_last_name + ' ' + course.trainer.second_last_name

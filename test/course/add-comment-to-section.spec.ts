@@ -22,17 +22,26 @@ describe('Add Comment to Section', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddCommentToSectionApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new EventHandlerMock()
         )
 
+       
+
+        const section = await CourseObjectMother.createSection();
+        courseRepositoryMock.addSectionToCourse(course.Id.Value, section);
+
+
         const entry: AddCommentToSectionServiceEntryDto = {
             userId: user.Id.Id,
             comment: "test comment",
-            section: await CourseObjectMother.createSection(),
-            course: await CourseObjectMother.createCourse()
+            sectionId: section.Id.Value,
         }
 
         const result = await service.execute(entry)
@@ -46,17 +55,24 @@ describe('Add Comment to Section', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddCommentToSectionApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new EventHandlerMock()
         )
 
+        
+        const section = await CourseObjectMother.createSection();
+        courseRepositoryMock.addSectionToCourse(course.Id.Value, section);
+
         const entry: AddCommentToSectionServiceEntryDto = {
             userId: user.Id.Id,
             comment: "",
-            section: await CourseObjectMother.createSection(),
-            course: await CourseObjectMother.createCourse()
+            sectionId: section.Id.Value,
         }
         
         try {
@@ -67,5 +83,35 @@ describe('Add Comment to Section', () => {
         }
 
         expect.assertions(1)
+    })
+
+    it ('should fail if section does not exists in any course', async () => {
+
+        const user = await UserObjectMother.createNormalUser();
+        const userRepositoryMock = new UserMockRepository();
+        userRepositoryMock.saveUserAggregate(user);
+
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
+        const service = new AddCommentToSectionApplicationService(
+            courseRepositoryMock,
+            new UuidGeneratorMock(),
+            new EventHandlerMock()
+        )
+
+        const section = await CourseObjectMother.createSection();
+        courseRepositoryMock.addSectionToCourse(course.Id.Value, section);
+
+        const entry: AddCommentToSectionServiceEntryDto = {
+            userId: user.Id.Id,
+            comment: "test comment",
+            sectionId: "c1b4e5d4-0b3b-4b3b-8b3b-3b4b3b4b3b3b",
+        }
+        
+        const result = await service.execute(entry)
+
+        expect(result.isSuccess()).toBeFalsy()
     })
 })

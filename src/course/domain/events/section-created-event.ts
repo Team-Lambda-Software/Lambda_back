@@ -9,12 +9,12 @@ import { CourseId } from "../value-objects/course-id"
 
 export class SectionCreated extends DomainEvent{
     protected constructor ( 
-        public id: SectionId, public name: SectionName, public description: SectionDescription, public duration: SectionDuration, public video: SectionVideo, public courseId: CourseId)
+        public id: string, public name: string, public description: string, public duration: number, public video: string, public courseId: string)
     {
         super()
     }
 
-    static create ( id: SectionId, name: SectionName, description: SectionDescription, duration: SectionDuration, video: SectionVideo, courseId: CourseId): SectionCreated
+    static create ( id: string, name: string, description: string, duration: number, video: string, courseId: string): SectionCreated
     {
         return new SectionCreated( id, name, description, duration, video, courseId)
     }

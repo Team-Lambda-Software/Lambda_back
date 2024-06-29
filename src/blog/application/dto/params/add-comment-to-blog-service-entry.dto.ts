@@ -1,4 +1,3 @@
-import { Blog } from "src/blog/domain/blog"
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 
 
@@ -6,7 +5,7 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 
 export interface AddCommentToBlogServiceEntryDto extends ApplicationServiceEntryDto{
 
-    blog: Blog
+    blogId: string
     userId: string
     comment: string
 

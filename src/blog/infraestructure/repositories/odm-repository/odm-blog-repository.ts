@@ -136,4 +136,165 @@ export class OdmBlogRepository implements BlogQueryRepository{
         }
     }
 
+    async findBlogsByPopularity ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.aggregate([
+                {
+                  '$lookup': {
+                    'from': 'blogcomments', 
+                    'localField': 'id', 
+                    'foreignField': 'blog.id', 
+                    'as': 'Comments'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'title': 1, 
+                    'body': 1, 
+                    'publication_date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'images': 1, 
+                    'tags': 1, 
+                    'commentsCount': {
+                      '$size': {
+                        '$ifNull': [
+                          '$Comments', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'commentsCount': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'commentsCount': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
+    async findBlogsByPopularityAndTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.aggregate([
+                {
+                  '$match': {
+                    'trainer.id': trainerId
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'blogcomments', 
+                    'localField': 'id', 
+                    'foreignField': 'blog.id', 
+                    'as': 'Comments'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'title': 1, 
+                    'body': 1, 
+                    'publication_date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'images': 1, 
+                    'tags': 1, 
+                    'commentsCount': {
+                      '$size': {
+                        '$ifNull': [
+                          '$Comments', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'commentsCount': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'commentsCount': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
+    async findBlogsByPopularityAndCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>{
+        try{
+            const {page, perPage} = pagination
+            const blogs = await this.blogModel.aggregate([
+                {
+                  '$match': {
+                    'category.id': categoryId
+                  }
+                }, {
+                  '$lookup': {
+                    'from': 'blogcomments', 
+                    'localField': 'id', 
+                    'foreignField': 'blog.id', 
+                    'as': 'Comments'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'title': 1, 
+                    'body': 1, 
+                    'publication_date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'images': 1, 
+                    'tags': 1, 
+                    'commentsCount': {
+                      '$size': {
+                        '$ifNull': [
+                          '$Comments', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'commentsCount': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'commentsCount': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmBlogEntity[]>( blogs, 200 )
+        }catch (error){
+            return Result.fail<OdmBlogEntity[]>( error, 500, "Internal Server Error" )
+        }
+    }
+
 }

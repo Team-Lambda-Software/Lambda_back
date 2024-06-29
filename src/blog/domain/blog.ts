@@ -1,4 +1,3 @@
-import { Trainer } from "src/trainer/domain/trainer"
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
 import { BlogId } from "./value-objects/blog-id"
 import { BlogTitle } from "./value-objects/blog-title"
@@ -33,7 +32,7 @@ export class Blog extends AggregateRoot<BlogId>{
 
     protected constructor ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainerId: TrainerId, categoryId: CategoryId, tags: BlogTag[])
     {
-        const blogCreated: BlogCreated = BlogCreated.create(id,title,body,images,publicationDate, trainerId, categoryId, tags)
+        const blogCreated: BlogCreated = BlogCreated.create(id.Value,title.Value,body.Value,images.map(image => image.Value),publicationDate.Value, trainerId.Value, categoryId.Value, tags.map(tag => tag.Value))
         super( id, blogCreated)
     }
 
@@ -42,13 +41,13 @@ export class Blog extends AggregateRoot<BlogId>{
         switch (event.eventName){
             case 'BlogCreated':
                 const blogCreated: BlogCreated = event as BlogCreated
-                this.title = blogCreated.title
-                this.body = blogCreated.body
-                this.tags = blogCreated.tags
-                this.categoryId = blogCreated.categoryId
-                this.images = blogCreated.images
-                this.publicationDate = blogCreated.publicationDate
-                this.trainerId = blogCreated.trainerId 
+                this.title = BlogTitle.create(blogCreated.title)
+                this.body = BlogBody.create(blogCreated.body)
+                this.tags = blogCreated.tags.map(tag => BlogTag.create(tag))
+                this.categoryId = CategoryId.create(blogCreated.categoryId)
+                this.images = blogCreated.images.map(image => BlogImage.create(image))
+                this.publicationDate = BlogPublicationDate.create(blogCreated.publicationDate)
+                this.trainerId = TrainerId.create(blogCreated.trainerId)
         }
     }
 
@@ -96,7 +95,7 @@ export class Blog extends AggregateRoot<BlogId>{
 
     public createComment (id: BlogCommentId, userId: UserId, text: BlogCommentText, date: BlogCommentDate): BlogComment{
         const comment: BlogComment = BlogComment.create(id, userId, text, date, this.Id)
-        const blogCommentCreated: BlogCommentCreated = BlogCommentCreated.create(id, userId, text, date, this.Id)
+        const blogCommentCreated: BlogCommentCreated = BlogCommentCreated.create(id.Value, userId.Id, text.Value, date.Value, this.Id.Value)
         this.onEvent(blogCommentCreated)
         return comment
     }

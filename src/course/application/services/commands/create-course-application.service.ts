@@ -7,7 +7,6 @@ import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repo
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CourseId } from "src/course/domain/value-objects/course-id"
 import { CourseName } from "src/course/domain/value-objects/course-name"
 import { CourseDescription } from "src/course/domain/value-objects/course-description"
@@ -19,7 +18,6 @@ import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
-import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 
@@ -30,22 +28,35 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
     private readonly fileUploader: IFileUploader
     private readonly idGenerator: IdGenerator<string>
     private readonly eventHandler: IEventHandler 
-    
+    private readonly trainerRepository: ITrainerRepository
+    private readonly categoryRepository: ICategoryRepository
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler, trainerRepository: ITrainerRepository, categoryRepository: ICategoryRepository)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
+        this.trainerRepository = trainerRepository
+        this.categoryRepository = categoryRepository
     }
 
     async execute ( data: CreateCourseServiceEntryDto ): Promise<Result<CreateCourseServiceResponseDto>>
     {
-        
+        const trainerResult = await this.trainerRepository.findTrainerById( data.trainerId )
+        if ( !trainerResult.isSuccess() )
+        {
+            return Result.fail<CreateCourseServiceResponseDto>( trainerResult.Error, trainerResult.StatusCode, trainerResult.Message )
+        }
+        const categoryResult = await this.categoryRepository.findCategoryById( data.categoryId )
+        if ( !categoryResult.isSuccess() )
+        {
+            return Result.fail<CreateCourseServiceResponseDto>( categoryResult.Error, categoryResult.StatusCode, categoryResult.Message )
+        }
+
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), TrainerId.create(data.trainer.Id.Value), CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], data.category.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
+        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainerResult.Value.Id, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], categoryResult.Value.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {
@@ -56,11 +67,11 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             id: course.Id.Value,
             title: course.Name.Value,
             description: course.Description.Value,
-            category: data.category.Name.Value,
+            category: categoryResult.Value.Name.Value,
             image: imageUrl,
             trainer: {
-                id: data.trainer.Id.Value,
-                name: data.trainer.Name.FirstName + " " + data.trainer.Name.FirstLastName + " " + data.trainer.Name.SecondLastName
+                id: trainerResult.Value.Id.Value,
+                name: trainerResult.Value.Name.FirstName + " " + trainerResult.Value.Name.FirstLastName + " " + trainerResult.Value.Name.SecondLastName
             },
             level: course.Level.Value.toString(),
             durationWeeks: course.WeeksDuration.Value,
@@ -69,7 +80,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
             date: course.Date.Value,
             lessons: []
         }
-        this.eventHandler.publish( course.pullEvents())
+        await this.eventHandler.publish( course.pullEvents())
         return Result.success<CreateCourseServiceResponseDto>( responseCourse, 200 )
     }
 

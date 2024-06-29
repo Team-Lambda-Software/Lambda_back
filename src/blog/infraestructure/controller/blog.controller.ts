@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -12,10 +12,6 @@ import { SearchBlogsSwaggerResponseDto } from "../dto/response/search-blogs-swag
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
-import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
-import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { SearchBlogQueryParametersDto } from "../dto/queryParameters/search-blog-query-parameters.dto"
 import { CreateBlogEntryDto } from "../dto/entry/create-blog-entry.dto"
 import { CreateBlogApplicationService } from "src/blog/application/services/commands/create-blog-application.service"
@@ -26,7 +22,6 @@ import { FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { OdmBlogRepository } from "../repositories/odm-repository/odm-blog-repository"
 import { BlogCreated } from "src/blog/domain/events/blog-created-event"
 import { Model } from "mongoose"
@@ -47,29 +42,51 @@ import { BlogQuerySyncronizer } from '../query-synchronizer/blog-query-synchroni
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
 import { GetBlogCountQueryParametersDto } from "../dto/queryParameters/get-blog-count-query-parameters.dto"
 import { GetBlogCountService } from "../query-services/services/get-blog-count.service"
+import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
+import { OdmNotificationAlertEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-alert.entity"
+import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
+import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
+import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
+import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
+import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
+import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
+import { OrmTrainerRepository } from '../../../trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository'
+import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
+import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
+
 
 @ApiTags( 'Blog' )
 @Controller( 'blog' )
 export class BlogController
 {
-
+    private readonly notiAddressRepository: INotificationAddressRepository
+    private readonly notiAlertRepository: INotificationAlertRepository
     private readonly blogRepository: OrmBlogRepository
     private readonly auditingRepository: OrmAuditingRepository
-    private readonly categoryRepository: OrmCategoryRepository
-    private readonly trainerRepository: OrmTrainerRepository
     private readonly odmBlogRepository: OdmBlogRepository
+    private readonly odmTrainerRepository: OdmTrainerRepository
+    private readonly ormTrainerRepository: OrmTrainerRepository
+    private readonly ormCategoryRepository: OrmCategoryRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly blogQuerySyncronizer: BlogQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
+    constructor ( 
+        @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
+        @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
+        @Inject( 'DataSource' ) private readonly dataSource: DataSource,
         @InjectModel('Blog') private blogModel: Model<OdmBlogEntity>,
         @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity>,
         @InjectModel('Trainer') private trainerModel: Model<OdmTrainerEntity>,
         @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
         @InjectModel('User') private userModel: Model<OdmUserEntity>)
     {
+        this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
+        this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.blogRepository =
             new OrmBlogRepository(
                 new OrmBlogMapper(),
@@ -77,15 +94,6 @@ export class BlogController
                 dataSource
             )
         this.auditingRepository = new OrmAuditingRepository( dataSource )
-
-        this.categoryRepository = new OrmCategoryRepository(
-            new OrmCategoryMapper(),
-            dataSource )
-
-        this.trainerRepository = new OrmTrainerRepository(
-            new OrmTrainerMapper(),
-            dataSource
-        )
         this.idGenerator = new UuidGenerator()
         this.fileUploader = new AzureFileUploader()
 
@@ -93,14 +101,19 @@ export class BlogController
             blogModel,
             blogCommentModel
         )
+
+        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel )
+        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
         this.blogQuerySyncronizer = new BlogQuerySyncronizer(
             this.odmBlogRepository,
             this.blogModel,
             this.odmCategoryRepository,
-            this.trainerModel
+            this.odmTrainerRepository
         )
 
-        this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
+        this.ormCategoryRepository = new OrmCategoryRepository( new OrmCategoryMapper(), dataSource )
+        this.ormTrainerRepository = new OrmTrainerRepository( new OrmTrainerMapper() ,dataSource )
+        
     }
 
 
@@ -131,10 +144,9 @@ export class BlogController
     @UseInterceptors( FilesInterceptor( 'images', 5 ) )
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
-        const eventBus = EventBus.getInstance();
-        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
-            this.blogQuerySyncronizer.execute(event)
-        })
+
+        const eventBus = RabbitEventBus.getInstance();
+
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -143,7 +155,9 @@ export class BlogController
                             this.blogRepository,
                             this.idGenerator,
                             this.fileUploader,
-                            eventBus
+                            eventBus,
+                            this.ormTrainerRepository,
+                            this.ormCategoryRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -160,17 +174,20 @@ export class BlogController
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const category = await this.odmCategoryRepository.findCategoryById( createBlogParams.categoryId )
-        if ( !category.Value )
-        {
-            throw new NotFoundException( category.Message )
-        }
-        const trainer = await this.trainerRepository.findTrainerById( createBlogParams.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            throw new NotFoundException( trainer.Message )
-        }
+        
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
+        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+            this.blogQuerySyncronizer.execute(event)
+            const pushService = new NewPublicationPushInfraService(
+                this.notiAddressRepository,
+                this.notiAlertRepository,
+                this.idGenerator,
+                FirebaseNotifier.getInstance() ,
+                this.odmTrainerRepository
+            )
+            pushService.execute( { userId:'', publicationName: event.title, trainerId: event.trainerId, publicationType: 'Blog' } )
+        
+        })
         return result.Value
     }
 

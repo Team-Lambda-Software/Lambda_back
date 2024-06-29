@@ -1,4 +1,3 @@
-import { Category } from "src/categories/domain/categories"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Model } from "mongoose"
@@ -16,15 +15,10 @@ export class OdmCategoryRepository implements CategoryQueryRepository{
 
     }
 
-    async saveCategory ( category: Category ): Promise<void>
+    async saveCategory ( category: OdmCategoryEntity ): Promise<void>
     {
 
-        const odmCategory = new this.categoryModel({
-            id: category.Id.Value,
-            categoryName: category.Name.Value,
-            icon: category.Icon.Value
-        })
-        await this.categoryModel.create( odmCategory )    
+        await this.categoryModel.create( category )    
             
 
     }

@@ -19,19 +19,24 @@ describe('Add Section to Course', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddSectionToCourseApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
             new EventHandlerMock()
         )
+
 
         const entry: AddSectionToCourseServiceEntryDto = {
             name: "section 1",
             description: "description of the section",
             duration: 60,
             file: await FileObjectMother.createFile(),
-            course: await CourseObjectMother.createCourse(),
+            courseId: course.Id.Value,
             userId: user.Id.Id
         }
 
@@ -45,8 +50,12 @@ describe('Add Section to Course', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddSectionToCourseApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
             new EventHandlerMock()
@@ -57,7 +66,7 @@ describe('Add Section to Course', () => {
             description: "description of the section",
             duration: 60,
             file: await FileObjectMother.createFile(),
-            course: await CourseObjectMother.createCourse(),
+            courseId: course.Id.Value,
             userId: user.Id.Id
         }
 
@@ -76,8 +85,12 @@ describe('Add Section to Course', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddSectionToCourseApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
             new EventHandlerMock()
@@ -88,7 +101,7 @@ describe('Add Section to Course', () => {
             description: "description of the section",
             duration: 0,
             file: await FileObjectMother.createFile(),
-            course: await CourseObjectMother.createCourse(),
+            courseId: course.Id.Value,
             userId: user.Id.Id
         }
 
@@ -107,8 +120,12 @@ describe('Add Section to Course', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
         const service = new AddSectionToCourseApplicationService(
-            new CourseRepositoryMock(),
+            courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
             new EventHandlerMock()
@@ -119,13 +136,45 @@ describe('Add Section to Course', () => {
             description: "description of the section",
             duration: 60,
             file: null,
-            course: await CourseObjectMother.createCourse(),
+            courseId: course.Id.Value,
             userId: user.Id.Id
         }
 
         const result = await service.execute(entry)
 
         expect(result.isSuccess()).toBeFalsy()
+    })
+
+    it('should fail if course does not exists', async () => {
+        const user = await UserObjectMother.createNormalUser();
+        const userRepositoryMock = new UserMockRepository();
+        userRepositoryMock.saveUserAggregate(user);
+
+        const course = await CourseObjectMother.createCourse();
+        const courseRepositoryMock = new CourseRepositoryMock();
+        courseRepositoryMock.saveCourseAggregate(course);
+
+        const service = new AddSectionToCourseApplicationService(
+            courseRepositoryMock,
+            new UuidGeneratorMock(),
+            new FileUploaderMock(),
+            new EventHandlerMock()
+        )
+
+        const entry: AddSectionToCourseServiceEntryDto = {
+            name: "Section 1",
+            description: "description of the section",
+            duration: 10,
+            file: await FileObjectMother.createFile(),
+            courseId: 'c1a2b3c4-5d6e-7f8g-9h0i-1j2k3l4m5n6',
+            userId: user.Id.Id
+        }
+
+        
+        const result = await service.execute(entry)
+
+        expect(result.isSuccess()).toBeFalsy()
+        
     })
 
 })
