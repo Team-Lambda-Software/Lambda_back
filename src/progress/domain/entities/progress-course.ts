@@ -1,5 +1,5 @@
 import { Result } from "src/common/Domain/result-handler/Result";
-import { ProgressSection } from "./progress-section";
+import { ProgressSection } from "./progress-section/section-progress";
 import { Entity } from "src/common/Domain/domain-object/entity.interface";
 
 export class ProgressCourse extends Entity<string>
