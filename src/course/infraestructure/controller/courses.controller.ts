@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -34,7 +34,6 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
 import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { OdmCourseRepository } from '../repositories/odm-repositories/odm-course-repository'
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
@@ -53,10 +52,6 @@ import { SearchCoursesByTrainerServiceEntryDto } from "../query-services/dto/par
 import { SearchMostPopularCoursesByTrainerService } from "../query-services/services/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerService } from "../query-services/services/search-recent-courses-by-trainer.service"
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
-import { Category } from "src/categories/domain/categories"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { CategoryName } from "src/categories/domain/value-objects/category-title"
-import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer'
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer'
@@ -68,7 +63,6 @@ import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-t
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
-import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
 import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
 import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
 import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
@@ -76,7 +70,7 @@ import { OdmNotificationAlertEntity } from "src/notification/infraestructure/ent
 import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
 import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
 import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
-import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository';
+import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 
 

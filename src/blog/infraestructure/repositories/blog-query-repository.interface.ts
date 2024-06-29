@@ -1,5 +1,3 @@
-import { Blog } from "src/blog/domain/blog"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OdmBlogEntity } from "../entities/odm-entities/odm-blog.entity"
 import { Result } from "src/common/Domain/result-handler/Result"
@@ -37,5 +35,11 @@ export interface BlogQueryRepository {
     findBlogCountByCategory ( categoryId: string ): Promise<Result<number>>
 
     findBlogTags (): Promise<Result<string[]>>
+
+    findBlogsByPopularity ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+
+    findBlogsByPopularityAndCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+
+    findBlogsByPopularityAndTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
     
 }
