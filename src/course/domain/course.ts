@@ -150,6 +150,16 @@ export class Course extends AggregateRoot<CourseId>
         this.sections = sections
     }
 
+    public getSectionDuration (sectionId: SectionId){
+        const section = this.sections.find( section => section.Id.equals(sectionId))
+        return section.Duration
+    }
+
+    public checkSectionExists (sectionId: SectionId): boolean{
+        const section = this.sections.find( section => section.Id.equals(sectionId))
+        return section ? true : false
+    }
+
     public createComment (id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{
         const comment: SectionComment = SectionComment.create(id, userId, text, date, sectionId)
         const sectionCommentCreated: SectionCommentCreated = SectionCommentCreated.create(id.Value, userId.Id, text.Value, date.Value, sectionId.Value,this.Id.Value)
