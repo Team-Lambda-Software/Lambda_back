@@ -7,7 +7,6 @@ import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repo
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { CreateCourseServiceEntryDto } from "../../dto/param/create-course-service-entry.dto"
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { CourseId } from "src/course/domain/value-objects/course-id"
 import { CourseName } from "src/course/domain/value-objects/course-name"
 import { CourseDescription } from "src/course/domain/value-objects/course-description"
@@ -19,7 +18,6 @@ import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
-import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 
 
 

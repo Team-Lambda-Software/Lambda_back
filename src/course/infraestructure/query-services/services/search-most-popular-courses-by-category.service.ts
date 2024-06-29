@@ -3,7 +3,6 @@ import { IApplicationService } from 'src/common/Application/application-services
 import { SearchCoursesByCategoryServiceEntryDto } from '../dto/param/search-courses-by-category-service-entry.dto'
 import { Result } from 'src/common/Domain/result-handler/Result'
 import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
-import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
 import { OdmCourseEntity } from '../../entities/odm-entities/odm-course.entity'
 import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 

@@ -8,7 +8,6 @@ import { Section } from "src/course/domain/entities/section/section"
 import { SectionCommentId } from "src/course/domain/entities/section-comment/value-objects/section-comment-id"
 import { SectionCommentText } from "src/course/domain/entities/section-comment/value-objects/section-comment-text"
 import { SectionCommentDate } from "src/course/domain/entities/section-comment/value-objects/section-comment-date"
-import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 import { UserId } from "src/user/domain/value-objects/user-id"
 

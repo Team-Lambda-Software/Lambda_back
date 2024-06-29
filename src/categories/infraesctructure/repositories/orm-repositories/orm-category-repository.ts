@@ -4,7 +4,7 @@ import { Repository, DataSource } from 'typeorm'
 import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
 import { OrmCategory } from "../../entities/orm-entities/orm-category"
 import { OrmCategoryMapper } from '../../mappers/orm-mappers/orm-category-mapper'
-import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto';
+import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto'
 
 export class OrmCategoryRepository extends Repository<OrmCategory> implements ICategoryRepository{
 

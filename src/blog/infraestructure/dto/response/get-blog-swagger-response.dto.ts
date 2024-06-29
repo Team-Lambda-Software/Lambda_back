@@ -1,6 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { Blog } from "src/blog/domain/blog"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 
 
 

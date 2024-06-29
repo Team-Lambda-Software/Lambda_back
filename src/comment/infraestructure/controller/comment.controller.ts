@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Post, Query, UseGuards } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Post, Query, UseGuards } from "@nestjs/common"
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
@@ -14,7 +14,6 @@ import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/
 import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
 import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { DataSource } from "typeorm"
 import { AddCommentEntryDto } from "../dto/entry/add-comment-entry.dto"
 import { AddCommentToSectionServiceEntryDto } from "src/course/application/dto/param/add-comment-to-section-service-entry.dto"
@@ -24,11 +23,8 @@ import { OrmBlogMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-
 import { OrmBlogCommentMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-comment-mapper"
 import { AddCommentToBlogServiceEntryDto } from "src/blog/application/dto/params/add-comment-to-blog-service-entry.dto"
 import { GetAllCommentsQueryParametersDto } from "../dto/queryParameters/get-all-comments-query-parameters.dto"
-import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository"
-import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper"
 import { GetAllCommentsSwaggerResponseDto } from "../dto/response/get-all-comments-swagger-response.dto"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmBlogEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog.entity"
@@ -47,17 +43,11 @@ import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm
 import { SectionCommentCreated } from "src/course/domain/events/section-comment-created-event"
 import { GetSectionCommentsServiceEntryDto } from "src/course/infraestructure/query-services/dto/param/get-section-comments-service-entry.dto"
 import { GetSectionCommentsService } from "src/course/infraestructure/query-services/services/get-section-comments.service"
-import { Section } from "src/course/domain/entities/section/section"
-import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
-import { SectionName } from "src/course/domain/entities/section/value-objects/section-name"
-import { SectionDescription } from "src/course/domain/entities/section/value-objects/section-description"
-import { SectionDuration } from "src/course/domain/entities/section/value-objects/section-duration"
-import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
 import { OdmCourseMapper } from "src/course/infraestructure/mappers/odm-mappers/odm-course-mapper"
 import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-blog-mapper"
 import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
 import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer'
-import { OdmUserRepository } from '../../../user/infraestructure/repositories/odm-repository/odm-user-repository';
+import { OdmUserRepository } from '../../../user/infraestructure/repositories/odm-repository/odm-user-repository'
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 
 

@@ -1,17 +1,9 @@
-import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { BlogQueryRepository } from "../repositories/blog-query-repository.interface"
-import { Blog } from "src/blog/domain/blog"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { BlogCreated } from "src/blog/domain/events/blog-created-event"
-import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
-import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
 import { Model } from "mongoose"
-import { OdmBlogEntity } from "../entities/odm-entities/odm-blog.entity"
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer"
 import { OdmBlogCommentEntity } from "../entities/odm-entities/odm-blog-comment.entity"
-import { BlogComment } from "src/blog/domain/entities/blog-comment"
 import { BlogCommentCreated } from "src/blog/domain/events/blog-comment-created-event"
-import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface"
 
 

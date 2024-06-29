@@ -1,4 +1,3 @@
-import { Trainer } from "src/trainer/domain/trainer"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
 import { CourseId } from "./value-objects/course-id"
