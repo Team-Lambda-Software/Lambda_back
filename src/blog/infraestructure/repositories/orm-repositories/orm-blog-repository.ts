@@ -11,6 +11,7 @@ import { OrmBlogMapper } from "../../mappers/orm-mappers/orm-blog-mapper"
 import { PaginationDto } from '../../../../common/Infraestructure/dto/entry/pagination.dto'
 import { OrmBlogTags } from "../../entities/orm-entities/orm-blog-tags"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { BlogId } from "src/blog/domain/value-objects/blog-id"
 
 
 
@@ -142,15 +143,14 @@ export class OrmBlogRepository extends Repository<OrmBlog> implements IBlogRepos
         }
     }
 
-    //!TODO: change the find by id to not give error if not found
-    async findBlogById ( id: string ): Promise<Result<Blog>>
+    async findBlogById ( id: BlogId ): Promise<Result<Blog>>
     {
         try
         {
-            const blog = await this.findOneBy( { id } )
+            const blog = await this.findOneBy( { id: id.Value } )
             if ( blog )
             {
-                const blogImages = await this.ormImageRepository.findBy( { blog_id: id } )
+                const blogImages = await this.ormImageRepository.findBy( { blog_id: id.Value } )
                 blog.images = blogImages
 
                 return Result.success<Blog>( await this.ormBlogMapper.fromPersistenceToDomain( blog ), 200 )

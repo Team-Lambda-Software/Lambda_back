@@ -18,8 +18,12 @@ describe('Add Comment to Blog', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const blog = await BlogObjectMother.createBlog();
+        const blogRepositoryMock = new BlogRepositoryMock();
+        blogRepositoryMock.saveBlogAggregate(blog);
+
         const service = new AddCommentToBlogApplicationService(
-            new BlogRepositoryMock(),
+            blogRepositoryMock,
             new UuidGeneratorMock(),
             new EventHandlerMock()
         )
@@ -27,7 +31,7 @@ describe('Add Comment to Blog', () => {
         const entry: AddCommentToBlogServiceEntryDto = {
             userId: user.Id.Id,
             comment: "test comment",
-            blog: await BlogObjectMother.createBlog(),
+            blogId: blog.Id.Value,
         }
 
         const result = await service.execute(entry)
@@ -41,8 +45,12 @@ describe('Add Comment to Blog', () => {
         const userRepositoryMock = new UserMockRepository();
         userRepositoryMock.saveUserAggregate(user);
 
+        const blog = await BlogObjectMother.createBlog();
+        const blogRepositoryMock = new BlogRepositoryMock();
+        blogRepositoryMock.saveBlogAggregate(blog);
+
         const service = new AddCommentToBlogApplicationService(
-            new BlogRepositoryMock(),
+            blogRepositoryMock,
             new UuidGeneratorMock(),
             new EventHandlerMock()
         )
@@ -50,7 +58,7 @@ describe('Add Comment to Blog', () => {
         const entry: AddCommentToBlogServiceEntryDto = {
             userId: user.Id.Id,
             comment: "",
-            blog: await BlogObjectMother.createBlog(),
+            blogId: blog.Id.Value,
         }
         
         try {
@@ -62,4 +70,33 @@ describe('Add Comment to Blog', () => {
 
         expect.assertions(1)
     })
+
+    it ('should fail if blog does not exists', async () => {
+
+        const user = await UserObjectMother.createNormalUser();
+        const userRepositoryMock = new UserMockRepository();
+        userRepositoryMock.saveUserAggregate(user);
+
+        const blog = await BlogObjectMother.createBlog();
+        const blogRepositoryMock = new BlogRepositoryMock();
+        blogRepositoryMock.saveBlogAggregate(blog);
+
+        const service = new AddCommentToBlogApplicationService(
+            blogRepositoryMock,
+            new UuidGeneratorMock(),
+            new EventHandlerMock()
+        )
+
+        const entry: AddCommentToBlogServiceEntryDto = {
+            userId: user.Id.Id,
+            comment: "test comment",
+            blogId: 'c1b4b3b3-1b3b-4b3b-8b3b-1b3b4b3b3b3b',
+        }
+        
+        const result = await service.execute(entry)
+
+        expect(result.isSuccess()).toBeFalsy()
+    })
+
+
 })

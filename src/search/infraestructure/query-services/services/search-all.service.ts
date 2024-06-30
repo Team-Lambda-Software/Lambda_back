@@ -1,13 +1,7 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface"
 import { SearchAllServiceEntryDto } from "../dto/param/search-all-service-entry.dto"
 import { SearchAllServiceResponseDto } from "../dto/responses/search-all-service-response.dto"
-import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface"
-import { ICategoryRepository } from "src/categories/domain/repositories/category-repository.interface"
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface"
-import { OdmBlogRepository } from "src/blog/infraestructure/repositories/odm-repository/odm-blog-repository"
-import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface"
 import { BlogQueryRepository } from "src/blog/infraestructure/repositories/blog-query-repository.interface"
 

@@ -4,6 +4,7 @@ export interface PushNotificationDto {
     notification: { 
         title: string 
         body: string
+        icon?: string
     } 
 }
 
@@ -12,5 +13,6 @@ export interface PushMulticastDto {
     notification: { 
         title: string 
         body: string
+        icon?: string
     } 
 }

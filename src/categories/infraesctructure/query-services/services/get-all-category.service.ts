@@ -2,7 +2,6 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result"
 import { GetAllCategoryServiceEntryDto } from "../dto/param/get-all-category-service-entry.dto"
 import { GetAllCategoriesServiceResponseDto } from "../dto/responses/get-all-category-service-response.dto"
-import { OdmCategoryRepository } from "../../repositories/odm-repositories/odm-category-repository"
 import { CategoryQueryRepository } from "../../repositories/category-query-repository.interface"
 
 

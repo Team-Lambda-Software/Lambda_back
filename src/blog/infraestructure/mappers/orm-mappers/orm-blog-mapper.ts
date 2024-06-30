@@ -1,7 +1,6 @@
 import { Blog } from "src/blog/domain/blog"
 import { IMapper } from "src/common/Application/mapper/mapper.interface"
 import { OrmBlog } from "../../entities/orm-entities/orm-blog"
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { OrmBlogImage } from "../../entities/orm-entities/orm-blog-image"
 import { OrmBlogTags } from "../../entities/orm-entities/orm-blog-tags"
 import { BlogImage } from "src/blog/domain/value-objects/blog-image"
