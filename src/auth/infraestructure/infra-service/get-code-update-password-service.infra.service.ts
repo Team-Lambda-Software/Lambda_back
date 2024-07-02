@@ -5,23 +5,26 @@ import { IEmailSender } from "src/common/Application/email-sender/email-sender.i
 import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { ForgetPasswordEntryDto } from "./dto/entry/forget-password-entry.infraestructure.dto";
 import { GetCodeServiceResponseDto } from "./dto/response/get-code-service-response";
+import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 
 export class GetCodeUpdatePasswordUserInfraService implements IApplicationService<ForgetPasswordEntryDto, GetCodeServiceResponseDto> {
-    private readonly userRepository: IInfraUserRepository   
+
+    private readonly accountRepository: IAccountRepository<OrmUser>
     private readonly emailSender: IEmailSender;
     private readonly codeGenerator: ICodeGenerator<string>; 
     constructor(
-        userRepository: IInfraUserRepository,
+        accountRepository: IAccountRepository<OrmUser>,
         emailSender: IEmailSender,
         codeGenerator: ICodeGenerator<string>,
     ){
-        this.userRepository = userRepository
+        this.accountRepository = accountRepository
         this.emailSender = emailSender
         this.codeGenerator = codeGenerator
     }
     
     async execute(forgetDto: ForgetPasswordEntryDto): Promise<Result<GetCodeServiceResponseDto>> {
-        const result = await this.userRepository.findUserByEmail( forgetDto.email )
+        const result = await this.accountRepository.findUserByEmail( forgetDto.email )
         if ( !result.isSuccess() ) return Result.fail( new Error('Email not registered'), 400, 'Email not registered' )
         const code = this.codeGenerator.generateCode(4)
         this.emailSender.setVariables( { firstname: result.Value.name, secretcode: code } )
