@@ -1,9 +1,6 @@
 import { Model } from "mongoose"
 import { OdmCourseEntity } from "../../entities/odm-entities/odm-course.entity"
 import { OdmSectionCommentEntity } from "../../entities/odm-entities/odm-section-comment.entity"
-import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
-import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
-import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { CourseQueryRepository } from "../course-query-repository.interface"
@@ -142,7 +139,7 @@ export class OdmCourseRepository implements CourseQueryRepository{
     async findCourseBySectionId ( sectionId: string ): Promise<Result<OdmCourseEntity>>{
         try{
             const course = await this.courseModel.findOne( { 'sections.id': sectionId } )
-            console.log(course)
+            
             return Result.success<OdmCourseEntity>( course, 200 )
         }catch (error){
             return Result.fail<OdmCourseEntity>( error, 500, error.message )

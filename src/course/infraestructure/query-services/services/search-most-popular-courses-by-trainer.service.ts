@@ -1,13 +1,8 @@
-import { Course } from 'src/course/domain/course'
-import { ICourseRepository } from 'src/course/domain/repositories/course-repository.interface'
 import { IProgressCourseRepository } from 'src/progress/domain/repositories/progress-course-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
 import { Result } from 'src/common/Domain/result-handler/Result'
 import { SearchCourseServiceResponseDto } from '../dto/responses/search-course-service-response.dto'
-import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
-import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
 import { SearchCoursesByTrainerServiceEntryDto } from '../dto/param/search-courses-by-trainer-service-entry.dto'
-import { OdmCourseRepository } from '../../repositories/odm-repositories/odm-course-repository'
 import { OdmCourseEntity } from '../../entities/odm-entities/odm-course.entity'
 import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 

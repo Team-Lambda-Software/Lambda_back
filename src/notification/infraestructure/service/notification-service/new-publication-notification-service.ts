@@ -7,12 +7,12 @@ import { INotificationAlertRepository } from "../../repositories/interface/notif
 import { IPushSender } from "src/common/Application/push-sender/push-sender.interface";
 import { PushNotificationDto } from "src/common/Application/push-sender/dto/token-notification.dto";
 import { NewPublicationPushDto } from "./dto/entry/new-publication-push-entry.dto";
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
+import { TrainerQueryRepository } from "src/trainer/infraestructure/repositories/trainer-query-repository.interface"
 
 export class NewPublicationPushInfraService implements IApplicationService<NewPublicationPushDto, any> {
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
-    private readonly trainerRepository: ITrainerRepository
+    private readonly trainerRepository: TrainerQueryRepository
     private uuidGenerator: IdGenerator<string>
     private pushNotifier: IPushSender
     
@@ -20,12 +20,14 @@ export class NewPublicationPushInfraService implements IApplicationService<NewPu
         notiAddressRepository: INotificationAddressRepository,
         notiAlertRepository: INotificationAlertRepository,
         uuidGenerator: IdGenerator<string>,
-        pushNotifier: IPushSender
+        pushNotifier: IPushSender,
+        trainerRepository: TrainerQueryRepository
     ){
         this.notiAddressRepository = notiAddressRepository
         this.notiAlertRepository = notiAlertRepository
         this.uuidGenerator = uuidGenerator
         this.pushNotifier = pushNotifier
+        this.trainerRepository = trainerRepository
     }
     
     async execute(notifyDto: NewPublicationPushDto): Promise<Result<any>> {
@@ -37,7 +39,7 @@ export class NewPublicationPushInfraService implements IApplicationService<NewPu
             
         const trainer = trainerResult.Value
         const listTokens = findResult.Value
-        const pushTitle = trainer.Name + ' has published a new ' + notifyDto.publicationType
+        const pushTitle = trainer.first_name + ' '+ trainer.first_last_name + ' has published a new ' + notifyDto.publicationType
         const pushBody = 'This new fantastic ' + notifyDto.publicationType + ' is ' + notifyDto.publicationName
 
         listTokens.forEach( async e => {  

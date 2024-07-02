@@ -8,7 +8,6 @@ import { Section } from "src/course/domain/entities/section/section"
 import { SectionCommentId } from "src/course/domain/entities/section-comment/value-objects/section-comment-id"
 import { SectionCommentText } from "src/course/domain/entities/section-comment/value-objects/section-comment-text"
 import { SectionCommentDate } from "src/course/domain/entities/section-comment/value-objects/section-comment-date"
-import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 import { UserId } from "src/user/domain/value-objects/user-id"
 
@@ -32,15 +31,26 @@ export class AddCommentToSectionApplicationService implements IApplicationServic
     // TODO: Search the progress if exists one for that user
     async execute ( data: AddCommentToSectionServiceEntryDto ): Promise<Result<SectionComment>>
     {
-        const section: Section = data.section
-        const course = data.course
-        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), data.section.Id )
+        const courseResult = await this.courseRepository.findCourseBySectionId( data.sectionId )
+        if ( !courseResult.isSuccess() )
+        {
+            return Result.fail<SectionComment>( courseResult.Error, courseResult.StatusCode, courseResult.Message )
+        }
+        const sectionResult = await this.courseRepository.findSectionById( data.sectionId )
+        if ( !sectionResult.isSuccess() )
+        {
+            return Result.fail<SectionComment>( sectionResult.Error, sectionResult.StatusCode, sectionResult.Message )
+        }
+        const section: Section = sectionResult.Value
+        const course = courseResult.Value
+        course.pullEvents()
+        const comment = course.createComment( SectionCommentId.create(await this.idGenerator.generateId()), UserId.create(data.userId), SectionCommentText.create(data.comment), SectionCommentDate.create(new Date()), section.Id )
         const result = await this.courseRepository.addCommentToSection( comment )
         if ( !result.isSuccess() )
         {
             return Result.fail<SectionComment>( result.Error, result.StatusCode, result.Message )
         }
-        this.eventHandler.publish( course.pullEvents())
+        await this.eventHandler.publish( course.pullEvents())
         return result
     }
 

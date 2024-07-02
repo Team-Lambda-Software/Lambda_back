@@ -25,6 +25,8 @@ describe('Create Blog', () => {
         trainerRepositoryMock.saveTrainer(trainer);
 
         const category = await CategoryObjectMother.createNormalCategory('category 1');
+        const categoryRepositoryMock = new CategoryMockRepository();
+        categoryRepositoryMock.createCategory(category);
 
         const entry: CreateBlogServiceEntryDto ={
             trainerId: trainer.Id.Value,
@@ -40,7 +42,9 @@ describe('Create Blog', () => {
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            trainerRepositoryMock,
+            categoryRepositoryMock,
         )
 
         const result = await service.execute(entry)
@@ -59,6 +63,8 @@ describe('Create Blog', () => {
         trainerRepositoryMock.saveTrainer(trainer);
 
         const category = await CategoryObjectMother.createNormalCategory('category 1');
+        const categoryRepositoryMock = new CategoryMockRepository();
+        categoryRepositoryMock.createCategory(category);
 
         const entry: CreateBlogServiceEntryDto ={
             trainerId: trainer.Id.Value,
@@ -74,7 +80,9 @@ describe('Create Blog', () => {
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            trainerRepositoryMock,
+            categoryRepositoryMock,
         )
         try{
             await service.execute(entry)
@@ -94,6 +102,8 @@ describe('Create Blog', () => {
         trainerRepositoryMock.saveTrainer(trainer);
 
         const category = await CategoryObjectMother.createNormalCategory('category 1');
+        const categoryRepositoryMock = new CategoryMockRepository();
+        categoryRepositoryMock.createCategory(category);
 
         const entry: CreateBlogServiceEntryDto ={
             trainerId: trainer.Id.Value,
@@ -109,7 +119,9 @@ describe('Create Blog', () => {
             new BlogRepositoryMock(),
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            trainerRepositoryMock,
+            categoryRepositoryMock,
         )
         try{
             await service.execute(entry)
@@ -117,6 +129,78 @@ describe('Create Blog', () => {
             expect(error.message).toEqual('El Body del blog tiene que tener mas de 5 caracteres')
         }
         expect.assertions(1)
+    })
+
+    it('should fail if trainer does not exist', async () => {
+        const user = await UserObjectMother.createNormalUser();
+        const userRepositoryMock = new UserMockRepository();
+        userRepositoryMock.saveUserAggregate(user);
+
+        const trainer = await TrainerObjectMother.createNormalTrainer();
+        const trainerRepositoryMock = new TrainerMockRepository();
+        trainerRepositoryMock.saveTrainer(trainer);
+
+        const category = await CategoryObjectMother.createNormalCategory('category 1');
+        const categoryRepositoryMock = new CategoryMockRepository();
+        categoryRepositoryMock.createCategory(category);
+
+        const entry: CreateBlogServiceEntryDto ={
+            trainerId: 'c3a3b3b3-3b3b-3b3b-3b3b-3b3b3b3b3b3b',
+            title: "Title of the new blog",
+            body: "body of the new blog",
+            images: [await FileObjectMother.createFile()],
+            categoryId: category.Id.Value,
+            tags: ['test'],
+            userId: user.Id.Id
+        }
+
+        const service = new CreateBlogApplicationService(
+            new BlogRepositoryMock(),
+            new UuidGeneratorMock(),
+            new FileUploaderMock(),
+            new EventHandlerMock(),
+            trainerRepositoryMock,
+            categoryRepositoryMock,
+        )
+        const result = await service.execute(entry)
+
+        expect(result.isSuccess()).toBeFalsy()
+    })
+
+    it('should fail if category does not exist', async () => {
+        const user = await UserObjectMother.createNormalUser();
+        const userRepositoryMock = new UserMockRepository();
+        userRepositoryMock.saveUserAggregate(user);
+
+        const trainer = await TrainerObjectMother.createNormalTrainer();
+        const trainerRepositoryMock = new TrainerMockRepository();
+        trainerRepositoryMock.saveTrainer(trainer);
+
+        const category = await CategoryObjectMother.createNormalCategory('category 1');
+        const categoryRepositoryMock = new CategoryMockRepository();
+        categoryRepositoryMock.createCategory(category);
+
+        const entry: CreateBlogServiceEntryDto ={
+            trainerId: trainer.Id.Value,
+            title: "Title of the new blog",
+            body: "body of the new blog",
+            images: [await FileObjectMother.createFile()],
+            categoryId: 'c3a3b3b3-3b3b-3b3b-3b3b-3b3b3b3b3b3b',
+            tags: ['test'],
+            userId: user.Id.Id
+        }
+
+        const service = new CreateBlogApplicationService(
+            new BlogRepositoryMock(),
+            new UuidGeneratorMock(),
+            new FileUploaderMock(),
+            new EventHandlerMock(),
+            trainerRepositoryMock,
+            categoryRepositoryMock,
+        )
+        const result = await service.execute(entry)
+
+        expect(result.isSuccess()).toBeFalsy()
     })
 
 })

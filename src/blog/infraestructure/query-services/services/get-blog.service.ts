@@ -1,6 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
 import { Result } from "src/common/Domain/result-handler/Result"
-import { OdmBlogRepository } from "../../repositories/odm-repository/odm-blog-repository"
 import { GetBlogServiceEntryDto } from "../dto/params/get-blog-service-entry.dto"
 import { GetBlogServiceResponseDto } from "../dto/responses/get-blog-service-response.dto"
 import { BlogQueryRepository } from "../../repositories/blog-query-repository.interface"

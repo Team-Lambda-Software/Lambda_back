@@ -1,31 +1,21 @@
 import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
-import { BlogId } from "../value-objects/blog-id"
-import { BlogTitle } from "../value-objects/blog-title"
-import { BlogBody } from "../value-objects/blog-body"
-import { BlogImage } from "../value-objects/blog-image"
-import { BlogPublicationDate } from "../value-objects/blog-publication-date"
-import { Trainer } from "src/trainer/domain/trainer"
-import { BlogTag } from "../value-objects/blog-tag"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
-
 
 
 export class BlogCreated extends DomainEvent{
     protected constructor ( 
-        public id: BlogId,
-        public title: BlogTitle,
-        public body: BlogBody,
-        public images: BlogImage[],
-        public publicationDate: BlogPublicationDate,
-        public trainerId: TrainerId,
-        public categoryId: CategoryId,
-        public tags: BlogTag[])
+        public id: string,
+        public title: string,
+        public body: string,
+        public images: string[],
+        public publicationDate: Date,
+        public trainerId: string,
+        public categoryId: string,
+        public tags: string[])
     {
         super()
     }
 
-    static create ( id: BlogId, title: BlogTitle, body: BlogBody, images: BlogImage[], publicationDate: BlogPublicationDate, trainerId: TrainerId, categoryId: CategoryId, tags: BlogTag[]): BlogCreated
+    static create ( id: string, title: string, body: string, images: string[], publicationDate: Date, trainerId: string, categoryId: string, tags: string[]): BlogCreated
     {
         return new BlogCreated( id, title, body, images, publicationDate, trainerId, categoryId, tags)
     }
