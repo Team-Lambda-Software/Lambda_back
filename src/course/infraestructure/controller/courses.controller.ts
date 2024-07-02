@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -34,7 +34,6 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
 import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { OdmCourseRepository } from '../repositories/odm-repositories/odm-course-repository'
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
@@ -53,10 +52,6 @@ import { SearchCoursesByTrainerServiceEntryDto } from "../query-services/dto/par
 import { SearchMostPopularCoursesByTrainerService } from "../query-services/services/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerService } from "../query-services/services/search-recent-courses-by-trainer.service"
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
-import { Category } from "src/categories/domain/categories"
-import { CategoryId } from "src/categories/domain/value-objects/category-id"
-import { CategoryName } from "src/categories/domain/value-objects/category-title"
-import { CategoryIcon } from "src/categories/domain/value-objects/category-image"
 import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer'
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer'
@@ -68,7 +63,6 @@ import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-t
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
-import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
 import { INotificationAddressRepository } from "src/notification/infraestructure/repositories/interface/notification-address-repository.interface"
 import { INotificationAlertRepository } from "src/notification/infraestructure/repositories/interface/notification-alert-repository.interface"
 import { OdmNotificationAddressEntity } from "src/notification/infraestructure/entities/odm-entities/odm-notification-address.entity"
@@ -76,6 +70,8 @@ import { OdmNotificationAlertEntity } from "src/notification/infraestructure/ent
 import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
 import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
 import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
+import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
+import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 
 
 @ApiTags( 'Course' )
@@ -89,6 +85,7 @@ export class CourseController
     private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
+    private readonly ormCategoryRepository: OrmCategoryRepository
     private readonly trainerRepository: OrmTrainerRepository
     private readonly odmCourseRepository: OdmCourseRepository
     private readonly odmTrainerRepository: OdmTrainerRepository
@@ -161,7 +158,7 @@ export class CourseController
 
         this.imageTransformer = new BufferBase64ImageTransformer()
         this.imageGetter = new AzureBufferImageHelper()
-        
+        this.ormCategoryRepository = new OrmCategoryRepository( new OrmCategoryMapper(), dataSource )  
     }
 
     @Post( 'create' )
@@ -202,7 +199,9 @@ export class CourseController
                             this.courseRepository,
                             this.idGenerator,
                             this.fileUploader,
-                            eventBus
+                            eventBus,
+                            this.trainerRepository,
+                            this.ormCategoryRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -216,20 +215,8 @@ export class CourseController
             return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
         }
         const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
-        const category = await this.odmCategoryRepository.findCategoryById( createCourseServiceEntryDto.categoryId )
-        if ( !category.Value )
-        {
-            throw new NotFoundException( category.Message )
-        }
-        const resultCategory = Category.create(CategoryId.create(category.Value.id), 
-        CategoryName.create(category.Value.categoryName), CategoryIcon.create(category.Value.icon))
-        const trainer = await this.odmTrainerRepository.findTrainerById( createCourseServiceEntryDto.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            throw new NotFoundException( trainer.Message )
-        }
-        const resultTrainer = await this.odmTrainerMapper.fromPersistenceToDomain(trainer.Value)
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, category: resultCategory, trainer: resultTrainer} )
+        
+        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, categoryId: createCourseServiceEntryDto.categoryId, trainerId: createCourseServiceEntryDto.trainerId} )
                     
         eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
@@ -301,13 +288,7 @@ export class CourseController
             }
         }
 
-        const course = await this.odmCourseRepository.findCourseById( courseId )
-        if (!course.Value){
-            throw new NotFoundException('No se encontro el curso')
-        }
-        const resultCourse = await this.odmCourseMapper.fromPersistenceToDomain(course.Value)
-
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, course: resultCourse, userId: user.id } )
+        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
         })

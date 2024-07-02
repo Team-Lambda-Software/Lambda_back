@@ -1,4 +1,3 @@
-import { Trainer } from "src/trainer/domain/trainer"
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
 import { BlogId } from "./value-objects/blog-id"
 import { BlogTitle } from "./value-objects/blog-title"

@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger"
 import { Transform } from "class-transformer"
 import { ArrayMinSize, IsArray, IsString, IsUUID, MinLength } from "class-validator"
 

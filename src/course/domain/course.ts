@@ -1,4 +1,3 @@
-import { Trainer } from "src/trainer/domain/trainer"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root"
 import { CourseId } from "./value-objects/course-id"
@@ -148,6 +147,16 @@ export class Course extends AggregateRoot<CourseId>
     changeSections ( sections: Section[] ): void
     {
         this.sections = sections
+    }
+
+    public getSectionDuration (sectionId: SectionId){
+        const section = this.sections.find( section => section.Id.equals(sectionId))
+        return section.Duration
+    }
+
+    public checkSectionExists (sectionId: SectionId): boolean{
+        const section = this.sections.find( section => section.Id.equals(sectionId))
+        return section ? true : false
     }
 
     public createComment (id: SectionCommentId, userId: UserId, text: SectionCommentText, date: SectionCommentDate, sectionId: SectionId): SectionComment{

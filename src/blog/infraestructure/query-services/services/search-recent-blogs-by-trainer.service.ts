@@ -1,11 +1,7 @@
-import { IBlogRepository } from 'src/blog/domain/repositories/blog-repository.interface'
 import { IApplicationService } from 'src/common/Application/application-services/application-service.interface'
 import { Result } from 'src/common/Domain/result-handler/Result'
-import { ITrainerRepository } from 'src/trainer/domain/repositories/trainer-repository.interface'
-import { ICategoryRepository } from 'src/categories/domain/repositories/category-repository.interface'
 import { SearchBlogsByTrainerServiceEntryDto } from '../dto/params/search-blogs-by-trainer-service-entry.dto'
 import { SearchBlogServiceResponseDto } from '../dto/responses/search-blog-service-response.dto'
-import { OdmBlogRepository } from '../../repositories/odm-repository/odm-blog-repository'
 import { BlogQueryRepository } from '../../repositories/blog-query-repository.interface'
 
 

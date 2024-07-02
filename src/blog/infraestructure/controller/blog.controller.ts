@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -22,7 +22,6 @@ import { FilesInterceptor } from "@nestjs/platform-express"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { OdmBlogRepository } from "../repositories/odm-repository/odm-blog-repository"
 import { BlogCreated } from "src/blog/domain/events/blog-created-event"
 import { Model } from "mongoose"
@@ -53,6 +52,10 @@ import { INotificationAlertRepository } from "src/notification/infraestructure/r
 import { OdmNotificationAddressRepository } from "src/notification/infraestructure/repositories/odm-notification-address-repository"
 import { OdmNotificationAlertRepository } from "src/notification/infraestructure/repositories/odm-notification-alert-repository"
 import { NewPublicationPushInfraService } from "src/notification/infraestructure/service/notification-service/new-publication-notification-service"
+import { OrmTrainerRepository } from '../../../trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository'
+import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
+import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
+import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 
 
 @ApiTags( 'Blog' )
@@ -65,6 +68,8 @@ export class BlogController
     private readonly auditingRepository: OrmAuditingRepository
     private readonly odmBlogRepository: OdmBlogRepository
     private readonly odmTrainerRepository: OdmTrainerRepository
+    private readonly ormTrainerRepository: OrmTrainerRepository
+    private readonly ormCategoryRepository: OrmCategoryRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
@@ -106,6 +111,8 @@ export class BlogController
             this.odmTrainerRepository
         )
 
+        this.ormCategoryRepository = new OrmCategoryRepository( new OrmCategoryMapper(), dataSource )
+        this.ormTrainerRepository = new OrmTrainerRepository( new OrmTrainerMapper() ,dataSource )
         
     }
 
@@ -148,7 +155,9 @@ export class BlogController
                             this.blogRepository,
                             this.idGenerator,
                             this.fileUploader,
-                            eventBus
+                            eventBus,
+                            this.ormTrainerRepository,
+                            this.ormCategoryRepository
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -165,16 +174,7 @@ export class BlogController
                 return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
             }
         }
-        const category = await this.odmCategoryRepository.findCategoryById( createBlogParams.categoryId )
-        if ( !category.Value )
-        {
-            throw new NotFoundException( category.Message )
-        }
-        const trainer = await this.odmTrainerRepository.findTrainerById( createBlogParams.trainerId )
-        if ( !trainer.isSuccess() )
-        {
-            throw new NotFoundException( trainer.Message )
-        }
+        
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
         eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
             this.blogQuerySyncronizer.execute(event)
