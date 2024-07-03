@@ -1,6 +1,6 @@
 import { IValueObject } from "src/common/Domain/value-object/value-object.interface";
 
-export class CourseCompleted implements IValueObject<CourseCompleted>
+export class CourseCompletion implements IValueObject<CourseCompletion>
 {
     private readonly isCompleted: boolean;
 
@@ -11,12 +11,12 @@ export class CourseCompleted implements IValueObject<CourseCompleted>
         this.isCompleted = isCompleted;
     }
 
-    static create (isCompleted:boolean):CourseCompleted
+    static create (isCompleted:boolean):CourseCompletion
     {
-        return new CourseCompleted(isCompleted);
+        return new CourseCompletion(isCompleted);
     }
 
-    equals(valueObject: CourseCompleted): boolean {
+    equals(valueObject: CourseCompletion): boolean {
         return (this.Value === valueObject.Value);
     }
 }

@@ -1,7 +1,7 @@
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root";
 import { CourseSubscriptionId } from "../value-objects/course-subscription-id";
 import { CourseProgressionDate } from "../value-objects/course-progression-date";
-import { CourseCompleted } from "../value-objects/course-completed";
+import { CourseCompletion } from "../value-objects/course-completed";
 import { SectionProgress } from "./progress-section/section-progress";
 import { CourseId } from "src/course/domain/value-objects/course-id";
 import { UserId } from "src/user/domain/value-objects/user-id";
@@ -11,13 +11,21 @@ import { InvalidCourseSubscriptionException } from "../exceptions/invalid-course
 import { CourseSubscriptionCreated } from "../events/course-subscription-created-event";
 import { DomainEvent } from "src/common/Domain/domain-event/domain-event";
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id";
-import { SectionCompleted } from "./progress-section/value-objects/section-completed";
 import { SectionVideoProgress } from "./progress-section/value-objects/section-video-progress";
+import { SectionProgressAlreadyExistsException } from "../exceptions/section-progress-already-exists-exception";
+import { SectionInitiated } from "../events/section-initiated-event";
+import { CourseCompletionPercent } from "../value-objects/course-completion-percent";
+import { CourseInitiated } from "../events/course-initiated-event";
+import { SectionCompletionPercent } from "./progress-section/value-objects/section-completion-percent";
+import { SectionCompletion } from "./progress-section/value-objects/section-completed";
+import { SectionCompleted } from "../events/section-completed-event";
+import { UserHasProgressed } from "../events/user-has-progressed-event";
+import { CourseCompleted } from "../events/course-completed-event";
 
 export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
 {
     private lastProgression:CourseProgressionDate;
-    private isCompleted:CourseCompleted;
+    private isCompleted:CourseCompletion;
     private sectionProgress:SectionProgress[];
     private courseId:CourseId;
     private userId:UserId;
@@ -32,9 +40,9 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         return CourseId.create(this.courseId.Value);
     }
 
-    get IsCompleted(): CourseCompleted
+    get IsCompleted(): CourseCompletion
     {
-        return CourseCompleted.create(this.isCompleted.Value);
+        return CourseCompletion.create(this.isCompleted.Value);
     }
 
     get Sections(): SectionProgress[]
@@ -47,13 +55,18 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         return sectionsCopy;
     }
 
-    public getSectionById(sectionId:SectionProgressId):SectionProgress
+    get LastProgressionDate(): CourseProgressionDate
+    {
+        return CourseProgressionDate.create( this.lastProgression.Value );
+    }
+
+    public getVideoProgressBySectionId(sectionId:SectionId):SectionVideoProgress
     {
         for (let section of this.sectionProgress)
         {
-            if (section.Id.equals(sectionId))
+            if (section.SectionId.equals(sectionId))
             {
-                return section;
+                return section.VideoProgress;
             }
         }
         throw new SectionProgressNotExistsException();
@@ -66,7 +79,7 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         }
     }
 
-    protected constructor( id:CourseSubscriptionId, lastProgression:CourseProgressionDate, isCompleted:CourseCompleted, sectionProgress:SectionProgress[], courseId:CourseId, userId:UserId )
+    protected constructor( id:CourseSubscriptionId, lastProgression:CourseProgressionDate, isCompleted:CourseCompletion, sectionProgress:SectionProgress[], courseId:CourseId, userId:UserId )
     {
         const subscriptionCreated: CourseSubscriptionCreated = CourseSubscriptionCreated.create (
             id.Value, lastProgression.Value, isCompleted.Value,
@@ -88,14 +101,96 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
                 const subscriptionCreated: CourseSubscriptionCreated = event as CourseSubscriptionCreated
                 this.courseId = CourseId.create(subscriptionCreated.courseId);
                 this.userId = UserId.create(subscriptionCreated.userId);
-                this.isCompleted = CourseCompleted.create(subscriptionCreated.isCompleted);
+                this.isCompleted = CourseCompletion.create(subscriptionCreated.isCompleted);
                 this.lastProgression = CourseProgressionDate.create(subscriptionCreated.lastProgression);
-                this.sectionProgress = subscriptionCreated.sections.map( sectionProgress => SectionProgress.create( SectionProgressId.create(sectionProgress.id), SectionId.create(sectionProgress.sectionId), SectionCompleted.create(sectionProgress.isCompleted), SectionVideoProgress.create(sectionProgress.videoProgress) ) );
+                this.sectionProgress = subscriptionCreated.sections.map( sectionProgress => SectionProgress.create( SectionProgressId.create(sectionProgress.id), SectionId.create(sectionProgress.sectionId), SectionCompletion.create(sectionProgress.isCompleted), SectionVideoProgress.create(sectionProgress.videoProgress) ) );
         }
     }
 
-    static create ( id:CourseSubscriptionId, lastProgression:CourseProgressionDate, isCompleted:CourseCompleted, sectionProgress:SectionProgress[], courseId:CourseId, userId:UserId ):CourseSubscription
+    static create ( id:CourseSubscriptionId, lastProgression:CourseProgressionDate, isCompleted:CourseCompletion, sectionProgress:SectionProgress[], courseId:CourseId, userId:UserId ):CourseSubscription
     {
         return new CourseSubscription( id, lastProgression, isCompleted, sectionProgress, courseId, userId );
+    }
+
+    public createSectionProgress ( id:SectionProgressId, sectionId:SectionId, isCompleted:SectionCompletion, videoProgress:SectionVideoProgress ): SectionProgress
+    {
+        const sectionProgress: SectionProgress = SectionProgress.create(id, sectionId, isCompleted, videoProgress);
+        for (let progress of this.sectionProgress)
+        {
+            if (progress.Id.equals(sectionProgress.Id))
+            {
+                throw new SectionProgressAlreadyExistsException();
+            }
+        }
+        this.sectionProgress.push(sectionProgress);
+
+        const sectionInitiated: SectionInitiated = SectionInitiated.create(this.userId.Id, sectionId.Value, this.CourseId.Value);
+        this.onEvent(sectionInitiated);
+        return sectionProgress;
+    }
+
+    public checkIfAlreadyInitiated (completion:CourseCompletionPercent)
+    {
+        if (completion.Value === 0) //Not initiated before, now initiating
+        {
+            const courseInitiated:CourseInitiated = CourseInitiated.create(this.userId.Id, this.courseId.Value);
+            this.onEvent(courseInitiated);
+        }
+    }
+
+    public updateSectionProgress ( id:SectionProgressId, seconds:SectionVideoProgress, isCompleted?:SectionCompletion )
+    {
+        let sectionProgress: SectionProgress = undefined;
+        for (let section of this.sectionProgress)
+        {
+            if (section.Id.equals(id))
+            {
+                sectionProgress = section;
+                break;
+            }
+        }
+        if (sectionProgress === undefined)
+        {
+            throw new SectionProgressNotExistsException();
+        }
+        sectionProgress.updateVideoProgress(seconds);
+        if (isCompleted != undefined) 
+        {
+            sectionProgress.updateCompletion(isCompleted);
+            if (isCompleted.Value) 
+            { 
+                const sectionCompleted:SectionCompleted = SectionCompleted.create(this.userId.Id, sectionProgress.Id.Value, this.courseId.Value);
+                this.onEvent(sectionCompleted);
+            }
+        }
+    }
+
+    public publishUserProgression ( sectionId: SectionProgressId, completion: SectionCompletionPercent )
+    {
+        let sectionProgress:SectionProgress = undefined;
+        for (let section of this.sectionProgress)
+        {
+            if (section.Id.equals(sectionId))
+            {
+                sectionProgress = section;
+                break;
+            }
+        }
+        if (sectionProgress === undefined)
+        {
+            throw new SectionProgressNotExistsException();
+        }
+        const userHasProgressed:UserHasProgressed = UserHasProgressed.create(this.userId.Id, sectionProgress.SectionId.Value, this.courseId.Value, sectionProgress.VideoProgress.Value, completion.Value);
+        this.onEvent(userHasProgressed);
+    }
+
+    public updateCourseCompletion (isCompleted:CourseCompletion)
+    {
+        this.isCompleted = isCompleted;
+        if (isCompleted.Value)
+        {
+            const courseCompleted:CourseCompleted = CourseCompleted.create(this.UserId.Id, this.CourseId.Value);
+            this.onEvent(courseCompleted);
+        }
     }
 }

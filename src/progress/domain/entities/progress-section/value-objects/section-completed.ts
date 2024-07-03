@@ -1,6 +1,6 @@
 import { IValueObject } from "src/common/Domain/value-object/value-object.interface";
 
-export class SectionCompleted implements IValueObject<SectionCompleted>
+export class SectionCompletion implements IValueObject<SectionCompletion>
 {
     private readonly isCompleted:boolean;
 
@@ -11,12 +11,12 @@ export class SectionCompleted implements IValueObject<SectionCompleted>
         this.isCompleted = isCompleted;
     }
 
-    equals(valueObject: SectionCompleted): boolean {
+    equals(valueObject: SectionCompletion): boolean {
         return (this.Value === valueObject.Value);
     }
 
-    static create (isCompleted:boolean): SectionCompleted
+    static create (isCompleted:boolean): SectionCompletion
     {
-        return new SectionCompleted(isCompleted);
+        return new SectionCompletion(isCompleted);
     }
 }
