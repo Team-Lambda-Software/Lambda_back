@@ -158,7 +158,12 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        const resultService = (await signUpApplicationService.execute(data))
+        const resultService = (await signUpApplicationService.execute({
+            userId: 'none',
+            email: data.email,
+            name: data.name,
+            phone: data.phone,
+        }))
         return { id: resultService.Value.id }
     }
     

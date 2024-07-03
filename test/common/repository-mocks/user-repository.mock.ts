@@ -5,9 +5,11 @@ import { User } from "src/user/domain/user"
 
 
 export class UserMockRepository implements IUserRepository{
-    findUserByEmail ( email: string ): Promise<Result<User>>
-    {
-        throw new Error( "Method not implemented." )
+    async findUserByEmail ( email: string ): Promise<Result<User>> {
+        const user = this.users.find( user => user.Email.Email === email  )
+        if( user === undefined )
+            return Result.fail<User>(new Error(`User with email ${email} not found`) ,404,`User with email ${email} not found`)    
+        return Result.success<User>( user , 200 )   
     }
 
     private readonly users: User[] = []
