@@ -51,8 +51,7 @@ import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-t
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OrmAccountRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-account-repository";
 import { OdmAccountRepository } from "src/user/infraestructure/repositories/odm-repository/odm-account-repository";
-import { SecurityDecorator } from "src/common/Application/application-services/decorators/decorators/security-decorator/security.decorator";
-import { UserType } from "src/user/infraestructure/entities/enum-type-user/user-type.enum";
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -139,7 +138,7 @@ export class AuthController {
         const emailSender = new WelcomeSender()
         emailSender.setVariables( { firstname: signUpDto.name } )
         
-        const eventBus = EventBus.getInstance()
+        const eventBus = RabbitEventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
             const ormUser = OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
             this.syncroInfraUser.execute( ormUser )
