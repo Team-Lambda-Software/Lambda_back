@@ -1,38 +1,33 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
 import { IEncryptor } from "../../../common/Application/encryptor/encryptor.interface";
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { ChangePasswordEntryDto } from "./dto/entry/change-password-entry.infraestructure.dto";
-import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
-import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
+import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
 
-export class ChangePasswordUserInfraService implements IApplicationService<ChangePasswordEntryDto, any> {
+export class ChangePasswordUserInfraService implements IApplicationService<ChangePasswordEntryDto, boolean> {
     
-    private readonly userRepository: IInfraUserRepository
+    private readonly sqlAccountRepo: IAccountRepository<OrmUser>
+    private readonly nosqlAccountRepo: IAccountRepository<OdmUserEntity>
     private readonly encryptor: IEncryptor; 
-    private readonly syncroInfraUser: UserQueryRepository
 
     constructor(
-        userRepository: IInfraUserRepository,
+        sqlRepository: IAccountRepository<OrmUser>,
         encryptor: IEncryptor,
-        syncroInfraUser: UserQueryRepository
+        nosqlRepository: IAccountRepository<OdmUserEntity>
     ){
-        this.userRepository = userRepository
+        this.sqlAccountRepo = sqlRepository
         this.encryptor = encryptor
-        this.syncroInfraUser = syncroInfraUser
+        this.nosqlAccountRepo = nosqlRepository
     }
     
-    async execute(updateDto: ChangePasswordEntryDto): Promise<Result<any>> {
-        const result = await this.userRepository.updateUserPassword(
-            updateDto.email,
-            await this.encryptor.hashPassword( updateDto.password )
-        )
+    async execute(updateDto: ChangePasswordEntryDto): Promise<Result<boolean>> {
+        const hashPassword = await this.encryptor.hashPassword( updateDto.password )
+        const result = await this.sqlAccountRepo.updateUserPassword( updateDto.email, hashPassword )
         if ( !result.isSuccess() ) return Result.fail( new Error('Something went wrong changing password'), 500, 'Something whent wrong changing password' )
-        const userOrm = await this.userRepository.findUserByEmail( updateDto.email )
-        const userOdm = await (await this.syncroInfraUser.findUserByEmail( updateDto.email )).Value
-        userOdm.password = await result.Value.password
-        this.syncroInfraUser.saveUser(userOdm)
-        return Result.success({}, 200)
+        await this.nosqlAccountRepo.updateUserPassword( updateDto.email, hashPassword )
+        return Result.success(true, 200)
     }
    
     get name(): string { return this.constructor.name }

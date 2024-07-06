@@ -2,20 +2,20 @@ import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedExceptio
 import { JwtService } from "@nestjs/jwt";
 import { Result } from "src/common/Domain/result-handler/Result";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
-import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 import { DataSource } from "typeorm";
 import { JwtPayload } from "./dto/jwt-payload.interface";
+import { OrmAccountRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-account-repository";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
 
-    private userRepository: OrmInfraUserRepository
+    private userRepository: OrmAccountRepository
 
     constructor(
         private jwtService: JwtService,
         @Inject('DataSource') dataSource: DataSource
     ) {
-        this.userRepository = new OrmInfraUserRepository(dataSource)
+        this.userRepository = new OrmAccountRepository(dataSource)
     }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {

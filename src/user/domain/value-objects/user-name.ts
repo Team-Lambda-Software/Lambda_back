@@ -17,7 +17,7 @@ export class UserName implements IValueObject<UserName> {
         if (!regex.test(name))
             throw new InvalidUserName(`El nombre ${name} no es valido`);
 
-        if (name.length < 5 || name.length > 50) {
+        if (name.length < 3 || name.length > 50) {
             throw new InvalidUserName(
                 `El nombre ${name} no es valido por la cantidad de caracteres`,
             );

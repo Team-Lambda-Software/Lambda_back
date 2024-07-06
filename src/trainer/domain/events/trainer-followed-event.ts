@@ -1,17 +1,15 @@
-import { DomainEvent } from "src/common/Domain/domain-event/domain-event";
-import { UserId } from "src/user/domain/value-objects/user-id";
-import { TrainerId } from "../value-objects/trainer-id";
+import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
 
 export class TrainerFollowed extends DomainEvent {
     protected constructor(
-        public trainerId: TrainerId,
-        public userId: UserId
+        public trainerId: string,
+        public userId: string
     )
     {
         super();
     }
 
-    static create( trainerId:TrainerId, userId:UserId ): TrainerFollowed
+    static create( trainerId:string, userId:string ): TrainerFollowed
     {
         return new TrainerFollowed(trainerId, userId);
     }

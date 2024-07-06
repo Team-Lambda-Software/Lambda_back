@@ -22,7 +22,7 @@ export class GetTrainerService implements IApplicationService<GetTrainerServiceE
         const trainer = resultTrainer.Value
 
         let trainerLocation: string = "no disponible";
-        if ( (trainer.latitude)&&(trainer.longitude) ) { trainerLocation = trainer.latitude + ", " + trainer.longitude; }
+        if ( trainer.latitude != "null" && trainer.longitude != "null" ) { trainerLocation = trainer.latitude + ", " + trainer.longitude; }
 
         //to-do Construct all necessary data for this to be really functional
         let responseTrainer: GetTrainerServiceResponseDto = {

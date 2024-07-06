@@ -2,28 +2,29 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result";
 import { IJwtGenerator } from "../../../common/Application/jwt-generator/jwt-generator.interface";
 import { IEncryptor } from "../../../common/Application/encryptor/encryptor.interface";
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { LogInEntryDto } from "./dto/entry/log-in-entry.infraestructure.dto";
 import { LogInResponseDto } from "./dto/response/log-in-response.dto";
+import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
+import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 
 export class LogInUserInfraService implements IApplicationService<LogInEntryDto, LogInResponseDto> { 
     
-    private readonly userRepository: IInfraUserRepository
+    private readonly accountRepository: IAccountRepository<OrmUser>
     private readonly tokenGenerator: IJwtGenerator<string>;
     private readonly encryptor: IEncryptor; 
 
     constructor(
-        userRepository: IInfraUserRepository,
+        accountRepository: IAccountRepository<OrmUser>,
         tokenGenerator: IJwtGenerator<string>,
         encryptor: IEncryptor,
     ){
-        this.userRepository = userRepository
+        this.accountRepository = accountRepository
         this.tokenGenerator = tokenGenerator,
         this.encryptor = encryptor 
     }
     
     async execute(logInDto: LogInEntryDto): Promise<Result<LogInResponseDto>> {
-        const findResult = await this.userRepository.findUserByEmail( logInDto.email )
+        const findResult = await this.accountRepository.findUserByEmail( logInDto.email )
         if ( !findResult.isSuccess() ) return Result.fail( new Error('Email not registered'), 403, 'Email not registered' )
         const userResult = await findResult.Value
         const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.password)

@@ -7,6 +7,18 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 
 
 export class BlogQueryRepositoryMock implements BlogQueryRepository{
+    findBlogsByPopularity ( pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
+    findBlogsByPopularityAndCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
+    findBlogsByPopularityAndTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmBlogEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
     
     private readonly blogs: OdmBlogEntity[] = []
     private readonly blogComments: OdmBlogCommentEntity[] = []
