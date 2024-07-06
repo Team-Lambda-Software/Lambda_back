@@ -38,13 +38,15 @@ export class TrainerQueryRepositoryMock implements TrainerQueryRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    followTrainer ( trainerID: string, userID: string ): Promise<Result<string>>
+    async followTrainer ( trainerID: string, userID: string ): Promise<Result<string>>
     {
-        throw new Error( "Method not implemented." )
+
+        return Result.success<string>( "Trainer followed", 200 )
+
     }
-    unfollowTrainer ( trainerID: string, userID: string ): Promise<Result<string>>
+    async unfollowTrainer ( trainerID: string, userID: string ): Promise<Result<string>>
     {
-        throw new Error( "Method not implemented." )
+        return Result.success<string>( "Trainer unfollowed", 200 )
     }
     
     private readonly trainers: OdmTrainerEntity[] = []
