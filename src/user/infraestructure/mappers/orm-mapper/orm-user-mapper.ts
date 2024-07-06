@@ -12,11 +12,9 @@ export class OrmUserMapper implements IMapper<User, OrmUser> {
     async fromDomainToPersistence(domain: User): Promise<OrmUser> {
         const persistanceUser = OrmUser.create(
             domain.Id.Id,
-            domain.Phone.Phone,
             domain.Name.Name,
-            '',
-            domain.Email.Email,
-            ''
+            domain.Phone.Phone,
+            domain.Email?.Email
         )
         return persistanceUser
     }

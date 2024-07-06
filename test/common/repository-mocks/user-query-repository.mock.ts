@@ -1,7 +1,9 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
 import { Result } from "src/common/Domain/result-handler/Result"
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
 import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface"
-
 
 
 export class UserQueryRepositoryMock implements UserQueryRepository{

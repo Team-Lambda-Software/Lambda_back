@@ -1,16 +1,14 @@
 import { DomainEvent } from 'src/common/Domain/domain-event/domain-event';
-import { UserId } from '../value-objects/user-id';
-import { UserPhone } from '../value-objects/user-phone';
 
 export class UserPhoneModified extends DomainEvent {
     protected constructor(
-        public userId: UserId,
-        public userPhone: UserPhone,
+        public userId: string,
+        public userPhone: string,
     ) {
         super();
     }
 
-    static create(id: UserId, phone: UserPhone) {
+    static create(id: string, phone: string) {
         return new UserPhoneModified(id, phone);
     }
 }

@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { User } from "src/user/domain/user"
 import { UserEmail } from "src/user/domain/value-objects/user-email"

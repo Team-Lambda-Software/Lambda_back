@@ -6,4 +6,5 @@ export interface IUserRepository {
   saveUserAggregate(user: User): Promise<Result<User>>;
   //updateUserPassword(email: string, newPassword: string): Promise<Result<User>>;
   deleteById(id: string): Promise<Result<User>>;
+  findUserById(userId: string): Promise<Result<User>>;
 }

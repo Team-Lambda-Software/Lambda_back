@@ -13,7 +13,7 @@ export class OrmUser {
     @Column( 'varchar' ) password: string
     @Column( 'varchar', { default: 'name-default' } ) name: string
     @Column( 'varchar', { nullable: true } ) image: string
-    @Column( 'varchar', {unique: true, nullable:true}) phone: string
+    @Column( 'varchar', {unique: true, nullable:false}) phone: string
     @ManyToMany(() => OrmTrainer)
     @JoinTable({
         name: "follows",
@@ -41,10 +41,10 @@ export class OrmUser {
 
     static create ( 
         id: string,
-        phone: string,
         name: string,
+        phone: string,
+        email: string,
         image?: string,
-        email?: string,
         password?: string,
         type?: string,
         trainers?: OrmTrainer[],

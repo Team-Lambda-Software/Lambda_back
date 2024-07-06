@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Result } from "src/common/Domain/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"
@@ -34,6 +35,7 @@ export class OrmInfraUserRepository extends Repository<OrmUser> implements IInfr
     }
 
     async findUserByEmail ( email: string ): Promise<Result<OrmUser>> {
+        console.log(email)
         const user = await this.findOneBy({email})
         if (user) return Result.success<OrmUser>(user,200);
         return Result.fail<OrmUser>(new Error('User not found'),404,'User not found');

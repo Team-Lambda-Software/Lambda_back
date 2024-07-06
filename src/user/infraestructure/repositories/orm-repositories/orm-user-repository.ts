@@ -6,7 +6,6 @@ import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"
 import { OrmUserMapper } from '../../mappers/orm-mapper/orm-user-mapper'
 
-
 export class OrmUserRepository extends Repository<OrmUser> implements IUserRepository
 {
 
@@ -16,6 +15,17 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
     {
         super( OrmUser, dataSource.createEntityManager() )
         this.ormUserMapper = ormUserMapper
+    }
+
+    async findUserById(id: string): Promise<Result<User>> {
+        const user = await this.findOneBy({id});
+
+        if(user){
+            const userDomain = await this.ormUserMapper.fromPersistenceToDomain(user)
+            return Result.success<User>(userDomain,200);
+        }
+
+        return Result.fail<User>(new Error('User not found'),404,'User not found')
     }
 
     async deleteById(id: string): Promise<Result<User>> {
