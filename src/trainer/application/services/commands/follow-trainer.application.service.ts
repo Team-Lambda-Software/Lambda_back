@@ -22,7 +22,6 @@ export class FollowTrainerApplicationService implements IApplicationService<Togg
     
     async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<ToggleTrainerFollowServiceResponseDto>> {
         //TEST
-            console.log("service execution started");
         let isIncluded:boolean = false;
         const trainerValue = data.trainer;
         let trainerFollowers:TrainerFollowers = trainerValue.FollowersID;
@@ -38,7 +37,6 @@ export class FollowTrainerApplicationService implements IApplicationService<Togg
             }
         }
         //TEST
-            console.log("Follow check done.", isIncluded);
 
         let toggleResult:Result<string>;
         if (isIncluded)
@@ -50,24 +48,20 @@ export class FollowTrainerApplicationService implements IApplicationService<Togg
             toggleResult = trainerValue.addFollower(userId);
         }
         //TEST
-            console.log("Domain toggle finished.", toggleResult);
         if (!toggleResult.isSuccess())
         {
             return Result.fail<ToggleTrainerFollowServiceResponseDto>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
         }
         //TEST
-            console.log("Domain toggle success");
 
         const persistenceUpdateResult = await this.trainerRepository.followTrainer(trainerId.Value, userId.Id);
         if (!persistenceUpdateResult.isSuccess())
         {
             return Result.fail<ToggleTrainerFollowServiceResponseDto>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
         }
-        //TEST
-            console.log("Persistence toggle success");
+
         await this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
-            console.log("service execution success");
         return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscrito exitosamente"}, 200 );
     }
 
