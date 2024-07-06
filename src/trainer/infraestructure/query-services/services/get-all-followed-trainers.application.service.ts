@@ -1,18 +1,14 @@
-import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { GetManyTrainersServiceEntryDto } from "../../dto/parameters/get-many-trainers-service-entry.dto";
-import { GetManyTrainersServiceResponseDto } from "../../dto/responses/get-many-trainers-service-response.dto";
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
-import { Result } from "src/common/Domain/result-handler/Result";
-import { TrainerName } from "src/trainer/domain/value-objects/trainer-name";
-import { TrainerLocation } from "src/trainer/domain/value-objects/trainer-location";
-import { TrainerFollowers } from "src/trainer/domain/value-objects/trainer-followers";
-import { UserId } from "src/user/domain/value-objects/user-id";
+import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
+import { Result } from "src/common/Domain/result-handler/Result"
+import { GetManyTrainersServiceEntryDto } from "../dto/parameters/get-many-trainers-service-entry.dto"
+import { GetManyTrainersServiceResponseDto } from "../dto/response/get-many-trainers-service-response.dto"
+import { TrainerQueryRepository } from "../../repositories/trainer-query-repository.interface"
 
 export class GetAllFollowedTrainersApplicationService implements IApplicationService<GetManyTrainersServiceEntryDto, GetManyTrainersServiceResponseDto>
 {
-    private readonly trainerRepository: ITrainerRepository;
+    private readonly trainerRepository: TrainerQueryRepository;
 
-    constructor (trainerRepository: ITrainerRepository)
+    constructor (trainerRepository: TrainerQueryRepository)
     {
         this.trainerRepository = trainerRepository;
     }
@@ -28,31 +24,29 @@ export class GetAllFollowedTrainersApplicationService implements IApplicationSer
         let trainersResponse:GetManyTrainersServiceResponseDto = {trainers: []};
         for (const trainer of trainers)
         {
-            const trainerId = trainer.Id.Value;
+            const trainerId = trainer.id;
 
-            const trainerNameVO:TrainerName = trainer.Name;
-            const trainerName:string = trainerNameVO.FirstName + " " + trainerNameVO.FirstLastName + " " + trainerNameVO.SecondLastName;
+            
+            const trainerName:string = trainer.first_name + " " + trainer.first_last_name + " " + trainer.second_last_name;
 
             let trainerLocation:string = null;
-            let locationVO: TrainerLocation = trainer.Location;
-            if (locationVO)
+            if (trainer.latitude != "null" && trainer.longitude != "null")
             {
-                trainerLocation = trainer.Location.Latitude + ", " + trainer.Location.Longitude;
+                trainerLocation = trainer.latitude + ", " + trainer.longitude;
             }
 
-            const resultCount = await this.trainerRepository.getFollowerCount(trainer.Id.Value);
+            const resultCount = await this.trainerRepository.getFollowerCount(trainer.id);
             if (!resultCount.isSuccess())
             {
                 return Result.fail<GetManyTrainersServiceResponseDto>( resultCount.Error, resultCount.StatusCode, resultCount.Message );
             }
             const followerCount = resultCount.Value;
 
-            const trainerFollowers:TrainerFollowers = trainer.FollowersID;
-            const userId:UserId = UserId.create(data.userId);
+            const trainerFollowers = trainer.followers;
             let doesUserFollow:boolean = false;
-            for (let follower of trainerFollowers.Value)
+            for (let follower of trainerFollowers)
             {
-                if (follower.equals(userId))
+                if (follower.id == data.userId)
                 {
                     doesUserFollow = true;
                     break;
