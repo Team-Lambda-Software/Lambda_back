@@ -139,7 +139,7 @@ export class AuthController {
         
         const eventBus = EventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
-            const ormUser = OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            const ormUser = OrmUser.create( event.userId, event.userPhone, event.userName, null, event.userEmail, plainToHash, data.type, )
             this.syncroInfraUser.execute( ormUser )
             this.infraUserRepository.saveOrmUser( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )
