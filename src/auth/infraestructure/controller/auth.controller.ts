@@ -20,8 +20,6 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { UseGuards } from "@nestjs/common/decorators/core/use-guards.decorator";
 import { GetUser } from "../jwt/decorator/get-user.param.decorator";
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
-import { OrmInfraUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-infra-user-repository";
 import { ChangePasswordUserInfraService } from "../infra-service/change-password-user-service.infra.service";
 import { ChangePasswordEntryInfraDto } from "./dto/entry/change-password-entry.dto";
 import { CodeValidateEntryInfraDto } from "./dto/entry/code-validate-entry.dto";
@@ -43,7 +41,6 @@ import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.ent
 import { IUserRepository } from "src/user/domain/repositories/user-repository.interface";
 import { OrmUserRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-user-repository";
 import { OrmUserMapper } from "src/user/infraestructure/mappers/orm-mapper/orm-user-mapper";
-import { UserQueryRepository } from "src/user/infraestructure/repositories/user-query-repository.interface";
 import { OdmUserRepository } from "src/user/infraestructure/repositories/odm-repository/odm-user-repository";
 import { InjectModel } from "@nestjs/mongoose";
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
@@ -51,33 +48,41 @@ import { Model } from "mongoose";
 import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file";
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer";
+import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
+import { OrmAccountRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-account-repository";
+import { OdmAccountRepository } from "src/user/infraestructure/repositories/odm-repository/odm-account-repository";
+import { SecurityDecorator } from "src/common/Application/application-services/decorators/decorators/security-decorator/security.decorator";
+import { UserType } from "src/user/infraestructure/entities/enum-type-user/user-type.enum";
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     private readonly logger: Logger
-    private readonly infraUserRepository: IInfraUserRepository
-    private readonly userRepository: IUserRepository
     private readonly uuidGenerator: IdGenerator<string>
     private readonly tokenGenerator: IJwtGenerator<string>
     private readonly encryptor: IEncryptor
-    private readonly queryUserRepository: UserQueryRepository
-    private readonly syncroInfraUser: InfraUserQuerySynchronizer
-    private secretCodes = []
 
+    private readonly ormAccountRepository: IAccountRepository<OrmUser>
+    private readonly odmAccountRepository: IAccountRepository<OdmUserEntity>
+    private readonly userRepository: IUserRepository
+    private readonly syncroInfraUser: InfraUserQuerySynchronizer
+
+    private secretCodes = []
+    
     constructor(
         @InjectModel('User') private userModel: Model<OdmUserEntity>,
         @Inject('DataSource') private readonly dataSource: DataSource,
         private jwtAuthService: JwtService
     ) {
         this.logger = new Logger('AuthController')
-        this.infraUserRepository = new OrmInfraUserRepository(dataSource)
-        this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
-        this.queryUserRepository = new OdmUserRepository( userModel )
         this.uuidGenerator = new UuidGenerator()
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
+
         this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
+        this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
+        this.odmAccountRepository = new OdmAccountRepository( userModel )
+        this.ormAccountRepository = new OrmAccountRepository( dataSource )
     }
     
     @Get('current')
@@ -112,7 +117,7 @@ export class AuthController {
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
                 new LogInUserInfraService(
-                    this.infraUserRepository,
+                    this.ormAccountRepository,
                     this.tokenGenerator,
                     this.encryptor
                 ), 
@@ -129,9 +134,6 @@ export class AuthController {
         var data = { userId: 'none', ...signUpDto }
         if ( !data.type ) data = { type: 'CLIENT', ...data }
 
-        const findResult = await this.queryUserRepository.findUserByEmail( signUpDto.email )
-        if ( findResult.isSuccess() ) throw new BadRequestException('Email registered')
-
         const plainToHash = await this.encryptor.hashPassword(signUpDto.password)
 
         const emailSender = new WelcomeSender()
@@ -141,7 +143,7 @@ export class AuthController {
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
             const ormUser = OrmUser.create( event.userId, event.userPhone, event.userName, null, event.userEmail, plainToHash, data.type, )
             this.syncroInfraUser.execute( ormUser )
-            this.infraUserRepository.saveOrmUser( ormUser )
+            this.ormAccountRepository.saveUser( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )
         })
 
@@ -156,7 +158,12 @@ export class AuthController {
             ),
             new HttpExceptionHandler()
         )
-        const resultService = (await signUpApplicationService.execute(data))
+        const resultService = (await signUpApplicationService.execute({
+            userId: 'none',
+            email: data.email,
+            name: data.name,
+            phone: data.phone,
+        }))
         return { id: resultService.Value.id }
     }
     
@@ -168,7 +175,7 @@ export class AuthController {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new GetCodeUpdatePasswordUserInfraService(
-                    this.infraUserRepository,
+                    this.ormAccountRepository,
                     new UpdatePasswordSender(),
                     new SecretCodeGenerator(),
                 ), 
@@ -192,9 +199,9 @@ export class AuthController {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
                 new ChangePasswordUserInfraService(
-                    this.infraUserRepository,
+                    this.ormAccountRepository,
                     this.encryptor,
-                    this.queryUserRepository
+                    this.odmAccountRepository
                 ), 
                 new NativeLogger(this.logger)
             ),

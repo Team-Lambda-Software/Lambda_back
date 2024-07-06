@@ -3,7 +3,7 @@ import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class SignUpUserEntryInfraDto {
     
-    @ApiProperty( { required: true, default: 'RECENT' })
+    @ApiProperty( { required: true, default: 'CLIENT' })
     @IsString()
     @IsIn(['CLIENT', 'ADMIN'])
     @IsOptional()

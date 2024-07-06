@@ -12,6 +12,6 @@ export class GetManyTrainersSwaggerEntryDto {
     @ApiProperty( {required: false, default: false} )
     @IsOptional()
     @IsBoolean()
-    @Transform(( {obj, key} ) => {console.log("recieved value",obj[key]); console.log("parsed value",obj[key]==='true'); return obj[key] === 'true';}) //TEST value read
+    @Transform(( {obj, key} ) => { return obj[key] === 'true';}) //TEST value read
     userFollow?:boolean;
 }

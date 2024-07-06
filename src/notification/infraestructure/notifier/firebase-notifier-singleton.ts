@@ -40,11 +40,29 @@ export class FirebaseNotifier implements IPushSender {
     }
 
     async sendNotificationPush(message: PushNotificationDto): Promise<Result<string>> {
-        const icon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/icon-128x128.png?alt=media&token=073a48a1-3adf-4bd8-a259-2ee99daf55c7'
+        const purpleIcon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/logo-ligth.png?alt=media&token=75d987b9-5c25-4abb-a457-7f885c076fb2'
+        const whiteIcon = 'https://firebasestorage.googleapis.com/v0/b/chat-realtime-5e9cc.appspot.com/o/icon-128x128.png?alt=media&token=073a48a1-3adf-4bd8-a259-2ee99daf55c7'
+        const icon = (message.notification.icon) ? message.notification.icon : purpleIcon
         const msg = {
             token: message.token,
-            android: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
-            webpush: { notification: { title: message.notification.title, body: message.notification.body, icon: icon }, },
+            android: {
+                notification: { 
+                    title: message.notification.title, 
+                    body: message.notification.body, 
+                    icon: icon, 
+                    clickAction: '/main', 
+                } 
+            },
+            webpush: { 
+                fcmOptions: { link: 'https://ginastic-center.web.app/home/main-course?id=c6ba86d8-987c-4601-8201-dbaa67456006', },
+                notification: { 
+                    title: message.notification.title, 
+                    body: message.notification.body, 
+                    icon: icon,
+                    badge: whiteIcon,
+                    //actions: [ { action: 'idk', title: 'Eso Brad', icon: icon } ],
+                },
+            },
         }  
         try { 
             const res = await admin.messaging().send(msg).then( e => { console.log(' sended ') })

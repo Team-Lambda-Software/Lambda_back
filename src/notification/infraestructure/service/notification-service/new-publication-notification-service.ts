@@ -1,6 +1,5 @@
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { INotificationAddressRepository } from "../../repositories/interface/notification-address-repository.interface";
 import { INotificationAlertRepository } from "../../repositories/interface/notification-alert-repository.interface";

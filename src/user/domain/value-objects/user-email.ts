@@ -6,6 +6,8 @@ export class UserEmail implements IValueObject<UserEmail> {
 
     private constructor(email: string) {
         let valido: boolean = true;
+        if (!email)
+            throw new InvalidUserEmailException('El email del usuario no puede estar vacio');
 
         const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 

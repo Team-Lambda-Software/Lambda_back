@@ -42,7 +42,6 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
     async findAllByIdUserNotReaded(user_id: string): Promise<Result<OdmNotificationAlertEntity[]>> {
         try {
             const noti = await this.notiModel.find( { "user_id": user_id, "user_readed": false } )
-            // console.log(noti)
             return Result.success<OdmNotificationAlertEntity[]>( noti, 200 )
         } catch (error) {
             return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Internal Server Error" )

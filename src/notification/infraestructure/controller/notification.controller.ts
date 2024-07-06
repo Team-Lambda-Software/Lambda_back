@@ -129,12 +129,12 @@ export class NotificationController {
     }
 
     @Post('tester')  
-    async tester( @Body() dtoTester:{ title: string, body: string }  ) {
+    async tester( @Body() dtoTester:{ title: string, body: string, icon: string }  ) {
         const findResult = await this.notiAddressRepository.findAllTokens()
         if ( !findResult.isSuccess() ) return 'no tokens'
         const listTokens = findResult.Value
         listTokens.forEach( async e => {
-            const pushMessage = { token: e.token, notification: { title: dtoTester.title, body: dtoTester.body } }    
+            const pushMessage = { token: e.token, notification: { title: dtoTester.title, body: dtoTester.body, icon: dtoTester.icon } }    
             const result = await this.pushNotifier.sendNotificationPush( pushMessage )
         })
         return 'tested'  
