@@ -16,15 +16,15 @@ export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
         this.userModel = userModel
     }
     
-    async execute(event: OrmUser): Promise<Result<string>> {
+    async execute(user: OrmUser): Promise<Result<string>> {
         const userOdmPersistence = new this.userModel({
-            id: event.id,
-            name: event.name,
-            email: event.email,
-            password: event.password,
-            image: event.image,
-            phone: event.phone,
-            type: event.type
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            image: user.image,
+            phone: user.phone,
+            type: user.type
         })
         
         try{
