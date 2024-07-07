@@ -123,25 +123,6 @@ describe('Sign up a User', () => {
         const entry: SignUpEntryDto = {
             userId: 'none',
             email: 'pedroescalona',
-            name: 'P*/ro Es$a$o4a',
-            phone: '32324985321',
-        }
-        const service = new SignUpUserApplicationService(
-            new EventHandlerMock(),
-            new UserMockRepository(),
-            new UuidGeneratorMock(),
-        )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual('El nombre P*/ro Es$a$o4a no es valido')
-        }
-        expect.assertions(1)
-    })
-
-    it('should fail if format name is incorrect', async () => {
-        const entry: SignUpEntryDto = {
-            userId: 'none',
-            email: 'pedroescalona',
             name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             phone: '32324985321',
         }
@@ -153,7 +134,7 @@ describe('Sign up a User', () => {
         try { await service.execute(entry) }
         catch (error){
             expect(error.message).toEqual(
-                'El nombre aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa no es valido')
+                'El nombre aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa no es valido por la cantidad de caracteres')
         }
         expect.assertions(1)
     })

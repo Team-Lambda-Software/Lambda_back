@@ -1,4 +1,6 @@
 /* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -10,7 +12,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { OrmUserRepository } from '../repositories/orm-repositories/orm-user-repository';
 import { DataSource } from 'typeorm';
@@ -57,15 +61,27 @@ import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repos
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
+import { RabbitEventBus } from 'src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus';
+import { OdmUserMapper } from '../mappers/odm-mappers/odm-user-mapper';
+import { OrmUser } from '../entities/orm-entities/user.entity';
+import { UserEmailModified } from 'src/user/domain/events/user-email-modified-event';
+import { UserQuerySynchronizer } from '../query-synchronizer/user-query-synchronizer';
+import { UpdateUserProfileInfraService } from '../services/update-user-profile-infra.service';
+import { UpdateUserProfileInfraServiceEntryDto } from '../services/dto/update-user-profile-infra-service-entry-dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserNameModified } from 'src/user/domain/events/user-name-modified-event';
+import { UserPhoneModified } from 'src/user/domain/events/user-phone-modified-event';
+import { EventBus } from 'src/common/Infraestructure/event-bus/event-bus';
+import { IAccountRepository } from 'src/user/application/interfaces/account-user-repository.interface';
+import { OdmAccountRepository } from '../repositories/odm-repository/odm-account-repository';
 
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
+  private readonly odmUserRepository: OdmUserRepository
   private readonly userRepository: OrmUserRepository
   private readonly trainerRepository: OrmTrainerRepository
-  private readonly courseRepository: OrmCourseRepository
-  private readonly progressRepository: OrmProgressCourseRepository
   private readonly logger: Logger = new Logger("UserController")
   private readonly imageTransformer: ImageTransformer
   private readonly idGenerator: IdGenerator<string>
@@ -73,38 +89,29 @@ export class UserController {
   private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
-  private readonly queryUserRepository: UserQueryRepository
-
+  //private readonly queryUserRepository: UserQueryRepository
+  private readonly infraUserQuerySyncronizer: InfraUserQuerySynchronizer
+  private readonly userQuerySyncronizer: UserQuerySynchronizer
+  private readonly odmAccountRepository: IAccountRepository<OdmUserEntity>
+    
   constructor(
     @Inject('DataSource') private readonly dataSource: DataSource,
     @InjectModel('User') private userModel: Model<OdmUserEntity>
-
   ) {
-    this.queryUserRepository = new OdmUserRepository(userModel)
+    this.odmUserRepository = new OdmUserRepository(userModel)
+    //this.queryUserRepository = new OdmUserRepository(userModel)
     this.encryptor = new EncryptorBcrypt()
     this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
-    this.courseRepository =
-      new OrmCourseRepository(
-        new OrmCourseMapper(
-          new OrmSectionMapper()
-        ),
-        new OrmSectionMapper(),
-        new OrmSectionCommentMapper(),
-        dataSource
-      )
-    this.progressRepository =
-      new OrmProgressCourseRepository(
-        new OrmProgressCourseMapper(),
-        new OrmProgressSectionMapper(),
-        this.courseRepository,
-        dataSource,
-        new UuidGenerator())
     this.imageTransformer = new ImageTransformer()
     this.idGenerator = new UuidGenerator()
     this.fileUploader = new AzureFileUploader()
     this.auditingRepository = new OrmAuditingRepository(dataSource)
+    this.infraUserQuerySyncronizer = new InfraUserQuerySynchronizer(this.odmUserRepository, userModel)
+    this.userQuerySyncronizer = new UserQuerySynchronizer(this.odmUserRepository, userModel)
+    this.odmAccountRepository = new OdmAccountRepository( userModel )
+
   }
 
   @Patch('/update')
@@ -116,21 +123,33 @@ export class UserController {
     type: UpdateUserProfileSwaggerResponseDto,
   })
   async updateUser(@GetUser() user, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
+    const eventBus = EventBus.getInstance()
     let image: File = null
-    if (updateEntryDTO.image) {
-      image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
-    }
-    const userUpdateDto: UpdateUserProfileServiceEntryDto = { ...updateEntryDTO, image, userId: user.id }
+    if (updateEntryDTO.image) image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
+
+    if (updateEntryDTO.email) 
+      eventBus.subscribe('UserEmailModified', async (event: UserEmailModified) => {
+        await this.userQuerySyncronizer.execute(event)
+      })
+
+    if (updateEntryDTO.name) 
+      eventBus.subscribe('UserNameModified', async (event: UserNameModified) => {
+        await this.userQuerySyncronizer.execute(event)
+      })
+
+    if (updateEntryDTO.phone) 
+      eventBus.subscribe('UserPhoneModified', async (event: UserPhoneModified) => {
+        await this.userQuerySyncronizer.execute(event);
+      })
+    
+    const userUpdateDto: UpdateUserProfileServiceEntryDto = { userId: user.id, ...updateEntryDTO }
 
     const updateUserProfileService = new AuditingDecorator(
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
-            this.queryUserRepository,
-            this.infraUserRepository,
-            this.fileUploader,
-            this.idGenerator,
-            this.encryptor
+            this.userRepository,
+            eventBus
           ),
           new NativeLogger(this.logger),
         ),
@@ -142,135 +161,44 @@ export class UserController {
 
     const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
 
-    if (!resultUpdate.isSuccess) {
-      return resultUpdate.Error
+    const updateUserProfileInfraService =
+      new AuditingDecorator(
+        new ExceptionDecorator(
+          new LoggingDecorator(
+            new UpdateUserProfileInfraService(
+              this.infraUserRepository,
+              this.odmAccountRepository,
+              this.idGenerator,
+              this.encryptor,
+              this.fileUploader
+            ),
+            new NativeLogger(this.logger),
+          ),
+          new HttpExceptionHandler(),
+        ),
+        this.auditingRepository,
+        this.idGenerator
+      );
+
+    if (updateEntryDTO.password || updateEntryDTO.image) {
+      const userInfraUpdateDto: UpdateUserProfileInfraServiceEntryDto = {
+        userId: user.id,
+        password: updateEntryDTO.password,
+        image: image
+      }
+
+      const updateInfraResult = await updateUserProfileInfraService.execute(userInfraUpdateDto)
+
+      if (!updateInfraResult.isSuccess) return updateInfraResult.Error
+      const Respuesta: UpdateUserProfileSwaggerResponseDto = { Id: updateInfraResult.Value.userId }
+      return Respuesta
     }
-    const Respuesta: UpdateUserProfileSwaggerResponseDto = {
-      Id: resultUpdate.Value.userId
-    }
-    return Respuesta
+
+    const respuesta: UpdateUserProfileSwaggerResponseDto = { Id: resultUpdate.Value.userId }
+
+    return respuesta
+    
   }
 
-  @Post('/follow/:trainerID')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description:
-      ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.',
-    type: FolloUnfollowSwaggerResponseDto,
-  })
-  async followTrainer(@Param('trainerID') id: string, @GetUser() user) {
-    const userTrainerFollowDTO = { userId: user.id, trainerId: id };
-
-    const followService = new ExceptionDecorator(
-      new LoggingDecorator(
-        new FollowTrainerUserApplicationService(this.trainerRepository),
-        new NativeLogger(this.logger),
-      ),
-      new HttpExceptionHandler(),
-    );
-
-    const resultado = await followService.execute(userTrainerFollowDTO);
-
-    if (!resultado.isSuccess) {
-      return resultado.Error;
-    }
-
-    return resultado.Value;
-  }
-
-  /*
-  @Delete('unfollow/:trainerID')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: ', dado el id del entrenador y del usuario',
-    type: FolloUnfollowSwaggerResponseDto,
-  })
-  async unfollowTrainer(@Param('trainerID') id: string, @GetUser() user: User) {
-    const userTrainerUnfollowDTO = { userId: user.Id, trainerId: id };
-
-    const unfollowService = new ExceptionDecorator(
-      new LoggingDecorator(
-        new UnfollowTrainerUserApplicationService(this.trainerRepository),
-        new NativeLogger(this.logger),
-      ),
-      new HttpExceptionHandler(),
-    );
-
-    const resultado = await unfollowService.execute(userTrainerUnfollowDTO);
-        if(!resultUpdate.isSuccess()){
-          return resultUpdate.Error
-        }
-
-        const Respuesta: UpdateUserProfileSwaggerResponseDto = {
-            Id: resultUpdate.Value.userId
-        }
-
-        return Respuesta
-
-    if (!resultado.isSuccess) {
-      return resultado.Error;
-    }
-
-    return resultado.Value;
-  }*/
-  // @Post('/follow/:trainerID')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
-  // @ApiOkResponse({
-  //     description: ' Agrega una nueva relacion entre un entrenador y un usuario, devuelve el id del entrenador; dado el id del entranador y del usuario.',
-  //     type: FolloUnfollowSwaggerResponseDto
-  // })
-  // async followTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-  // {
-
-  //     const userTrainerFollowDTO = {userId: user.Id,trainerId: id}
-
-  //     const followService = new ExceptionDecorator(
-  //         new LoggingDecorator(
-  //             new FollowTrainerUserApplicationService(this.trainerRepository),
-  //             new NativeLogger(this.logger)
-  //         ),
-  //         new HttpExceptionHandler()
-  //     )
-
-  //     const resultado = await followService.execute(userTrainerFollowDTO)
-
-  //     if(!resultado.isSuccess()){
-  //         return resultado.Error
-  //     }
-
-  //     return resultado.Value
-
-  // }
-
-  // @Delete('unfollow/:trainerID')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
-  // @ApiOkResponse({
-  //     description:', dado el id del entrenador y del usuario',
-  //     type: FolloUnfollowSwaggerResponseDto
-  // })
-  // async unfollowTrainer(@Param('trainerID') id: string, @GetUser()user: User)
-  // {
-  //     const userTrainerUnfollowDTO = {userId: user.Id, trainerId: id}
-
-  //     const unfollowService = new ExceptionDecorator(
-  //         new LoggingDecorator(
-  //             new UnfollowTrainerUserApplicationService(this.trainerRepository),
-  //             new NativeLogger(this.logger)
-  //         ),
-  //         new HttpExceptionHandler()
-  //     )
-
-  //     const resultado = await unfollowService.execute(userTrainerUnfollowDTO)
-
-  //     if(!resultado.isSuccess()){
-  //         return resultado.Error
-  //     }
-
-  //     return resultado.Value
-  // }
 
 }

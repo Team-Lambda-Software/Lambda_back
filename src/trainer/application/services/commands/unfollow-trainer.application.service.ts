@@ -21,7 +21,6 @@ export class UnfollowTrainerApplicationService implements IApplicationService<To
     
     async execute(data: TogggleTrainerFollowServiceEntryDto): Promise<Result<ToggleTrainerFollowServiceResponseDto>> {
         //TEST
-            console.log("service execution started");
         let isIncluded:boolean = false;
         const trainerValue = data.trainer;
         let trainerFollowers:TrainerFollowers = trainerValue.FollowersID;
@@ -37,7 +36,6 @@ export class UnfollowTrainerApplicationService implements IApplicationService<To
             }
         }
         //TEST
-            console.log("Follow check done.", isIncluded);
 
         let toggleResult:Result<string>;
         if (isIncluded)
@@ -49,13 +47,11 @@ export class UnfollowTrainerApplicationService implements IApplicationService<To
             return Result.fail<ToggleTrainerFollowServiceResponseDto>(new Error("No se encuentra siguiendo al entrenador. No es posible desuscribir"), 409, "No se encuentra siguiendo al entrenador. No es posible desuscribir");
         }
         //TEST
-            console.log("Domain toggle finished.", toggleResult);
         if (!toggleResult.isSuccess())
         {
             return Result.fail<ToggleTrainerFollowServiceResponseDto>(toggleResult.Error, toggleResult.StatusCode, toggleResult.Message);
         }
         //TEST
-            console.log("Domain toggle success");
 
         const persistenceUpdateResult = await this.trainerRepository.unfollowTrainer(trainerId.Value, userId.Id);
         if (!persistenceUpdateResult.isSuccess())
@@ -63,10 +59,8 @@ export class UnfollowTrainerApplicationService implements IApplicationService<To
             return Result.fail<ToggleTrainerFollowServiceResponseDto>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
         }
         //TEST
-            console.log("Persistence toggle success");
         await this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
-            console.log("service execution success");
         return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscripcion eliminada exitosamente"}, 200 );
     }
 

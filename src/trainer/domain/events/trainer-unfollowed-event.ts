@@ -4,14 +4,14 @@ import { TrainerId } from "../value-objects/trainer-id";
 
 export class TrainerUnfollowed extends DomainEvent {
     protected constructor(
-        public trainerId: TrainerId,
-        public userId: UserId
+        public trainerId: string,
+        public userId: string
     )
     {
         super();
     }
 
-    static create( trainerId:TrainerId, userId:UserId ): TrainerUnfollowed
+    static create( trainerId:string, userId:string ): TrainerUnfollowed
     {
         return new TrainerUnfollowed(trainerId, userId);
     }

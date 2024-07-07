@@ -12,11 +12,6 @@ export class UserName implements IValueObject<UserName> {
         if (!_existente)
             throw new InvalidUserName('El nombre no puede estar vacío');
 
-        const regex = /^[a-zA-Z]+\s.+/;
-
-        if (!regex.test(name))
-            throw new InvalidUserName(`El nombre ${name} no es valido`);
-
         if (name.length < 3 || name.length > 50) {
             throw new InvalidUserName(
                 `El nombre ${name} no es valido por la cantidad de caracteres`,

@@ -1,16 +1,15 @@
+/* eslint-disable prettier/prettier */
 import { DomainEvent } from 'src/common/Domain/domain-event/domain-event';
-import { UserId } from '../value-objects/user-id';
-import { UserName } from '../value-objects/user-name';
 
 export class UserNameModified extends DomainEvent {
     protected constructor(
-        public userId: UserId,
-        public userName: UserName,
+        public userId: string,
+        public userName: string,
     ) {
         super();
     }
 
-    static create(id: UserId, name: UserName) {
+    static create(id: string, name: string) {
         return new UserNameModified(id, name);
     }
 }

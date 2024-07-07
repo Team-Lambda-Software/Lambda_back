@@ -1,22 +1,18 @@
-import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { GetTrainerProfileServiceEntryDto } from "../../dto/parameters/get-trainer-profile-service-entry.dto";
-import { GetTrainerProfileServiceResponseDto } from "../../dto/responses/get-trainer-profile-service-response.dto";
-import { Result } from "src/common/Domain/result-handler/Result";
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
-import { Trainer } from "src/trainer/domain/trainer";
+import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
+import { Result } from "src/common/Domain/result-handler/Result"
 //Couple service to Course,Blog repositories
-import { IBlogRepository } from "src/blog/domain/repositories/blog-repository.interface";
-import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
-import { TrainerLocation } from "src/trainer/domain/value-objects/trainer-location";
+import { GetTrainerProfileServiceEntryDto } from "../dto/parameters/get-trainer-profile-service-entry.dto"
+import { GetTrainerProfileServiceResponseDto } from "../dto/response/get-trainer-profile-service-response.dto"
+import { TrainerQueryRepository } from "../../repositories/trainer-query-repository.interface"
 
 export class GetTrainerProfileApplicationService implements IApplicationService<GetTrainerProfileServiceEntryDto, GetTrainerProfileServiceResponseDto>
 {
-    private readonly trainerRepository: ITrainerRepository;
+    private readonly trainerRepository: TrainerQueryRepository;
     //unused According to the specifications of the common API, this data is not used when requesting a trainer
     // private readonly blogRepository: IBlogRepository;
     // private readonly courseRepository: ICourseRepository;
 
-    constructor (trainerRepository: ITrainerRepository)
+    constructor (trainerRepository: TrainerQueryRepository)
     {
         this.trainerRepository = trainerRepository;
     }
@@ -30,27 +26,26 @@ export class GetTrainerProfileApplicationService implements IApplicationService<
         }
         const trainer = resultTrainer.Value;
 
-        const resultCount = await this.trainerRepository.getFollowerCount(trainer.Id.Value);
+        const resultCount = await this.trainerRepository.getFollowerCount(trainer.id);
         if (!resultCount.isSuccess())
         {
             return Result.fail<GetTrainerProfileServiceResponseDto>( resultCount.Error, resultCount.StatusCode, resultCount.Message );
         }
         const followerCount = resultCount.Value;
 
-        const resultFollowFlag = await this.trainerRepository.checkIfFollowerExists(trainer.Id.Value, data.userId);
+        const resultFollowFlag = await this.trainerRepository.checkIfFollowerExists(trainer.id, data.userId);
         if (!resultFollowFlag.isSuccess())
         {
             return Result.fail<GetTrainerProfileServiceResponseDto>( resultFollowFlag.Error, resultFollowFlag.StatusCode, resultFollowFlag.Message );
         }
         const doesUserFollow = resultFollowFlag.Value;
 
-        const trainerName = trainer.Name.FirstName + " " + trainer.Name.FirstLastName + " " + trainer.Name.SecondLastName;
-        const trainerId = trainer.Id.Value;
+        const trainerName = trainer.first_name + " " + trainer.first_last_name + " " + trainer.second_last_name;
+        const trainerId = trainer.id;
         let trainerLocation:string = null;
-        let locationVO: TrainerLocation = trainer.Location;
-        if (locationVO)
+        if (trainer.latitude != "null" && trainer.longitude != "null")
         {
-            trainerLocation = trainer.Location.Latitude + ", " + trainer.Location.Longitude;
+            trainerLocation = trainer.latitude + ", " + trainer.longitude;
         }
 
         //. Same reason as above 'unused' flag

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
 
-export interface UpdateUserProfileServiceResponseDto extends ApplicationServiceEntryDto {
+export interface UpdateUserProfileInfraServiceResponseDto extends ApplicationServiceEntryDto {
 
-    userId: string
+    userId: string,
 }
