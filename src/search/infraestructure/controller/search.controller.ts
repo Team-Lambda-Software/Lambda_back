@@ -52,7 +52,7 @@ export class SearchController
 
     }
 
-    @Get( '' )
+    @Get( '/all' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Devuelve la informacion de los cursos y blogs que tengan el nombre dado', type: SearchAllSwaggerResponseDto } )
