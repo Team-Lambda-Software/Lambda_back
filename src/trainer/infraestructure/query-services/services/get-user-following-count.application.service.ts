@@ -1,14 +1,14 @@
-import { IApplicationService } from "src/common/Application/application-services/application-service.interface";
-import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { GetUserFollowingCountServiceResponseDto } from "../../dto/responses/get-user-following-count-service-response.dto";
-import { ITrainerRepository } from "src/trainer/domain/repositories/trainer-repository.interface";
-import { Result } from "src/common/Domain/result-handler/Result";
+import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
+import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto"
+import { Result } from "src/common/Domain/result-handler/Result"
+import { GetUserFollowingCountServiceResponseDto } from "../dto/response/get-user-following-count-service-response.dto"
+import { TrainerQueryRepository } from "../../repositories/trainer-query-repository.interface"
 
 export class GetUserFollowingCountApplicationService implements IApplicationService<ApplicationServiceEntryDto, GetUserFollowingCountServiceResponseDto>
 {
-    private readonly trainerRepository: ITrainerRepository;
+    private readonly trainerRepository: TrainerQueryRepository;
 
-    constructor(trainerRepository: ITrainerRepository)
+    constructor(trainerRepository: TrainerQueryRepository)
     {
         this.trainerRepository = trainerRepository;
     }

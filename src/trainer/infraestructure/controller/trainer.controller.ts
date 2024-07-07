@@ -2,13 +2,11 @@ import { Controller, Get, Inject, Logger, NotFoundException, Param, ParseUUIDPip
 import { OrmTrainerRepository } from "../repositories/orm-repositories/orm-trainer-repository"
 import { OrmTrainerMapper } from "../mappers/orm-mapper/orm-trainer-mapper"
 import { DataSource } from "typeorm"
-import { GetTrainerProfileApplicationService } from "src/trainer/application/services/queries/get-trainer-profile.application.service"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { OrmBlogMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-mapper"
 import { OrmBlogCommentMapper } from "src/blog/infraestructure/mappers/orm-mappers/orm-blog-comment-mapper"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetTrainerProfileSwaggerResponseDto } from "../dto/response/get-trainer-profile-swagger-response.dto"
-import { User } from "src/user/domain/user"
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 //A trainer teaches courses, and writes blogs
@@ -24,26 +22,30 @@ import { LoggingDecorator } from "src/common/Application/application-services/de
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { IApplicationService } from "src/common/Application/application-services/application-service.interface"
-import { FollowUnfollowEntryDtoService } from "src/user/application/dto/params/follow-unfollow-entry-Service"
-import { Trainer } from "src/trainer/domain/trainer"
 //import { GetTrainerService } from "../query-services/services/get-trainer.service"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmTrainerEntity } from "../entities/odm-entities/odm-trainer.entity"
 import { OdmTrainerRepository } from "../repositories/odm-repositories/odm-trainer-repository"
-import { EventBus } from "src/common/Infraestructure/event-bus/event-bus"
 import { GetManyTrainersSwaggerResponseDto } from "../dto/response/get-many-trainers-response.dto"
 import { GetManyTrainersSwaggerEntryDto } from "../dto/entry/get-many-trainers-entry.dto"
-import { GetManyTrainersServiceEntryDto } from "src/trainer/application/dto/parameters/get-many-trainers-service-entry.dto"
-import { GetManyTrainersServiceResponseDto } from "src/trainer/application/dto/responses/get-many-trainers-service-response.dto"
-import { GetAllFollowedTrainersApplicationService } from "src/trainer/application/services/queries/get-all-followed-trainers.application.service"
-import { GetAllTrainersApplicationService } from "src/trainer/application/services/queries/get-all-trainers.application.service"
 import { GetUserFollowingCountSwaggerResponseDto } from "../dto/response/get-user-following-count-response.dto"
-import { GetUserFollowingCountApplicationService } from "src/trainer/application/services/queries/get-user-following-count.application.service"
 import { TogggleTrainerFollowServiceEntryDto } from "src/trainer/application/dto/parameters/toggle-trainer-follow-service-entry.dto"
 import { ToggleTrainerFollowServiceResponseDto } from "src/trainer/application/dto/responses/toggle-trainer-follow-service-response.dto"
 import { UnfollowTrainerApplicationService } from "src/trainer/application/services/commands/unfollow-trainer.application.service"
 import { FollowTrainerApplicationService } from "src/trainer/application/services/commands/follow-trainer.application.service"
+import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity"
+import { GetManyTrainersServiceEntryDto } from "../query-services/dto/parameters/get-many-trainers-service-entry.dto"
+import { GetManyTrainersServiceResponseDto } from "../query-services/dto/response/get-many-trainers-service-response.dto"
+import { GetAllFollowedTrainersApplicationService } from "../query-services/services/get-all-followed-trainers.application.service"
+import { GetAllTrainersApplicationService } from "../query-services/services/get-all-trainers.application.service"
+import { GetTrainerProfileApplicationService } from "../query-services/services/get-trainer-profile.application.service"
+import { GetUserFollowingCountApplicationService } from "../query-services/services/get-user-following-count.application.service"
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { TrainerFollowed } from "src/trainer/domain/events/trainer-followed-event"
+import { TrainerFollowQuerySyncronizer } from "../query-synchronizers/trainer-follow-query-synchronizer"
+import { TrainerUnfollowed } from "src/trainer/domain/events/trainer-unfollowed-event"
+import { TrainerUnFollowQuerySyncronizer } from "../query-synchronizers/trainer-unfollow-query-synchronizer"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -58,11 +60,12 @@ export class TrainerController {
     private readonly logger:Logger = new Logger( "TrainerController" );
 
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource,
-        @InjectModel('Trainer') private readonly trainerModel: Model<OdmTrainerEntity>       
+        @InjectModel('Trainer') private readonly trainerModel: Model<OdmTrainerEntity>,
+        @InjectModel('User') private readonly userModel: Model<OdmUserEntity> 
     )
     {
         this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource);
-        this.odmTrainerRepository = new OdmTrainerRepository(trainerModel);
+        this.odmTrainerRepository = new OdmTrainerRepository(trainerModel, userModel);
 
         this.courseRepository =
             new OrmCourseRepository(
@@ -91,7 +94,7 @@ export class TrainerController {
             new ExceptionDecorator(
                 new LoggingDecorator(
                     new GetTrainerProfileApplicationService(
-                        this.trainerRepository
+                        this.odmTrainerRepository
                     ),
                     new NativeLogger( this.logger )
                 ),
@@ -108,7 +111,7 @@ export class TrainerController {
     @ApiBearerAuth()
     async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
     {
-        const eventBus = EventBus.getInstance();
+        const eventBus = RabbitEventBus.getInstance();
         //to-do Sync databases on follow/unfollow event instance
 
         const trainerResult = await this.trainerRepository.findTrainerById(id);
@@ -117,9 +120,7 @@ export class TrainerController {
             throw new NotFoundException( trainerResult.Message );
         }
         const trainer = trainerResult.Value;
-
-        //TEST
-            console.log("Trainer found. Continuing...");
+        trainer.pullEvents();
         
         let baseService:IApplicationService<TogggleTrainerFollowServiceEntryDto, ToggleTrainerFollowServiceResponseDto>;
 
@@ -130,10 +131,12 @@ export class TrainerController {
             if (doesFollow)
             {
                 baseService = new UnfollowTrainerApplicationService(this.trainerRepository, eventBus);
+                
             }
             else
             {
                 baseService = new FollowTrainerApplicationService(this.trainerRepository, eventBus);
+                
             }
         }
 
@@ -146,6 +149,16 @@ export class TrainerController {
             new HttpExceptionHandler()
         );
         await service.execute({userId: user.id, trainer: trainer})
+        if ( baseService instanceof FollowTrainerApplicationService )
+            eventBus.subscribe( TrainerFollowed.name, async (event: TrainerFollowed) => {
+                const synchonizer = new TrainerFollowQuerySyncronizer(this.odmTrainerRepository);
+                synchonizer.execute(event);
+            })
+        else 
+            eventBus.subscribe( TrainerUnfollowed.name, async (event: TrainerUnfollowed) => {
+                const synchonizer = new TrainerUnFollowQuerySyncronizer(this.odmTrainerRepository);
+                synchonizer.execute(event);
+            })
     }
 
     @Get('many')
@@ -162,21 +175,18 @@ export class TrainerController {
         if (data.userFollow != undefined)
         {
             //TEST
-                console.log("Not undefined. Value string: ", data.userFollow);
             doFollowFilter = data.userFollow;
         }
 
         if (doFollowFilter == true)
         {
-            baseService = new GetAllFollowedTrainersApplicationService( this.trainerRepository );
+            baseService = new GetAllFollowedTrainersApplicationService( this.odmTrainerRepository );
             //TEST
-                console.log("Generated followers' filter");
         }
         else
         {
-            baseService = new GetAllTrainersApplicationService( this.trainerRepository );
+            baseService = new GetAllTrainersApplicationService( this.odmTrainerRepository );
             //TEST
-                console.log("Generated unfiltered service");
         }
 
         const service = 
@@ -218,7 +228,7 @@ export class TrainerController {
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                new GetUserFollowingCountApplicationService( this.trainerRepository ),
+                new GetUserFollowingCountApplicationService( this.odmTrainerRepository ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()

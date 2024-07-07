@@ -4,5 +4,4 @@ import { ApplicationServiceEntryDto } from "src/common/Application/application-s
 export interface UpdateUserProfileServiceResponseDto extends ApplicationServiceEntryDto {
 
     userId: string
-
 }

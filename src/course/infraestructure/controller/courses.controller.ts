@@ -141,7 +141,7 @@ export class CourseController
 
         this.odmCourseMapper = new OdmCourseMapper()
 
-        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel )
+        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel, this.userModel)
         this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
         this.courseQuerySyncronizer = new CourseQuerySyncronizer(
             this.odmCourseRepository,

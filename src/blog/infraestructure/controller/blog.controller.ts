@@ -102,7 +102,7 @@ export class BlogController
             blogCommentModel
         )
 
-        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel )
+        this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel, this.userModel )
         this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
         this.blogQuerySyncronizer = new BlogQuerySyncronizer(
             this.odmBlogRepository,

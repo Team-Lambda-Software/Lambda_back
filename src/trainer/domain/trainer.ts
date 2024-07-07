@@ -50,7 +50,11 @@ export class Trainer extends AggregateRoot<TrainerId> {
 
     protected constructor (id: TrainerId, name:TrainerName, email:TrainerEmail, phone:TrainerPhone, followers: TrainerFollowers, location?: TrainerLocation)
     {
-        const trainerCreated: TrainerCreated = TrainerCreated.create( id, name, email, phone, followers, location);
+        const trainerCreated: TrainerCreated = TrainerCreated.create( id.Value, 
+            {firstName: name.FirstName, firstLastName: name.FirstLastName, secondLastName: name.SecondLastName}, 
+            email.Value, phone.Value, 
+            followers.Value.map(follower => follower.Id), 
+            {latitude: location?.Latitude, longitude: location?.Longitude});
         super(id, trainerCreated);
     }
 
@@ -58,19 +62,19 @@ export class Trainer extends AggregateRoot<TrainerId> {
         switch (event.eventName) { //to-do Model the other domain events
             case 'TrainerCreated':
                 const trainerCreated: TrainerCreated = event as TrainerCreated;
-                this.name = trainerCreated.name;
-                this.email = trainerCreated.email;
-                this.phone = trainerCreated.phone;
-                this.followers = trainerCreated.followers;
-                this.location = trainerCreated.location;
+                this.name = TrainerName.create(trainerCreated.name.firstName, trainerCreated.name.firstLastName, trainerCreated.name.secondLastName);
+                this.email = TrainerEmail.create(trainerCreated.email);
+                this.phone = TrainerPhone.create(trainerCreated.phone);
+                this.followers = TrainerFollowers.create(trainerCreated.followers.map( follower => UserId.create(follower) ));
+                this.location = TrainerLocation.create(trainerCreated.location.latitude, trainerCreated.location.longitude);
                 break;
             case 'TrainerFollowed':
                 const trainerFollowed: TrainerFollowed = event as TrainerFollowed;
-                this.updateAddedFollower(trainerFollowed.userId);
+                this.updateAddedFollower(UserId.create(trainerFollowed.userId));
                 break;
             case 'TrainerUnfollowed':
                 const trainerUnfollowed: TrainerUnfollowed = event as TrainerUnfollowed;
-                this.updateRemovedFollower(trainerUnfollowed.userId);
+                this.updateRemovedFollower(UserId.create(trainerUnfollowed.userId));
                 break;
         }
     }
@@ -126,7 +130,7 @@ export class Trainer extends AggregateRoot<TrainerId> {
         }
         else //May follow the desired trainer
         {
-            this.onEvent(TrainerFollowed.create(this.Id, userId));
+            this.onEvent(TrainerFollowed.create(this.Id.Value, userId.Id));
             return Result.success<string>( "Cambio exitoso", 200 );
         }
     }
@@ -149,7 +153,7 @@ export class Trainer extends AggregateRoot<TrainerId> {
         }
         else //May unfollow the desired trainer
         {
-            this.onEvent(TrainerUnfollowed.create(this.Id, userId));
+            this.onEvent(TrainerUnfollowed.create(this.Id.Value, userId.Id));
             return Result.success<string>( "Cambio exitoso", 200 );
         }
     }
