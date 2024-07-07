@@ -1,5 +1,5 @@
 import { Course } from "src/course/domain/course";
-import { CourseSubscription } from "../entities/course-subscription";
+import { CourseSubscription } from "../course-subscription";
 import { SectionNotExistsException } from "../exceptions/section-not-exists-exception";
 import { SectionCompletionPercent } from "../entities/progress-section/value-objects/section-completion-percent";
 import { CourseCompletionPercent } from "../value-objects/course-completion-percent";

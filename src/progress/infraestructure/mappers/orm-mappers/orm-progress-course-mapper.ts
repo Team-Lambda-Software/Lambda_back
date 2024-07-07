@@ -1,6 +1,6 @@
 import { IMapper } from "src/common/Application/mapper/mapper.interface";
 import { OrmProgressCourse } from "../../entities/orm-entities/orm-progress-course";
-import { CourseSubscription } from "src/progress/domain/entities/course-subscription";
+import { CourseSubscription } from "src/progress/domain/course-subscription";
 import { CourseSubscriptionId } from "src/progress/domain/value-objects/course-subscription-id";
 import { CourseProgressionDate } from "src/progress/domain/value-objects/course-progression-date";
 import { CourseCompletion } from "src/progress/domain/value-objects/course-completed";
@@ -11,13 +11,16 @@ export class OrmProgressCourseMapper implements IMapper<CourseSubscription, OrmP
 {
     async fromDomainToPersistence(domain: CourseSubscription, completionPercent?:number): Promise<OrmProgressCourse> 
     {
-        const persistenceProgress = OrmProgressCourse.create(domain.Id.Value, domain.CourseId.Value, domain.UserId.Id, domain.IsCompleted.Value, 0, domain.LastProgressionDate.Value);
+        const persistenceProgress = OrmProgressCourse.create(domain.Id.Value, domain.CourseId.Value, domain.UserId.Id, domain.IsCompleted.Value, 0);
         if (completionPercent != undefined) { persistenceProgress.completion_percent = completionPercent; }
         return persistenceProgress;
     }
 
     async fromPersistenceToDomain(persistence: OrmProgressCourse): Promise<CourseSubscription> 
     {
+        //TEST Is this a date?
+            console.log("Date type...");
+            console.log(typeof(persistence.last_seen_date));
         const domainProgress = CourseSubscription.create(
             CourseSubscriptionId.create( persistence.progress_id ),
             CourseProgressionDate.create( persistence.last_seen_date ),

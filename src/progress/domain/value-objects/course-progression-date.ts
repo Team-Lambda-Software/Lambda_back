@@ -9,7 +9,7 @@ export class CourseProgressionDate implements IValueObject<CourseProgressionDate
 
     protected constructor(lastProgression: Date)
     {
-        if (Date.now() < lastProgression.getTime())
+        if (Date.now() < (lastProgression.getTime() - 24*3600*1000)) //Let up to 24 hours of error, for tolerance against different timezones
         {
             throw new InvalidCourseProgressionDateException();
         }

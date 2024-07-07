@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course";
 import { last } from "rxjs";
@@ -23,9 +23,9 @@ export class OrmProgressCourse
 
     @Column('boolean') completed:boolean;
     @Column('numeric') completion_percent:number;
-    @Column('date') last_seen_date:Date;
+    @UpdateDateColumn() last_seen_date:Date; //to-do add timestamp
 
-    static create (progressId:string, courseId:string, userId:string, isCompleted:boolean, completionPercent:number, lastSeenDate?:Date): OrmProgressCourse
+    static create (progressId:string, courseId:string, userId:string, isCompleted:boolean, completionPercent:number): OrmProgressCourse
     {
         const courseProgress = new OrmProgressCourse();
         courseProgress.progress_id = progressId;
@@ -33,8 +33,6 @@ export class OrmProgressCourse
         courseProgress.user_id = userId;
         courseProgress.completed = isCompleted;
         courseProgress.completion_percent = completionPercent;
-        if (lastSeenDate === undefined) { courseProgress.last_seen_date = new Date(); }
-        else { courseProgress.last_seen_date = lastSeenDate; }
         return courseProgress;
     }
 }

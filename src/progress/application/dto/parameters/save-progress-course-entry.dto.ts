@@ -1,5 +1,4 @@
 import { ApplicationServiceEntryDto } from "src/common/Application/application-services/dto/application-service-entry.dto";
-import { ProgressSection } from "src/progress/domain/entities/progress-section";
 
 export interface SaveCourseProgressServiceEntryDto extends ApplicationServiceEntryDto
 {

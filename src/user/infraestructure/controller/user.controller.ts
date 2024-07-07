@@ -30,7 +30,6 @@ import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.gu
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
 import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto";
-import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"

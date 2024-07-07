@@ -1,26 +1,26 @@
 import { AggregateRoot } from "src/common/Domain/aggregate-root/aggregate-root";
-import { CourseSubscriptionId } from "../value-objects/course-subscription-id";
-import { CourseProgressionDate } from "../value-objects/course-progression-date";
-import { CourseCompletion } from "../value-objects/course-completed";
-import { SectionProgress } from "./progress-section/section-progress";
+import { CourseSubscriptionId } from "./value-objects/course-subscription-id";
+import { CourseProgressionDate } from "./value-objects/course-progression-date";
+import { CourseCompletion } from "./value-objects/course-completed";
+import { SectionProgress } from "./entities/progress-section/section-progress";
 import { CourseId } from "src/course/domain/value-objects/course-id";
 import { UserId } from "src/user/domain/value-objects/user-id";
-import { SectionProgressId } from "./progress-section/value-objects/section-progress-id";
-import { SectionProgressNotExistsException } from "../exceptions/section-progress-not-exists-exception";
-import { InvalidCourseSubscriptionException } from "../exceptions/invalid-course-subscription-exception";
-import { CourseSubscriptionCreated } from "../events/course-subscription-created-event";
+import { SectionProgressId } from "./entities/progress-section/value-objects/section-progress-id";
+import { SectionProgressNotExistsException } from "./exceptions/section-progress-not-exists-exception";
+import { InvalidCourseSubscriptionException } from "./exceptions/invalid-course-subscription-exception";
+import { CourseSubscriptionCreated } from "./events/course-subscription-created-event";
 import { DomainEvent } from "src/common/Domain/domain-event/domain-event";
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id";
-import { SectionVideoProgress } from "./progress-section/value-objects/section-video-progress";
-import { SectionProgressAlreadyExistsException } from "../exceptions/section-progress-already-exists-exception";
-import { SectionInitiated } from "../events/section-initiated-event";
-import { CourseCompletionPercent } from "../value-objects/course-completion-percent";
-import { CourseInitiated } from "../events/course-initiated-event";
-import { SectionCompletionPercent } from "./progress-section/value-objects/section-completion-percent";
-import { SectionCompletion } from "./progress-section/value-objects/section-completed";
-import { SectionCompleted } from "../events/section-completed-event";
-import { UserHasProgressed } from "../events/user-has-progressed-event";
-import { CourseCompleted } from "../events/course-completed-event";
+import { SectionVideoProgress } from "./entities/progress-section/value-objects/section-video-progress";
+import { SectionProgressAlreadyExistsException } from "./exceptions/section-progress-already-exists-exception";
+import { SectionInitiated } from "./events/section-initiated-event";
+import { CourseCompletionPercent } from "./value-objects/course-completion-percent";
+import { CourseInitiated } from "./events/course-initiated-event";
+import { SectionCompletionPercent } from "./entities/progress-section/value-objects/section-completion-percent";
+import { SectionCompletion } from "./entities/progress-section/value-objects/section-completed";
+import { SectionCompleted } from "./events/section-completed-event";
+import { UserHasProgressed } from "./events/user-has-progressed-event";
+import { CourseCompleted } from "./events/course-completed-event";
 
 export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
 {
@@ -58,6 +58,18 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
     get LastProgressionDate(): CourseProgressionDate
     {
         return CourseProgressionDate.create( this.lastProgression.Value );
+    }
+
+    public getSectionProgressIdBySectionId(sectionId:SectionId):SectionProgressId
+    {
+        for (let section of this.sectionProgress)
+        {
+            if (section.SectionId.equals(sectionId))
+            {
+                return section.Id;
+            }
+        }
+        throw new SectionProgressNotExistsException();
     }
 
     public getVideoProgressBySectionId(sectionId:SectionId):SectionVideoProgress
@@ -112,6 +124,12 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         return new CourseSubscription( id, lastProgression, isCompleted, sectionProgress, courseId, userId );
     }
 
+    //Copies the given section progress and associates it with the current course. If said section already exists, fails
+    public saveSection (newSection: SectionProgress):void
+    {
+        this.createSectionProgress( newSection.Id, newSection.SectionId, newSection.IsCompleted, newSection.VideoProgress );
+    }
+
     public createSectionProgress ( id:SectionProgressId, sectionId:SectionId, isCompleted:SectionCompletion, videoProgress:SectionVideoProgress ): SectionProgress
     {
         const sectionProgress: SectionProgress = SectionProgress.create(id, sectionId, isCompleted, videoProgress);
@@ -129,16 +147,25 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         return sectionProgress;
     }
 
-    public checkIfAlreadyInitiated (completion:CourseCompletionPercent)
+    public initiateCourseProgress()
     {
-        if (completion.Value === 0) //Not initiated before, now initiating
-        {
-            const courseInitiated:CourseInitiated = CourseInitiated.create(this.userId.Id, this.courseId.Value);
-            this.onEvent(courseInitiated);
-        }
+        const courseInitiated:CourseInitiated = CourseInitiated.create(this.userId.Id, this.courseId.Value);
+        this.onEvent(courseInitiated);
     }
 
-    public updateSectionProgress ( id:SectionProgressId, seconds:SectionVideoProgress, isCompleted?:SectionCompletion )
+    //unused
+    // public checkIfAlreadyInitiated (completion:CourseCompletionPercent):boolean
+    // {
+    //     if (completion.Value === 0) //Not initiated before, now initiating
+    //     {
+    //         const courseInitiated:CourseInitiated = CourseInitiated.create(this.userId.Id, this.courseId.Value);
+    //         this.onEvent(courseInitiated);
+    //         return false;
+    //     }
+    //     return true;
+    // }
+
+    public updateSectionProgress ( id:SectionProgressId, seconds?:SectionVideoProgress, isCompleted?:SectionCompletion)
     {
         let sectionProgress: SectionProgress = undefined;
         for (let section of this.sectionProgress)
@@ -153,7 +180,10 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         {
             throw new SectionProgressNotExistsException();
         }
-        sectionProgress.updateVideoProgress(seconds);
+        if (seconds != undefined)
+        {
+            sectionProgress.updateVideoProgress(seconds);
+        }
         if (isCompleted != undefined) 
         {
             sectionProgress.updateCompletion(isCompleted);

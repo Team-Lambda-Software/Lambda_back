@@ -1,5 +1,5 @@
 import { Course } from "src/course/domain/course";
-import { CourseSubscription } from "../entities/course-subscription";
+import { CourseSubscription } from "../course-subscription";
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id";
 import { SectionNotExistsException } from "../exceptions/section-not-exists-exception";
 import { SectionDuration } from "src/course/domain/entities/section/value-objects/section-duration";
@@ -8,6 +8,9 @@ import { SectionCompletionPercent } from "../entities/progress-section/value-obj
 export class CalculateSectionCompletionPercentDomainService {
     execute (course:Course, subscription:CourseSubscription, sectionId:SectionId):SectionCompletionPercent
     {
+        //TEST
+            console.log("Checking if section exists...");
+            console.log("In course...", course.Sections);
         if (!course.checkSectionExists(sectionId))
         {
             throw new SectionNotExistsException();
