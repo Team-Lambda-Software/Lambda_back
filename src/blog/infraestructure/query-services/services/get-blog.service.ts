@@ -26,6 +26,7 @@ export class GetBlogService implements IApplicationService<GetBlogServiceEntryDt
         const blog = resultBlog.Value
         
         const response: GetBlogServiceResponseDto = {
+            id: blog.id,
             title: blog.title,
             description: blog.body,
             category: blog.category.categoryName,
