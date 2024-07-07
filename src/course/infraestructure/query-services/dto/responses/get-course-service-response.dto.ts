@@ -4,6 +4,7 @@
 
 export interface GetCourseServiceResponseDto {
 
+    id: string
     title: string
     description: string
     category: string
@@ -12,7 +13,7 @@ export interface GetCourseServiceResponseDto {
         id: string
         name: string
     }
-    level: string
+    level: number
     durationWeeks: number
     durationMinutes: number
     tags: string[]
