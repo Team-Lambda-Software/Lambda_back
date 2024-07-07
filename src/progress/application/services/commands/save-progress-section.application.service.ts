@@ -48,7 +48,7 @@ export class SaveSectionProgressApplicationService implements IApplicationServic
         {
             return Result.fail<SaveSectionProgressServiceResponseDto>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
         }
-        const progressUpdate:CourseSubscription = progressResult.Value;
+        const progressUpdate:CourseSubscription = progressResult.Value; progressUpdate.pullEvents();
         const sectionProgressId:SectionProgressId = progressUpdate.getSectionProgressIdBySectionId(SectionId.create(data.sectionId));
 
         let responseDTO:SaveSectionProgressServiceResponseDto = {courseWasCompleted:false, sectionWasCompleted:false};

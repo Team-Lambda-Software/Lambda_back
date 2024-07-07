@@ -43,7 +43,7 @@ export class InitiateCourseProgressApplicationService implements IApplicationSer
         {
             return Result.fail<InitiateCourseProgressResponseDto>(newCourseProgressResult.Error, newCourseProgressResult.StatusCode, newCourseProgressResult.Message);
         }
-        const newCourseProgress = newCourseProgressResult.Value;
+        const newCourseProgress = newCourseProgressResult.Value; newCourseProgress.pullEvents();
         newCourseProgress.initiateCourseProgress();
         //TEST
             console.log("New progress created");
