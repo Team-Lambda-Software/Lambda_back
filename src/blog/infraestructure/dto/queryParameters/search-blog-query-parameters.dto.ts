@@ -9,6 +9,7 @@ export class SearchBlogQueryParametersDto extends PaginationDto {
     @ApiProperty( { required: false, default: 'RECENT' })
     @IsString()
     @IsIn(['POPULAR', 'RECENT'])
+    @IsOptional()
     @Type( () => String ) // enableImplicitConversions: true
     filter: string;
     
