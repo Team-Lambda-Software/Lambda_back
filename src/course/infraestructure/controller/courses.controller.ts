@@ -72,6 +72,7 @@ import { OdmNotificationAlertRepository } from "src/notification/infraestructure
 import { FirebaseNotifier } from "src/notification/infraestructure/notifier/firebase-notifier-singleton"
 import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 
 @ApiTags( 'Course' )
@@ -195,13 +196,16 @@ export class CourseController
             new ExceptionDecorator(
                 new AuditingDecorator(
                     new LoggingDecorator(
-                        new CreateCourseApplicationService(
-                            this.courseRepository,
-                            this.idGenerator,
-                            this.fileUploader,
-                            eventBus,
-                            this.trainerRepository,
-                            this.ormCategoryRepository
+                        new PerformanceDecorator(
+                            new CreateCourseApplicationService(
+                                this.courseRepository,
+                                this.idGenerator,
+                                this.fileUploader,
+                                eventBus,
+                                this.trainerRepository,
+                                this.ormCategoryRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -264,11 +268,14 @@ export class CourseController
             new ExceptionDecorator(
                 new AuditingDecorator(
                     new LoggingDecorator(
-                        new AddSectionToCourseApplicationService(
-                            this.courseRepository,
-                            this.idGenerator,
-                            this.fileUploader,
-                            eventBus
+                        new PerformanceDecorator(
+                            new AddSectionToCourseApplicationService(
+                                this.courseRepository,
+                                this.idGenerator,
+                                this.fileUploader,
+                                eventBus
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -304,10 +311,13 @@ export class CourseController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetCourseService(
-                        this.odmCourseRepository,
-                        this.imageGetter,
-                        this.imageTransformer
+                    new PerformanceDecorator(
+                        new GetCourseService(
+                            this.odmCourseRepository,
+                            this.imageGetter,
+                            this.imageTransformer
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),
@@ -333,9 +343,12 @@ export class CourseController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchMostPopularCoursesByCategoryService(
-                                this.odmCourseRepository,
-                                this.progressRepository
+                            new PerformanceDecorator(
+                                new SearchMostPopularCoursesByCategoryService(
+                                    this.odmCourseRepository,
+                                    this.progressRepository
+                                ),
+                                new NativeLogger( this.logger )
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -349,8 +362,11 @@ export class CourseController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchRecentCoursesByCategoryService(
-                                this.odmCourseRepository,
+                            new PerformanceDecorator(
+                                new SearchRecentCoursesByCategoryService(
+                                    this.odmCourseRepository,
+                                ),
+                                new NativeLogger( this.logger)
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -370,9 +386,12 @@ export class CourseController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchMostPopularCoursesByTrainerService(
-                            this.odmCourseRepository,
-                            this.progressRepository
+                        new PerformanceDecorator(
+                            new SearchMostPopularCoursesByTrainerService(
+                                this.odmCourseRepository,
+                                this.progressRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -386,8 +405,11 @@ export class CourseController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchRecentCoursesByTrainerService(
-                            this.odmCourseRepository
+                        new PerformanceDecorator(
+                            new SearchRecentCoursesByTrainerService(
+                                this.odmCourseRepository
+                            ),
+                            new NativeLogger( this.logger)
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -410,8 +432,11 @@ export class CourseController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetCourseCountService(
-                        this.odmCourseRepository
+                    new PerformanceDecorator(
+                        new GetCourseCountService(
+                            this.odmCourseRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),
