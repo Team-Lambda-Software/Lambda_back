@@ -60,7 +60,7 @@ export class GetCourseService implements IApplicationService<GetCourseServiceEnt
                 id: course.trainer.id,
                 name: course.trainer.first_name + ' ' + course.trainer.first_last_name + ' ' + course.trainer.second_last_name
             },
-            level: course.level.toString(),
+            level: course.level,
             durationWeeks: course.weeks_duration,
             durationMinutes: course.minutes_per_section,
             tags: course.tags,

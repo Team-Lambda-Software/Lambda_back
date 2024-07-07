@@ -13,7 +13,7 @@ export interface GetCourseServiceResponseDto {
         id: string
         name: string
     }
-    level: string
+    level: number
     durationWeeks: number
     durationMinutes: number
     tags: string[]
