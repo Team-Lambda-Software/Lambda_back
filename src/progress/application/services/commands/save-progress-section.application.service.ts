@@ -88,11 +88,7 @@ export class SaveSectionProgressApplicationService implements IApplicationServic
             return Result.fail<SaveSectionProgressServiceResponseDto>(updateResult.Error, updateResult.StatusCode, updateResult.Message);
         }
 
-        //TEST
-            console.log("Awaiting event publish");
         await this.eventHandler.publish ( progressUpdate.pullEvents() );
-        //TEST
-            console.log("Event publish success");
         return Result.success<SaveSectionProgressServiceResponseDto>( responseDTO, 200 );
     }
 
