@@ -71,6 +71,9 @@ import { UpdateUserProfileInfraServiceEntryDto } from '../services/dto/update-us
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserNameModified } from 'src/user/domain/events/user-name-modified-event';
 import { UserPhoneModified } from 'src/user/domain/events/user-phone-modified-event';
+import { EventBus } from 'src/common/Infraestructure/event-bus/event-bus';
+import { IAccountRepository } from 'src/user/application/interfaces/account-user-repository.interface';
+import { OdmAccountRepository } from '../repositories/odm-repository/odm-account-repository';
 
 
 @ApiTags('User')
@@ -89,7 +92,8 @@ export class UserController {
   //private readonly queryUserRepository: UserQueryRepository
   private readonly infraUserQuerySyncronizer: InfraUserQuerySynchronizer
   private readonly userQuerySyncronizer: UserQuerySynchronizer
-
+  private readonly odmAccountRepository: IAccountRepository<OdmUserEntity>
+    
   constructor(
     @Inject('DataSource') private readonly dataSource: DataSource,
     @InjectModel('User') private userModel: Model<OdmUserEntity>
@@ -106,6 +110,8 @@ export class UserController {
     this.auditingRepository = new OrmAuditingRepository(dataSource)
     this.infraUserQuerySyncronizer = new InfraUserQuerySynchronizer(this.odmUserRepository, userModel)
     this.userQuerySyncronizer = new UserQuerySynchronizer(this.odmUserRepository, userModel)
+    this.odmAccountRepository = new OdmAccountRepository( userModel )
+
   }
 
   @Patch('/update')
@@ -117,13 +123,25 @@ export class UserController {
     type: UpdateUserProfileSwaggerResponseDto,
   })
   async updateUser(@GetUser() user, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
-    const eventBus = RabbitEventBus.getInstance()
+    const eventBus = EventBus.getInstance()
     let image: File = null
+    if (updateEntryDTO.image) image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
 
-    if (updateEntryDTO.image) {
-      image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
-    }
+    if (updateEntryDTO.email) 
+      eventBus.subscribe('UserEmailModified', async (event: UserEmailModified) => {
+        await this.userQuerySyncronizer.execute(event)
+      })
 
+    if (updateEntryDTO.name) 
+      eventBus.subscribe('UserNameModified', async (event: UserNameModified) => {
+        await this.userQuerySyncronizer.execute(event)
+      })
+
+    if (updateEntryDTO.phone) 
+      eventBus.subscribe('UserPhoneModified', async (event: UserPhoneModified) => {
+        await this.userQuerySyncronizer.execute(event);
+      })
+    
     const userUpdateDto: UpdateUserProfileServiceEntryDto = { userId: user.id, ...updateEntryDTO }
 
     const updateUserProfileService = new AuditingDecorator(
@@ -143,35 +161,13 @@ export class UserController {
 
     const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
 
-    if (updateEntryDTO.email) {
-      eventBus.subscribe('UserEmailModified', async (event: UserEmailModified) => {
-        this.userQuerySyncronizer.execute(event)
-      })
-    }
-
-    if (updateEntryDTO.name) {
-      eventBus.subscribe('UserNameModified', async (event: UserNameModified) => {
-        this.userQuerySyncronizer.execute(event)
-      })
-    }
-
-    if (updateEntryDTO.phone) {
-      eventBus.subscribe('UserPhoneModified', async (event: UserPhoneModified) => {
-        this.userQuerySyncronizer.execute(event);
-      })
-    }
-
-    if (!resultUpdate.isSuccess()) {
-      return resultUpdate.Error
-    }
-
     const updateUserProfileInfraService =
       new AuditingDecorator(
         new ExceptionDecorator(
           new LoggingDecorator(
             new UpdateUserProfileInfraService(
               this.infraUserRepository,
-              this.infraUserQuerySyncronizer,
+              this.odmAccountRepository,
               this.idGenerator,
               this.encryptor,
               this.fileUploader
@@ -193,20 +189,15 @@ export class UserController {
 
       const updateInfraResult = await updateUserProfileInfraService.execute(userInfraUpdateDto)
 
-      if (!updateInfraResult.isSuccess)
-        return updateInfraResult.Error
-
-      const Respuesta: UpdateUserProfileSwaggerResponseDto = {
-        Id: updateInfraResult.Value.userId
-      }
-
+      if (!updateInfraResult.isSuccess) return updateInfraResult.Error
+      const Respuesta: UpdateUserProfileSwaggerResponseDto = { Id: updateInfraResult.Value.userId }
       return Respuesta
     }
 
-    const respuesta: UpdateUserProfileSwaggerResponseDto = {
-      Id: resultUpdate.Value.userId
-    }
+    const respuesta: UpdateUserProfileSwaggerResponseDto = { Id: resultUpdate.Value.userId }
+
     return respuesta
+    
   }
 
 

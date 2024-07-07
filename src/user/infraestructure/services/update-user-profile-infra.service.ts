@@ -11,24 +11,26 @@ import { OrmUser } from "../entities/orm-entities/user.entity";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
 import { IFileUploader } from "src/common/Application/file-uploader/file-uploader.interface";
+import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
+import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 
 export class UpdateUserProfileInfraService implements IApplicationService<UpdateUserProfileInfraServiceEntryDto,UpdateUserProfileInfraServiceResponseDto>{
     
     private readonly infraUserRepository: IInfraUserRepository
-    private readonly infraUserQuerySynchronizer: InfraUserQuerySynchronizer
+    private nosqlRepository: IAccountRepository<OdmUserEntity>
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
     private readonly fileUploader: IFileUploader
 
     constructor ( 
         infraUserRepository: IInfraUserRepository,
-        infraUserQuerySynchronizer: InfraUserQuerySynchronizer,
+        nosqlRepository: IAccountRepository<OdmUserEntity>,
         idGenerator: IdGenerator<string>,
         encryptor: IEncryptor,
         fileUploader: IFileUploader
     ){
         this.infraUserRepository = infraUserRepository
-        this.infraUserQuerySynchronizer = infraUserQuerySynchronizer
+        this.nosqlRepository = nosqlRepository
         this.idGenerator = idGenerator
         this.encryptor = encryptor
         this.fileUploader = fileUploader
@@ -51,14 +53,18 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             (data.image) ? await this.fileUploader.UploadFile( data.image, await this.idGenerator.generateId() ) : userResult.image,
             (data.password) ? await this.encryptor.hashPassword(data.password) : userResult.password,
         )
-
+        
         const updateResult = await this.infraUserRepository.saveOrmUser(userUpdate)
 
         if(!updateResult.isSuccess()) 
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(updateResult.Error,updateResult.StatusCode,updateResult.Message)
 
-        
-        const synchronizerResponse = await this.infraUserQuerySynchronizer.execute(updateResult.Value)
+        const findResult = await this.nosqlRepository.findUserById( userResult.id )
+        const findValue = findResult.Value
+        if ( data.image ) findValue.image = userUpdate.image
+        if ( data.password ) findValue.password = userUpdate.password
+
+        const synchronizerResponse = await this.nosqlRepository.saveUser( findValue )
 
         if(!synchronizerResponse.isSuccess)
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(synchronizerResponse.Error,synchronizerResponse.StatusCode,synchronizerResponse.Message)

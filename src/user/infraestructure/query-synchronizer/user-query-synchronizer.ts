@@ -67,39 +67,27 @@ export class UserQuerySynchronizer implements Querysynchronizer<UserCreated>{
         const user = await this.odmUserRepository.findUserById(event.id)
         if(!user.isSuccess())
             return Result.fail<OdmUserEntity>( user.Error, 500, user.Message )
-        const userOdmPersistence = new this.userModel({
-            id: user.Value.id,
-            name: user.Value.name,
-            email: event.email,
-            phone: user.Value.email
-        })
-        return Result.success<OdmUserEntity>(userOdmPersistence,200)
+        const odmuser = user.Value
+        odmuser.email = event.email
+        return Result.success<OdmUserEntity>(odmuser,200)
     }
 
     private async NameModifiedHandler(event: UserNameModified): Promise<Result<OdmUserEntity>>{
         const user = await this.odmUserRepository.findUserById(event.userId)
         if(!user.isSuccess())
             return Result.fail<OdmUserEntity>( user.Error, 500, user.Message )
-        const userOdmPersistence = new this.userModel({
-            id: user.Value.id,
-            name: event.userName,
-            email: user.Value.email,
-            phone: user.Value.email
-        })
-        return Result.success<OdmUserEntity>(userOdmPersistence,200)
+        const odmuser = user.Value
+        odmuser.name = event.userName
+        return Result.success<OdmUserEntity>(odmuser,200)
     }
 
     private async PhoneModifiedHandler(event: UserPhoneModified): Promise<Result<OdmUserEntity>>{
         const user = await this.odmUserRepository.findUserById(event.userId)
         if(!user.isSuccess())
             return Result.fail<OdmUserEntity>( user.Error, 500, user.Message )
-        const userOdmPersistence = new this.userModel({
-            id: user.Value.id,
-            name: user.Value.name,
-            email: user.Value.email,
-            phone: event.userPhone
-        })
-        return Result.success<OdmUserEntity>(userOdmPersistence,200)
+        const odmuser = user.Value
+        odmuser.phone = event.userPhone
+        return Result.success<OdmUserEntity>(odmuser,200)
     }
 
 }
