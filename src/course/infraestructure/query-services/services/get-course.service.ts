@@ -51,6 +51,7 @@ export class GetCourseService implements IApplicationService<GetCourseServiceEnt
         const finalImage = 'data:image/png;base64,' + image.Value
 
         let responseCourse: GetCourseServiceResponseDto = {
+            id: course.id,
             title: course.name,
             description: course.description,
             category: course.category.categoryName,
