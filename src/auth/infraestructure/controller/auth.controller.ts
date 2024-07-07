@@ -45,14 +45,14 @@ import { OdmUserRepository } from "src/user/infraestructure/repositories/odm-rep
 import { InjectModel } from "@nestjs/mongoose";
 import { OdmUserEntity } from "src/user/infraestructure/entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
-import { InfraUserQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/user-infra-query-synchronizer";
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file";
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer";
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OrmAccountRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-account-repository";
 import { OdmAccountRepository } from "src/user/infraestructure/repositories/odm-repository/odm-account-repository";
-import { SecurityDecorator } from "src/common/Application/application-services/decorators/decorators/security-decorator/security.decorator";
-import { UserType } from "src/user/infraestructure/entities/enum-type-user/user-type.enum";
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus";
+import { AccountQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/account-query-synchronizer";
+import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -65,7 +65,7 @@ export class AuthController {
     private readonly ormAccountRepository: IAccountRepository<OrmUser>
     private readonly odmAccountRepository: IAccountRepository<OdmUserEntity>
     private readonly userRepository: IUserRepository
-    private readonly syncroInfraUser: InfraUserQuerySynchronizer
+    private readonly syncroInfraUser: Querysynchronizer<OrmUser>
 
     private secretCodes = []
     
@@ -79,7 +79,7 @@ export class AuthController {
         this.tokenGenerator = new JwtGenerator(jwtAuthService)
         this.encryptor = new EncryptorBcrypt()
 
-        this.syncroInfraUser = new InfraUserQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
+        this.syncroInfraUser = new AccountQuerySynchronizer( new OdmUserRepository( userModel ), userModel )
         this.userRepository = new OrmUserRepository( new OrmUserMapper(), dataSource )
         this.odmAccountRepository = new OdmAccountRepository( userModel )
         this.ormAccountRepository = new OrmAccountRepository( dataSource )
@@ -141,7 +141,9 @@ export class AuthController {
         
         const eventBus = EventBus.getInstance()
         const suscribe = eventBus.subscribe('UserCreated', async (event: UserCreated) => {
-            const ormUser = OrmUser.create( event.userId.Id, event.userPhone.Phone, event.userName.Name, null, event.userEmail.Email, plainToHash, data.type, )
+            const ormUser = OrmUser.create( 
+                event.userId, event.userName, event.userPhone, event.userEmail, null, plainToHash, data.type, 
+            )
             this.syncroInfraUser.execute( ormUser )
             this.ormAccountRepository.saveUser( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )

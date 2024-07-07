@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { OrmProgressCourse } from "src/progress/infraestructure/entities/orm-entities/orm-progress-course"
 import { OrmProgressSection } from "src/progress/infraestructure/entities/orm-entities/orm-progress-section"
-import { OrmProgressVideo } from "src/progress/infraestructure/entities/orm-entities/orm-progress-video"
 import { OrmTrainer } from "src/trainer/infraestructure/entities/orm-entities/trainer.entity"
 import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryColumn } from "typeorm"
 import { EnumInfraUserRoles } from "../../user-roles/enum-infra-user-roles"
@@ -11,10 +10,10 @@ export class OrmUser {
 
     @PrimaryColumn( { type: "uuid" } ) id: string
     @Column( 'varchar', { unique: true } ) email: string
-    @Column( 'varchar' ) password: string
+    @Column( 'varchar', { nullable: true } ) password: string
     @Column( 'varchar', { default: 'name-default' } ) name: string
     @Column( 'varchar', { nullable: true } ) image: string
-    @Column( 'varchar', {unique: true, nullable:true}) phone: string
+    @Column( 'varchar', {unique: true, nullable:false}) phone: string
     @ManyToMany(() => OrmTrainer)
     @JoinTable({
         name: "follows",
@@ -34,8 +33,6 @@ export class OrmUser {
     progressCourse: OrmProgressCourse[]
     @OneToMany(() => OrmProgressSection, (progressSection) => progressSection.user_id)
     progressSection: OrmProgressSection[]
-    @OneToMany(() => OrmProgressVideo, (progressVideo) => progressVideo.user_id)
-    ProgressVideo: OrmProgressVideo[]
 
     @Column( 'enum', { enum: EnumInfraUserRoles, default: 'CLIENT' } )
     type: string
@@ -44,16 +41,15 @@ export class OrmUser {
 
     static create ( 
         id: string,
-        phone: string,
         name: string,
+        phone: string,
+        email: string,
         image?: string,
-        email?: string,
         password?: string,
         type?: string,
         trainers?: OrmTrainer[],
         progressCourse?: OrmProgressCourse[],
         progressSection?: OrmProgressSection[],
-        progressVideo?: OrmProgressVideo[],
     ): OrmUser
     {
         const user = new OrmUser()
@@ -67,7 +63,6 @@ export class OrmUser {
         user.trainers = trainers
         user.progressCourse = progressCourse
         user.progressSection = progressSection
-        user.ProgressVideo = progressVideo
         return user
     }
 

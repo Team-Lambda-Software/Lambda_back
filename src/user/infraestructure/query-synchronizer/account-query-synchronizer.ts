@@ -6,7 +6,7 @@ import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
 import { OrmUser } from "../entities/orm-entities/user.entity";
 
-export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
+export class AccountQuerySynchronizer implements Querysynchronizer<OrmUser>{
     
     private readonly odmUserRepository: OdmUserRepository
     private readonly userModel: Model<OdmUserEntity>
@@ -16,15 +16,15 @@ export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
         this.userModel = userModel
     }
     
-    async execute(event: OrmUser): Promise<Result<string>> {
+    async execute(user: OrmUser): Promise<Result<string>> {
         const userOdmPersistence = new this.userModel({
-            id: event.id,
-            name: event.name,
-            email: event.email,
-            password: event.password,
-            image: event.image,
-            phone: event.phone,
-            type: event.type
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            image: user.image,
+            phone: user.phone,
+            type: user.type
         })
         
         try{
