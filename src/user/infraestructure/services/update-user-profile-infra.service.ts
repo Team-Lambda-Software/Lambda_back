@@ -5,8 +5,6 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result";
 import { UpdateUserProfileInfraServiceResponseDto } from "./dto/update-user-profile-infra-service-response-dto";
 import { UpdateUserProfileInfraServiceEntryDto } from "./dto/update-user-profile-infra-service-entry-dto";
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
-import { InfraUserQuerySynchronizer } from "../query-synchronizer/user-infra-query-synchronizer";
 import { OrmUser } from "../entities/orm-entities/user.entity";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { IEncryptor } from "src/common/Application/encryptor/encryptor.interface";
@@ -16,20 +14,20 @@ import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 
 export class UpdateUserProfileInfraService implements IApplicationService<UpdateUserProfileInfraServiceEntryDto,UpdateUserProfileInfraServiceResponseDto>{
     
-    private readonly infraUserRepository: IInfraUserRepository
+    private readonly sqlRepository: IAccountRepository<OrmUser>
     private nosqlRepository: IAccountRepository<OdmUserEntity>
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
     private readonly fileUploader: IFileUploader
 
     constructor ( 
-        infraUserRepository: IInfraUserRepository,
+        sqlRepository: IAccountRepository<OrmUser>,
         nosqlRepository: IAccountRepository<OdmUserEntity>,
         idGenerator: IdGenerator<string>,
         encryptor: IEncryptor,
         fileUploader: IFileUploader
     ){
-        this.infraUserRepository = infraUserRepository
+        this.sqlRepository = sqlRepository
         this.nosqlRepository = nosqlRepository
         this.idGenerator = idGenerator
         this.encryptor = encryptor
@@ -38,7 +36,7 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
 
     async execute(data: UpdateUserProfileInfraServiceEntryDto): Promise<Result<UpdateUserProfileInfraServiceResponseDto>> {
         
-        const user = await this.infraUserRepository.findUserById(data.userId)
+        const user = await this.sqlRepository.findUserById(data.userId)
         
         if(!user.isSuccess())
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(user.Error,user.StatusCode,user.Message)
@@ -54,7 +52,7 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             (data.password) ? await this.encryptor.hashPassword(data.password) : userResult.password,
         )
         
-        const updateResult = await this.infraUserRepository.saveOrmUser(userUpdate)
+        const updateResult = await this.sqlRepository.saveUser(userUpdate)
 
         if(!updateResult.isSuccess()) 
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(updateResult.Error,updateResult.StatusCode,updateResult.Message)
@@ -70,7 +68,7 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(synchronizerResponse.Error,synchronizerResponse.StatusCode,synchronizerResponse.Message)
 
         const respuesta: UpdateUserProfileInfraServiceResponseDto = {
-            userId: updateResult.Value.id
+            userId: userResult.id
         }
 
         return Result.success<UpdateUserProfileInfraServiceResponseDto>(respuesta,200)
