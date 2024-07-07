@@ -6,7 +6,6 @@ import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"
 import { OrmUserMapper } from '../../mappers/orm-mapper/orm-user-mapper'
 
-
 export class OrmUserRepository extends Repository<OrmUser> implements IUserRepository
 {
 
