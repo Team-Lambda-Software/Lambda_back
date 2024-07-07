@@ -12,7 +12,7 @@ async function bootstrap() {
     methods: ["GET","HEAD","PUT","PATCH","POST","DELETE","OPTIONS"],
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
     credentials: true,
-    preflightContinue: true,
+    preflightContinue: false,
   })
 
   app.useGlobalPipes(
