@@ -6,9 +6,10 @@ import { PaginationDto } from 'src/common/Infraestructure/dto/entry/pagination.d
 
 export class SearchCourseQueryParametersDto extends PaginationDto {
 
-    @ApiProperty( { required: true, default: 'RECENT' })
+    @ApiProperty( { required: false, default: 'RECENT' })
     @IsString()
     @IsIn(['POPULAR', 'RECENT'])
+    @IsOptional()
     @Type( () => String ) // enableImplicitConversions: true
     filter: string;
     
