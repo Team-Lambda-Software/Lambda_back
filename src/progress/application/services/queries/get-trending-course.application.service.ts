@@ -4,8 +4,9 @@ import { GetTrendingCourseResponseDto } from "../../dto/responses/get-trending-c
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { Result } from "src/common/Domain/result-handler/Result";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
+import { CalculateCourseCompletionPercentDomainService } from "src/progress/domain/services/calculate-course-completion-percent.service";
 
-//to-do //! What is a 'trending' course? Also, why just one? Modeled temporarily as the latest course that was seen by user
+//* Latest course that was seen by user
 export class GetTrendingCourseApplicationService implements IApplicationService<ApplicationServiceEntryDto, GetTrendingCourseResponseDto>
 {
     private readonly progressRepository: IProgressCourseRepository;
@@ -27,19 +28,23 @@ export class GetTrendingCourseApplicationService implements IApplicationService<
         const latestCourseData = latestCourseResult.Value;
 
         const trendingProgress = latestCourseData.course;
-        //TEST Not working?
-            // console.log("Trending course...");
-            // console.log(trendingProgress);
         const lastSeenDate = latestCourseData.lastSeen;
 
-        const trendingCourseResult = await this.courseRepository.findCourseById(trendingProgress.CourseId);
+        const trendingCourseResult = await this.courseRepository.findCourseById(trendingProgress.CourseId.Value);
         if (!trendingCourseResult.isSuccess())
         {
             return Result.fail<GetTrendingCourseResponseDto>(trendingCourseResult.Error, trendingCourseResult.StatusCode, trendingCourseResult.Message);
         }
         const trendingCourse = trendingCourseResult.Value;
+        const sectionsResult = await this.courseRepository.findCourseSections(trendingCourse.Id.Value);
+        if (!sectionsResult.isSuccess())
+        {
+            return Result.fail<GetTrendingCourseResponseDto>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
+        }
+        trendingCourse.changeSections(sectionsResult.Value);
 
-        const returnData = {completionPercent: trendingProgress.CompletionPercent, courseTitle: trendingCourse.Name.Value, courseId: trendingProgress.CourseId, lastTime: lastSeenDate};
+        const courseCompletionPercentCalculator = new CalculateCourseCompletionPercentDomainService();
+        const returnData = {completionPercent: courseCompletionPercentCalculator.execute(trendingCourse, trendingProgress).Value, courseTitle: trendingCourse.Name.Value, courseId: trendingProgress.CourseId.Value, lastTime: lastSeenDate};
         return Result.success<GetTrendingCourseResponseDto>( returnData, 200 );
     }
 

@@ -31,6 +31,15 @@ import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
+import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto";
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
+import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
+import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
+import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
+import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
+import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { UpdateUserProfileServiceEntryDto } from "src/user/application/dto/params/update-user-profile-service-entry.dto"
 import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
