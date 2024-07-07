@@ -97,7 +97,7 @@ export class UserController {
 
   }
 
-  @Put('/update')
+  @Put('update')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
