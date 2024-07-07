@@ -74,20 +74,11 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             let domainProgress:SectionProgress;
             if ( progressSection ) //Progress exists on DB
             {
-                //TEST
-                    // console.log("Previous progress found. Printing ORM and Domain");
-                    progressSection.completion_percent = <number>progressSection.completion_percent;
-                    progressSection.video_second = <number>progressSection.video_second;
-                    // console.log(progressSection);
                 //Create domain progress
                 domainProgress = await this.ormProgressSectionMapper.fromPersistenceToDomain(progressSection);
-                //TEST
-                    // console.log(domainProgress);
             }
             else
             {
-                //TEST
-                    // console.log("Generating new uuid... No previous progress found");
                 //Progress not found. Return result as "newly-started" section
                 const newId:string = await this.uuidGenerator.generateId();
                 domainProgress = SectionProgress.create(SectionProgressId.create(newId), SectionId.create(sectionId));
@@ -178,11 +169,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         try
         {
             const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId, completionPercent);
-            //TEST
-                // console.log("Mapper done");
             await this.ormProgressSectionRepository.save( ormProgress );
-            //TEST
-                // console.log("ORM saving done");
 
             return Result.success<SectionProgress>( progress, 200 );
         }
@@ -251,8 +238,6 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                                 .getMany();
             if (courses.length > 0)
             {
-                //TEST
-                    console.log("Extracted from DB. Now mapping...");
                 const domainCourses = await Promise.all( courses.map( async course => await this.ormProgressCourseMapper.fromPersistenceToDomain(course) ) );
                 for (let course of domainCourses)
                 {

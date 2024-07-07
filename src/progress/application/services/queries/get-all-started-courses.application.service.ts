@@ -35,8 +35,6 @@ export class GetAllStartedCoursesApplicationService implements IApplicationServi
             return Result.fail<GetAllStartedCoursesResponseDto>(arrayProgressResult.Error, arrayProgressResult.StatusCode, arrayProgressResult.Message);
         }
         const arrayProgress = arrayProgressResult.Value;
-        //TEST
-            console.log("DB query success");
 
         let arrayResponseData:{course:Course, categoryName:string, trainerName:string, progress:CourseSubscription}[] = [];
         for (let progress of arrayProgress)

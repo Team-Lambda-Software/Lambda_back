@@ -23,7 +23,7 @@ export class OrmProgressCourse
 
     @Column('boolean') completed:boolean;
     @Column('numeric') completion_percent:number;
-    @UpdateDateColumn() last_seen_date:Date; //to-do add timestamp
+    @UpdateDateColumn() last_seen_date:Date;
 
     static create (progressId:string, courseId:string, userId:string, isCompleted:boolean, completionPercent:number): OrmProgressCourse
     {

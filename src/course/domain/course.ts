@@ -155,9 +155,7 @@ export class Course extends AggregateRoot<CourseId>
     }
 
     public checkSectionExists (sectionId: SectionId): boolean{
-        //TEST
-            console.log("ARG", sectionId.Value);
-        const section = this.sections.find( section => {console.log(section.Id.Value); return section.Id.equals(sectionId)})
+        const section = this.sections.find( section => section.Id.equals(sectionId) )
         return section ? true : false
     }
 

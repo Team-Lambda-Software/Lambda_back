@@ -134,12 +134,8 @@ export class ProgressController {
             new HttpExceptionHandler()
         );
 
-        //TEST
-            // console.log("Initiating SaveSectionProgressService");
         const sectionUpdateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
         const sectionUpdate = sectionUpdateResult.Value;
-        //TEST
-            // console.log("Service successful");
 
         eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
             //to-do
@@ -156,8 +152,6 @@ export class ProgressController {
                 //to-do
             });
         }
-        //TEST
-            console.log("Service sucess");
     }
 
     //Retrieves the progress of a given course, for the current user

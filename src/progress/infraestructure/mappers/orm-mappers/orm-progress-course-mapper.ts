@@ -18,9 +18,6 @@ export class OrmProgressCourseMapper implements IMapper<CourseSubscription, OrmP
 
     async fromPersistenceToDomain(persistence: OrmProgressCourse): Promise<CourseSubscription> 
     {
-        //TEST Is this a date?
-            console.log("Date type...");
-            console.log(typeof(persistence.last_seen_date));
         const domainProgress = CourseSubscription.create(
             CourseSubscriptionId.create( persistence.progress_id ),
             CourseProgressionDate.create( persistence.last_seen_date ),

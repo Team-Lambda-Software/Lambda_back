@@ -28,9 +28,6 @@ export class GetTrendingCourseApplicationService implements IApplicationService<
         const latestCourseData = latestCourseResult.Value;
 
         const trendingProgress = latestCourseData.course;
-        //TEST Not working?
-            // console.log("Trending course...");
-            // console.log(trendingProgress);
         const lastSeenDate = latestCourseData.lastSeen;
 
         const trendingCourseResult = await this.courseRepository.findCourseById(trendingProgress.CourseId.Value);

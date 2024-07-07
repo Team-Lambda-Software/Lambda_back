@@ -26,17 +26,12 @@ export class InitiateCourseProgressApplicationService implements IApplicationSer
             return Result.fail<InitiateCourseProgressResponseDto>(courseResult.Error, courseResult.StatusCode, courseResult.Message);
         }
         const baseCourse = courseResult.Value;
-        //TEST
-            console.log("Managed to fetch course");
 
         const progressResult = await this.progressRepository.getCourseProgressById(data.userId, data.courseId);
         if (progressResult.isSuccess())
         {
             return Result.fail<InitiateCourseProgressResponseDto>(new Error("El progreso ya fue iniciado previamente. No se puede volver a iniciar"), 409, "El progreso ya fue iniciado previamente. No se puede volver a iniciar");
         }
-        //TEST
-            console.log("Previous progress nonexistent");
-
 
         const newCourseProgressResult = await this.progressRepository.startCourseProgress(data.userId, data.courseId);
         if (!newCourseProgressResult.isSuccess())
@@ -45,15 +40,9 @@ export class InitiateCourseProgressApplicationService implements IApplicationSer
         }
         const newCourseProgress = newCourseProgressResult.Value; newCourseProgress.pullEvents();
         newCourseProgress.initiateCourseProgress();
-        //TEST
-            console.log("New progress created");
         await this.progressRepository.saveCourseProgress(newCourseProgress, 0);
-        //TEST
-            console.log("New progress saved");
 
         await this.eventHandler.publish ( newCourseProgress.pullEvents() );
-        //TEST
-            console.log("Service success");
         return Result.success<InitiateCourseProgressResponseDto>( {message: "Curso iniciado con éxito"}, 200);
     }
 

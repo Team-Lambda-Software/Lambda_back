@@ -8,9 +8,6 @@ import { SectionCompletionPercent } from "../entities/progress-section/value-obj
 export class CalculateSectionCompletionPercentDomainService {
     execute (course:Course, subscription:CourseSubscription, sectionId:SectionId):SectionCompletionPercent
     {
-        //TEST
-            console.log("Checking if section exists...");
-            console.log("In course...", course.Sections);
         if (!course.checkSectionExists(sectionId))
         {
             throw new SectionNotExistsException();
