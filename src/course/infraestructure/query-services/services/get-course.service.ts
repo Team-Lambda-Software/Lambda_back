@@ -36,26 +36,26 @@ export class GetCourseService implements IApplicationService<GetCourseServiceEnt
         }
 
         const course = resultCourse.Value
-        const imageResult = await this.imageGeter.getFile( course.image.split( '/' ).pop() )
-        if ( !imageResult.isSuccess() )
-        {
-            return Result.fail<GetCourseServiceResponseDto>( imageResult.Error, imageResult.StatusCode, imageResult.Message )
-        }
+        // const imageResult = await this.imageGeter.getFile( course.image.split( '/' ).pop() )
+        // if ( !imageResult.isSuccess() )
+        // {
+        //     return Result.fail<GetCourseServiceResponseDto>( imageResult.Error, imageResult.StatusCode, imageResult.Message )
+        // }
 
-        const image = await this.imageTransformer.transformFile(imageResult.Value)
-        if ( !image.isSuccess() )
-        {
-            return Result.fail<GetCourseServiceResponseDto>( image.Error, image.StatusCode, image.Message )
-        }
+        // const image = await this.imageTransformer.transformFile(imageResult.Value)
+        // if ( !image.isSuccess() )
+        // {
+        //     return Result.fail<GetCourseServiceResponseDto>( image.Error, image.StatusCode, image.Message )
+        // }
 
-        const finalImage = 'data:image/png;base64,' + image.Value
+        // const finalImage = 'data:image/png;base64,' + image.Value
 
         let responseCourse: GetCourseServiceResponseDto = {
             id: course.id,
             title: course.name,
             description: course.description,
             category: course.category.categoryName,
-            image: finalImage,
+            image: course.image,
             trainer: {
                 id: course.trainer.id,
                 name: course.trainer.first_name + ' ' + course.trainer.first_last_name + ' ' + course.trainer.second_last_name
