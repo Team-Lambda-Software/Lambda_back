@@ -7,15 +7,15 @@ import { json } from 'express'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  app.enableCors(
-  /*{
+  app.enableCors( 
+  {
     optionsSuccessStatus: 200,
-    origin: 'https://ginastic-center.web.app',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Observe',
+    origin: false,
     credentials: true,
-    preflightContinue: true,
-  }*/
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    //allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Observe',
+    //preflightContinue: true,
+  }
   )
 
   app.useGlobalPipes(
