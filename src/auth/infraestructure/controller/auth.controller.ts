@@ -53,6 +53,7 @@ import { OdmAccountRepository } from "src/user/infraestructure/repositories/odm-
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus";
 import { AccountQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/account-query-synchronizer";
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer";
+import { Result } from "src/common/Domain/result-handler/Result"
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -91,7 +92,7 @@ export class AuthController {
     @ApiBearerAuth()
     async currentUser( @GetUser() user ) {  
         
-        let image = undefined
+        let image: Result<string> = undefined
         if (user.image != null){
             const imageTransformer = new BufferBase64ImageTransformer()
             const imageGetter = new AzureBufferImageHelper()
@@ -106,7 +107,7 @@ export class AuthController {
             email: user.email,
             name: user.name,
             phone: user.phone,
-            image: image
+            image: image.Value
         } 
     }
 
