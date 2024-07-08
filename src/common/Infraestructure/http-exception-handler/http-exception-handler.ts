@@ -3,6 +3,7 @@ import {
     NotFoundException,
     InternalServerErrorException,
     ForbiddenException,
+    ConflictException,
   } from '@nestjs/common';
 import { IExceptionHandler } from 'src/common/Application/exception-handler/exception-handler.interface'
   
@@ -16,11 +17,17 @@ import { IExceptionHandler } from 'src/common/Application/exception-handler/exce
           return this.Forbidden(msg, error)
         case 404:
           return this.NotFound(msg, error);
+        case 409:
+          return this.Conflict(msg, error);
         case 500:
           return this.InternalServerError(msg, error);
         default:
           return this.InternalServerError(msg, error);
       }
+    }
+
+    private Conflict(msg: string, error?:any): void {
+      throw new ConflictException(msg, error);
     }
   
     private BadRequest(msg: string, error?: any): void {

@@ -6,24 +6,13 @@ import { json } from 'express'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  app.enableCors( 
-  {
-    optionsSuccessStatus: 200,
-    origin: false,
-    credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    //allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Observe',
-    //preflightContinue: true,
-  }
-  )
+  app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true, transformOptions: { enableImplicitConversion: true } }),
   );
   app.use(json({ limit: '50mb' }));
   const config = new DocumentBuilder()
-
     .setTitle('Lambda Gymnastic API')
     .setDescription('Gymnastic endpoints')
     .setVersion('1.0')
