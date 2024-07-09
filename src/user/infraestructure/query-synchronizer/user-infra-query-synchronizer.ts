@@ -1,17 +1,17 @@
 /* eslint-disable prettier/prettier */
 import { Result } from "src/common/Domain/result-handler/Result";
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer";
-import { OdmUserRepository } from "../repositories/odm-repository/odm-user-repository";
 import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
 import { OrmUser } from "../entities/orm-entities/user.entity";
+import { UserQueryRepository } from "../repositories/user-query-repository.interface";
 
 export class InfraUserQuerySynchronizer implements Querysynchronizer<OrmUser>{
     
-    private readonly odmUserRepository: OdmUserRepository
+    private readonly odmUserRepository: UserQueryRepository
     private readonly userModel: Model<OdmUserEntity>
 
-    constructor(odmUserRepository: OdmUserRepository, userModel: Model<OdmUserEntity>){
+    constructor(odmUserRepository: UserQueryRepository, userModel: Model<OdmUserEntity>){
         this.odmUserRepository = odmUserRepository
         this.userModel = userModel
     }

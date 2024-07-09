@@ -52,7 +52,7 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
             return Result.success<UpdateUserProfileServiceResponseDto>(respuesta,200)
 
         }catch(error){
-            Result.fail<UpdateUserProfileAplicationService>(error,500,error.message)
+            return Result.fail<UpdateUserProfileServiceResponseDto>(error,500,error.message)
         }
     }
 

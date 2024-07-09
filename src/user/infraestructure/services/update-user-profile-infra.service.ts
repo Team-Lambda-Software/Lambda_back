@@ -17,7 +17,7 @@ import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 export class UpdateUserProfileInfraService implements IApplicationService<UpdateUserProfileInfraServiceEntryDto,UpdateUserProfileInfraServiceResponseDto>{
     
     private readonly infraUserRepository: IInfraUserRepository
-    private nosqlRepository: IAccountRepository<OdmUserEntity>
+    private readonly nosqlRepository: IAccountRepository<OdmUserEntity>
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
     private readonly fileUploader: IFileUploader
@@ -44,7 +44,7 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
         const userResult = user.Value
-
+        
         const userUpdate: OrmUser = await OrmUser.create(
             userResult.id,
             userResult.name,
@@ -53,13 +53,16 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             (data.image) ? await this.fileUploader.UploadFile( data.image, await this.idGenerator.generateId() ) : userResult.image,
             (data.password) ? await this.encryptor.hashPassword(data.password) : userResult.password,
         )
-        
+
         const updateResult = await this.infraUserRepository.saveOrmUser(userUpdate)
 
         if(!updateResult.isSuccess()) 
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(updateResult.Error,updateResult.StatusCode,updateResult.Message)
 
         const findResult = await this.nosqlRepository.findUserById( userResult.id )
+        if(!findResult.isSuccess()){
+            return Result.fail<UpdateUserProfileInfraServiceResponseDto>(findResult.Error,findResult.StatusCode,findResult.Message)
+        }
         const findValue = findResult.Value
         if ( data.image ) findValue.image = userUpdate.image
         if ( data.password ) findValue.password = userUpdate.password
