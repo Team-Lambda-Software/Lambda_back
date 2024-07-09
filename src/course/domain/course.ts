@@ -28,6 +28,7 @@ import { UserId } from "src/user/domain/value-objects/user-id"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
 import { CourseTrainer } from "./value-objects/course-trainer"
 import { CourseCategory } from "./value-objects/course-category"
+import { CourseMinutesDurationChanged } from "./events/course-minutes-duration-changed-event"
 
 
 
@@ -135,8 +136,11 @@ export class Course extends AggregateRoot<CourseId>
                 this.image = CourseImage.create(courseCreated.image)
                 this.tags = courseCreated.tags.map(tag => CourseTag.create(tag))
                 this.date = CourseDate.create(courseCreated.date)
-
-                
+                break
+            case 'CourseMinutesDurationChanged':
+                const changedEvent = event as CourseMinutesDurationChanged
+                this.minutesDuration = CourseMinutesDuration.create(changedEvent.newDuration)
+                break
         }
     }
 
@@ -148,7 +152,8 @@ export class Course extends AggregateRoot<CourseId>
 
     changeMinutesDuration ( minutesDuration: CourseMinutesDuration ): void
     {
-        this.minutesDuration = minutesDuration
+        const courseMinutesDurationChanged: DomainEvent = CourseMinutesDurationChanged.create( this.Id.Value, minutesDuration.Value)
+        this.onEvent(courseMinutesDurationChanged)
     }
 
     changeSections ( sections: Section[] ): void
@@ -175,7 +180,7 @@ export class Course extends AggregateRoot<CourseId>
 
     public createSection ( id: SectionId, name: SectionName, description: SectionDescription, duration: SectionDuration, video: SectionVideo ): Section{
         const section: Section = Section.create( id, name, description, duration, video)
-        const sectionCreated: DomainEvent = SectionCreated.create( id.Value, name.Value, description.Value, duration.Value, video.Value, this.Id.Value, this.MinutesDuration.Value)
+        const sectionCreated: DomainEvent = SectionCreated.create( id.Value, name.Value, description.Value, duration.Value, video.Value, this.Id.Value)
         this.sections.push(section)
         this.onEvent(sectionCreated)
         return section

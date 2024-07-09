@@ -3,7 +3,7 @@ import { CourseMinutesDuration } from "../value-objects/course-minutes-duration"
 
 
 export class CalculateCourseMinutesDurationDomainService {
-    execute (course:Course, newSectionDuration: number):CourseMinutesDuration
+    execute (course:Course):CourseMinutesDuration
     {
         let sum:number = 0;
         for (let section of course.Sections)
@@ -11,7 +11,6 @@ export class CalculateCourseMinutesDurationDomainService {
             console.log(section.Duration.Value)
             sum += section.Duration.Value;
         }
-        sum += newSectionDuration;
         sum = Math.floor(sum / 60);
 
         return CourseMinutesDuration.create(sum);

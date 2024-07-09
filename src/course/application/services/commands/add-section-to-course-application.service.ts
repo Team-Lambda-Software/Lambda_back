@@ -66,12 +66,11 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         courseValue.changeSections( sections.Value )
         courseValue.pullEvents()
         const domainService = new CalculateCourseMinutesDurationDomainService()
-        const courseMinutesDuration = domainService.execute( courseValue, duration)
-        
-        courseValue.changeMinutesDuration( courseMinutesDuration )
 
         let section: Section
         section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(duration), SectionVideo.create(videoUrl))
+        const courseMinutesDuration = domainService.execute( courseValue)
+        courseValue.changeMinutesDuration( courseMinutesDuration )
         
         const resultCourse = await this.courseRepository.saveCourseAggregate( courseValue )
 

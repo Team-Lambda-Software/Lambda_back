@@ -62,8 +62,7 @@ export class CourseDomainEventObjectMother {
             'section description',
             60,
             'url.com',
-            courseId,
-            50
+            courseId
         )
     }
 }
