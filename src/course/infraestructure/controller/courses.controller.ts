@@ -74,6 +74,7 @@ import { OrmCategoryRepository } from '../../../categories/infraesctructure/repo
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 import getVideoDurationInSeconds from "get-video-duration"
+import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-fetcher/video-duration-fetcher"
 
 
 @ApiTags( 'Course' )
@@ -93,6 +94,7 @@ export class CourseController
     private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
+    private readonly videoDurationFetcher: VideoDurationFetcher
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
@@ -110,6 +112,8 @@ export class CourseController
         @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
+        this.videoDurationFetcher = new VideoDurationFetcher()
+
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.courseRepository =
@@ -272,7 +276,8 @@ export class CourseController
                                 this.courseRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus
+                                eventBus,
+                                this.videoDurationFetcher
                             ),
                             new NativeLogger( this.logger )
                         ),
