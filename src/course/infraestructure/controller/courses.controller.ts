@@ -75,6 +75,8 @@ import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-m
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 import getVideoDurationInSeconds from "get-video-duration"
 import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-fetcher/video-duration-fetcher"
+import { CourseMinutesDurationChanged } from "src/course/domain/events/course-minutes-duration-changed-event"
+import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer';
 
 
 @ApiTags( 'Course' )
@@ -98,6 +100,7 @@ export class CourseController
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
+    private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly imageTransformer: BufferBase64ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
@@ -154,6 +157,9 @@ export class CourseController
             this.courseModel,
             this.odmCategoryRepository,
             this.odmTrainerRepository
+        )
+        this.courseMinutesDurationChangedQuerySynchronizer = new CourseMinutesDurationChangedQuerySynchronizer(
+            this.odmCourseRepository
         )
 
         this.odmTrainerMapper = new OdmTrainerMapper()
@@ -301,8 +307,13 @@ export class CourseController
 
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
+        
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
+        })
+
+        eventBus.subscribe( 'CourseMinutesDurationChanged', async (event: CourseMinutesDurationChanged) => {
+            this.courseMinutesDurationChangedQuerySynchronizer.execute(event)
         })
         return result.Value
     }
