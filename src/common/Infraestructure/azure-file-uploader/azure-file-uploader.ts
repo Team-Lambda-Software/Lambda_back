@@ -25,10 +25,10 @@ export class AzureFileUploader implements IFileUploader {
         const extension = file.name.split('.').pop(); 
         const file_name = fileName + '.' + extension; 
         const blockBlobClient = await this.getBlobClient(file_name);
-        // console.log('Uploading file to Azure Blob Storage 2');
+        //console.log('Uploading file to Azure Blob Storage 2');
         const fileUrl = blockBlobClient.url; 
         await blockBlobClient.uploadData(await file.arrayBuffer()); 
-        
+        //console.log('File uploaded to Azure Blob Storage 2');
         return fileUrl; 
     } 
 

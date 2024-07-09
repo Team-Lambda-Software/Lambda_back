@@ -11,10 +11,5 @@ export class AddSectionToCourseEntryDto {
     @IsString()
     @MinLength( 3 )
     description: string
-
-    
-    @IsInt()
-    @Min( 1 )
-    duration: number
     
 }
