@@ -18,6 +18,10 @@ export class OdmCourseRepository implements CourseQueryRepository{
         this.sectionCommentModel = sectionCommentModel
 
     }
+    async changeCourseMinutesDuration ( courseId: string, minutesDuration: number ): Promise<void>
+    {
+        await this.courseModel.updateOne( { id: courseId }, { $set: { minutes_per_section: minutesDuration } } )
+    }
     async findCourseTags (): Promise<Result<string[]>>
     {
         try{

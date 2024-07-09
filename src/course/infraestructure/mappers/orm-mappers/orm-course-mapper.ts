@@ -17,6 +17,8 @@ import { CourseImage } from "src/course/domain/value-objects/course-image"
 import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
+import { CourseTrainer } from "src/course/domain/value-objects/course-trainer"
+import { CourseCategory } from "src/course/domain/value-objects/course-category"
 
 
 
@@ -57,7 +59,18 @@ export class OrmCourseMapper implements IMapper<Course, OrmCourse>
         //TODO relacion con trainer y con categoria
 
         const course: Course =
-            Course.create( CourseId.create(persistence.id), TrainerId.create(persistence.trainer.id), CourseName.create(persistence.name), CourseDescription.create(persistence.description), CourseWeeksDuration.create(persistence.weeks_duration), CourseMinutesDuration.create(persistence.minutes_per_section), CourseLevel.create(persistence.level), sections, CategoryId.create(persistence.category_id), CourseImage.create(persistence.image_url), tags, CourseDate.create(persistence.date))
+            Course.create( CourseId.create(persistence.id), 
+                CourseTrainer.create(TrainerId.create(persistence.trainer.id)), 
+                CourseName.create(persistence.name), 
+                CourseDescription.create(persistence.description), 
+                CourseWeeksDuration.create(persistence.weeks_duration), 
+                CourseMinutesDuration.create(persistence.minutes_per_section), 
+                CourseLevel.create(persistence.level), 
+                sections, 
+                CourseCategory.create(CategoryId.create(persistence.category_id)), 
+                CourseImage.create(persistence.image_url), 
+                tags, 
+                CourseDate.create(persistence.date))
 
         return course
     }
