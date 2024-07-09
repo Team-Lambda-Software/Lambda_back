@@ -11,6 +11,8 @@ import { BlogPublicationDate } from "src/blog/domain/value-objects/blog-publicat
 import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
+import { BlogTrainer } from "src/blog/domain/value-objects/blog-trainer"
+import { BlogCategory } from "src/blog/domain/value-objects/blog-category"
 
 export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
 {
@@ -45,8 +47,9 @@ export class OrmBlogMapper implements IMapper<Blog, OrmBlog>
             BlogTitle.create(persistence.title), 
             BlogBody.create(persistence.body), 
             images, 
-            BlogPublicationDate.create(persistence.publication_date),TrainerId.create(persistence.trainer_id), 
-            CategoryId.create(persistence.category_id), 
+            BlogPublicationDate.create(persistence.publication_date),
+            BlogTrainer.create(TrainerId.create(persistence.trainer_id)), 
+            BlogCategory.create(CategoryId.create(persistence.category_id)), 
             tags)
         return blog
     }

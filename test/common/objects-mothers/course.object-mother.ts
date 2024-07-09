@@ -9,6 +9,7 @@ import { SectionDuration } from "src/course/domain/entities/section/value-object
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id"
 import { SectionName } from "src/course/domain/entities/section/value-objects/section-name"
 import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
+import { CourseCategory } from "src/course/domain/value-objects/course-category"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CourseDescription } from "src/course/domain/value-objects/course-description"
 import { CourseId } from "src/course/domain/value-objects/course-id"
@@ -17,6 +18,7 @@ import { CourseLevel } from "src/course/domain/value-objects/course-level"
 import { CourseMinutesDuration } from "src/course/domain/value-objects/course-minutes-duration"
 import { CourseName } from "src/course/domain/value-objects/course-name"
 import { CourseTag } from "src/course/domain/value-objects/course-tag"
+import { CourseTrainer } from "src/course/domain/value-objects/course-trainer"
 import { CourseWeeksDuration } from "src/course/domain/value-objects/course-weeks-duration"
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
 import { Trainer } from "src/trainer/domain/trainer"
@@ -40,7 +42,7 @@ export class CourseObjectMother{
     static async createCourse(){
         return Course.create(
             CourseId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
-            TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab9'),
+            CourseTrainer.create(TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab9')),
             CourseName.create('Title'),
             CourseDescription.create('Body body'),
             CourseWeeksDuration.create(5),
@@ -53,7 +55,7 @@ export class CourseObjectMother{
                 SectionDuration.create(60),
                 SectionVideo.create('www.example.com')
             )],
-            CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
+            CourseCategory.create(CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7')),
             CourseImage.create('www.example.com'),
             [CourseTag.create('Tag')],
             CourseDate.create(new Date())

@@ -26,6 +26,8 @@ import { SectionVideo } from "./entities/section/value-objects/section-video"
 import { SectionCreated } from "./events/section-created-event"
 import { UserId } from "src/user/domain/value-objects/user-id"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
+import { CourseTrainer } from "./value-objects/course-trainer"
+import { CourseCategory } from "./value-objects/course-category"
 
 
 
@@ -34,13 +36,13 @@ export class Course extends AggregateRoot<CourseId>
 {
     
 
-    private trainerId: TrainerId
+    private trainerId: CourseTrainer
     private name: CourseName
     private description: CourseDescription
     private weeksDuration: CourseWeeksDuration
     private minutesDuration: CourseMinutesDuration //esto es lo que significa el tiempo que aparece en el figma?
     private level: CourseLevel
-    private categoryId: CategoryId
+    private categoryId: CourseCategory
     private sections: Section[]
     private image: CourseImage
     private tags: CourseTag[]
@@ -52,7 +54,7 @@ export class Course extends AggregateRoot<CourseId>
         return this.tags
     }
 
-    get TrainerId (): TrainerId
+    get TrainerId (): CourseTrainer
     {
         return this.trainerId
     }
@@ -82,7 +84,7 @@ export class Course extends AggregateRoot<CourseId>
         return this.level
     }
 
-    get CategoryId (): CategoryId
+    get CategoryId (): CourseCategory
     {
         return this.categoryId
     }
@@ -102,7 +104,7 @@ export class Course extends AggregateRoot<CourseId>
         return this.date
     }
 
-    protected constructor ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate)
+    protected constructor ( id: CourseId, trainerId: CourseTrainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CourseCategory, image: CourseImage, tags: CourseTag[], date: CourseDate)
     {
         const courseCreated: CourseCreated = CourseCreated.create( 
             id.Value, trainerId.Value, 
@@ -122,14 +124,14 @@ export class Course extends AggregateRoot<CourseId>
         switch ( event.eventName ){
             case 'CourseCreated':
                 const courseCreated: CourseCreated = event as CourseCreated
-                this.trainerId = TrainerId.create(courseCreated.trainerId)
+                this.trainerId = CourseTrainer.create(TrainerId.create(courseCreated.trainerId))
                 this.name = CourseName.create(courseCreated.name)
                 this.description = CourseDescription.create(courseCreated.description)
                 this.weeksDuration = CourseWeeksDuration.create(courseCreated.weeksDuration)
                 this.minutesDuration = CourseMinutesDuration.create(courseCreated.minutesDuration)
                 this.level = CourseLevel.create(courseCreated.level)
                 this.sections = courseCreated.sections.map( section => Section.create(SectionId.create(section.id), SectionName.create(section.name), SectionDescription.create(section.description), SectionDuration.create(section.duration), SectionVideo.create(section.video)))
-                this.categoryId = CategoryId.create(courseCreated.categoryId)
+                this.categoryId = CourseCategory.create(CategoryId.create(courseCreated.categoryId))
                 this.image = CourseImage.create(courseCreated.image)
                 this.tags = courseCreated.tags.map(tag => CourseTag.create(tag))
                 this.date = CourseDate.create(courseCreated.date)
@@ -142,6 +144,11 @@ export class Course extends AggregateRoot<CourseId>
     {
         if ( !this.trainerId || !this.name || !this.description || !this.weeksDuration || !this.minutesDuration || !this.level || !this.sections || !this.categoryId || !this.image || !this.tags || !this.date )
             throw new InvalidCourseException()
+    }
+
+    changeMinutesDuration ( minutesDuration: CourseMinutesDuration ): void
+    {
+        this.minutesDuration = minutesDuration
     }
 
     changeSections ( sections: Section[] ): void
@@ -168,13 +175,13 @@ export class Course extends AggregateRoot<CourseId>
 
     public createSection ( id: SectionId, name: SectionName, description: SectionDescription, duration: SectionDuration, video: SectionVideo ): Section{
         const section: Section = Section.create( id, name, description, duration, video)
-        const sectionCreated: DomainEvent = SectionCreated.create( id.Value, name.Value, description.Value, duration.Value, video.Value, this.Id.Value)
+        const sectionCreated: DomainEvent = SectionCreated.create( id.Value, name.Value, description.Value, duration.Value, video.Value, this.Id.Value, this.MinutesDuration.Value)
         this.sections.push(section)
         this.onEvent(sectionCreated)
         return section
     }
 
-    static create ( id: CourseId, trainerId: TrainerId, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CategoryId, image: CourseImage, tags: CourseTag[], date: CourseDate): Course
+    static create ( id: CourseId, trainerId: CourseTrainer, name: CourseName, description: CourseDescription, weeksDuration: CourseWeeksDuration, minutesDuration: CourseMinutesDuration, level: CourseLevel, sections: Section[], categoryId: CourseCategory, image: CourseImage, tags: CourseTag[], date: CourseDate): Course
     {
         return new Course( id, trainerId, name, description, weeksDuration, minutesDuration, level, sections, categoryId, image, tags, date)
     }

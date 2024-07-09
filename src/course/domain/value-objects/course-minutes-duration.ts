@@ -9,7 +9,7 @@ export class CourseMinutesDuration implements IValueObject<CourseMinutesDuration
     get Value(){ return this.minutesDuration }
 
     protected constructor ( minutesDuration: number ){
-        if (minutesDuration < 1 )
+        if (minutesDuration < 0 )
             throw new InvalidCourseMinutesDurationException()
         this.minutesDuration = minutesDuration
     }

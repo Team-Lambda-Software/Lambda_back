@@ -13,6 +13,8 @@ import { Model } from "mongoose"
 import { OdmBlogEntity } from "src/blog/infraestructure/entities/odm-entities/odm-blog.entity"
 import { OdmCategoryEntity } from "src/categories/infraesctructure/entities/odm-entities/odm-category.entity"
 import { OdmTrainerEntity } from "src/trainer/infraestructure/entities/odm-entities/odm-trainer.entity"
+import { BlogTrainer } from "src/blog/domain/value-objects/blog-trainer"
+import { BlogCategory } from "src/blog/domain/value-objects/blog-category"
 
 
 export class BlogObjectMother {
@@ -34,8 +36,8 @@ export class BlogObjectMother {
             BlogBody.create('Body body'),
             [BlogImage.create('www.example.com')],
             BlogPublicationDate.create(new Date()),
-            TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
-            CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7'),
+            BlogTrainer.create(TrainerId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7')),
+            BlogCategory.create(CategoryId.create('cb0e2f2c-1326-428e-9fd4-b7822ff94ab7')),
             [BlogTag.create('Tag')]
         )
     }

@@ -180,7 +180,6 @@ export class CourseController
                 name: { type: 'integer' },
                 description: { type: 'string' },
                 weeksDuration: { type: 'integer' },
-                minutesDuration: { type: 'integer' },
                 level: { type: 'integer' },
                 categoryId: { type: 'string' },
                 tags: { type: 'array', items: { type: 'string' } },

@@ -13,6 +13,7 @@ import { SectionVideo } from "src/course/domain/entities/section/value-objects/s
 import { AddSectionToCourseServiceResponseDto } from "../../dto/responses/add-section-to-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 import { IDurationFetcher } from "src/common/Application/duration-fetcher/duration-fetcher.interface"
+import { CalculateCourseMinutesDurationDomainService } from "src/course/domain/services/calculate-course-minutes-duration.service"
 
 
 
@@ -55,11 +56,30 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         {
             return Result.fail<AddSectionToCourseServiceResponseDto>( courseResult.Error, courseResult.StatusCode, courseResult.Message )
         }
-
         const courseValue = courseResult.Value
+        const sections = await this.courseRepository.findCourseSections ( data.courseId )
+
+        if ( !sections.isSuccess() )
+        {
+            return Result.fail<AddSectionToCourseServiceResponseDto>( sections.Error, sections.StatusCode, sections.Message )
+        }
+        courseValue.changeSections( sections.Value )
         courseValue.pullEvents()
+        const domainService = new CalculateCourseMinutesDurationDomainService()
+        const courseMinutesDuration = domainService.execute( courseValue, duration)
+        
+        courseValue.changeMinutesDuration( courseMinutesDuration )
+
         let section: Section
         section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(duration), SectionVideo.create(videoUrl))
+        
+        const resultCourse = await this.courseRepository.saveCourseAggregate( courseValue )
+
+        if ( !resultCourse.isSuccess() )
+        {
+            return Result.fail<AddSectionToCourseServiceResponseDto>( resultCourse.Error, resultCourse.StatusCode, resultCourse.Message )
+        }
+
         const result = await this.courseRepository.addSectionToCourse( data.courseId, section )
         if ( !result.isSuccess() )
         {
