@@ -46,7 +46,10 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoId = await this.idGenerator.generateId()
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
         videoUrl = videoUrl + process.env.SAS_TOKEN
-        const duration = Math.floor(await this.durationFetcher.getDuration( videoUrl ))
+        //console.log("wow se subio el video")
+        //! const duration = Math.floor(await this.durationFetcher.getDuration( videoUrl ))
+        const duration = Math.floor( data.duration )
+        //console.log("wow se obtuvo la duracion")
         const courseResult = await this.courseRepository.findCourseById( data.courseId )
         if ( !courseResult.isSuccess() )
         {

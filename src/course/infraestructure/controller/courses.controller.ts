@@ -254,6 +254,7 @@ export class CourseController
             properties: {
                 name: { type: 'integer' },
                 description: { type: 'string' },
+                duration: { type: 'integer' },
                 file: {
                     type: 'string',
                     format: 'binary',
