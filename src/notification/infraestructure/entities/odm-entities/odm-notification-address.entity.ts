@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class OdmNotificationAddressEntity extends Document {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true})
   token: string;
 
   @Prop({required: true})  
@@ -12,3 +12,4 @@ export class OdmNotificationAddressEntity extends Document {
 }
 
 export const NotificationAddressSchema = SchemaFactory.createForClass(OdmNotificationAddressEntity);
+NotificationAddressSchema.index({ token: 1, user_id: 1 }, { unique: true });
