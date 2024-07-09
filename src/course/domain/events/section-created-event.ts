@@ -1,10 +1,4 @@
 import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
-import { SectionId } from "../entities/section/value-objects/section-id"
-import { SectionName } from "../entities/section/value-objects/section-name"
-import { SectionDescription } from "../entities/section/value-objects/section-description"
-import { SectionDuration } from "../entities/section/value-objects/section-duration"
-import { SectionVideo } from "../entities/section/value-objects/section-video"
-import { CourseId } from "../value-objects/course-id"
 
 
 export class SectionCreated extends DomainEvent{

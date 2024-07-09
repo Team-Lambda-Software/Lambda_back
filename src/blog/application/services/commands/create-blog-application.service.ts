@@ -16,6 +16,8 @@ import { BlogTag } from "src/blog/domain/value-objects/blog-tag"
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
+import { BlogTrainer } from "src/blog/domain/value-objects/blog-trainer"
+import { BlogCategory } from "src/blog/domain/value-objects/blog-category"
 
 
 
@@ -59,7 +61,7 @@ export class CreateBlogApplicationService implements IApplicationService<CreateB
             const imageUrl = await this.fileUploader.UploadFile( image, imageId )
             images.push( BlogImage.create( imageUrl ) )
         }
-        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), TrainerId.create(data.trainerId), CategoryId.create(data.categoryId), data.tags.map(tag => BlogTag.create(tag)) )
+        const blog = Blog.create( BlogId.create(await this.idGenerator.generateId()), BlogTitle.create(data.title), BlogBody.create(data.body), images, BlogPublicationDate.create(new Date()), BlogTrainer.create(TrainerId.create(data.trainerId)), BlogCategory.create(CategoryId.create(data.categoryId)), data.tags.map(tag => BlogTag.create(tag)) )
         const result = await this.blogRepository.saveBlogAggregate( blog )
         if ( !result.isSuccess() )
         {

@@ -3,15 +3,20 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { IProgressCourseRepository } from "src/progress/domain/repositories/progress-course-repository.interface";
 import { GetAllSectionsFromCourseResponseDto } from "../../dto/responses/get-all-sections-from-course-response.dto";
 import { GetAllSectionsFromCourseEntryDto } from "../../dto/parameters/get-all-sections-from-course-entry.dto";
-import { ProgressCourse } from "src/progress/domain/entities/progress-course";
+import { CourseSubscription } from "src/progress/domain/course-subscription";
+import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
+import { CalculateCourseCompletionPercentDomainService } from "src/progress/domain/services/calculate-course-completion-percent.service";
+import { CalculateSectionCompletionPercentDomainService } from "src/progress/domain/services/calculate-section-completion-percent.service";
 
 export class GetAllSectionsFromCourseApplicationService implements IApplicationService<GetAllSectionsFromCourseEntryDto, GetAllSectionsFromCourseResponseDto>
 {
     private readonly progressRepository: IProgressCourseRepository;
+    private readonly courseRepository: ICourseRepository;
 
-    constructor ( progressRepository:IProgressCourseRepository )
+    constructor ( progressRepository:IProgressCourseRepository, courseRepository:ICourseRepository )
     {
         this.progressRepository = progressRepository;
+        this.courseRepository = courseRepository;
     }
 
     async execute(data:GetAllSectionsFromCourseEntryDto): Promise<Result<GetAllSectionsFromCourseResponseDto>>
@@ -23,16 +28,30 @@ export class GetAllSectionsFromCourseApplicationService implements IApplicationS
         {
             return Result.fail<GetAllSectionsFromCourseResponseDto>(courseProgressResult.Error, courseProgressResult.StatusCode, courseProgressResult.Message);
         }
-        const courseProgress:ProgressCourse = courseProgressResult.Value;
+        const courseProgress:CourseSubscription = courseProgressResult.Value;
+        const courseResult = await this.courseRepository.findCourseById(data.courseId);
+        if (!courseResult.isSuccess())
+        {
+            return Result.fail<GetAllSectionsFromCourseResponseDto>(courseResult.Error, courseResult.StatusCode, courseResult.Message);
+        }
+        const course = courseResult.Value;
+        const sectionsResult = await this.courseRepository.findCourseSections(course.Id.Value);
+        if (!sectionsResult.isSuccess())
+        {
+            return Result.fail<GetAllSectionsFromCourseResponseDto>(sectionsResult.Error, sectionsResult.StatusCode, sectionsResult.Message);
+        }
+        course.changeSections(sectionsResult.Value);
 
-        returnData.completionPercent = courseProgress.CompletionPercent;
+        const courseCompletionPercentCalculator = new CalculateCourseCompletionPercentDomainService();
+        returnData.completionPercent = courseCompletionPercentCalculator.execute(course, courseProgress).Value;
         returnData.sections = [];
+        const sectionCompletionPercentCalculator = new CalculateSectionCompletionPercentDomainService();
         for (let section of courseProgress.Sections)
         {
             let returnSection:{id:string, videoSecond:number, completionPercent:number} = {
-                id: section.SectionId,
-                videoSecond: section.VideoSecond,
-                completionPercent: section.CompletionPercent
+                id: section.SectionId.Value,
+                videoSecond: section.VideoProgress.Value,
+                completionPercent: sectionCompletionPercentCalculator.execute(course, courseProgress, section.SectionId).Value
             };
             returnData.sections.push(returnSection);
         }

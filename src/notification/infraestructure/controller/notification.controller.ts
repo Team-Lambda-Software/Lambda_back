@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Inject, Ip, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
 import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
 import { DataSource } from "typeorm";
@@ -126,6 +126,11 @@ export class NotificationController {
             new HttpExceptionHandler()
         )
         return (await service.execute(dataentry)).Value    
+    }
+
+    @Get('ip')
+    async ipTester( @Ip() ipaddress ){
+        return { ip : ipaddress }
     }
 
     @Post('tester')  

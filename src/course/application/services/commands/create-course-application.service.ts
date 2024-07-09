@@ -18,6 +18,8 @@ import { CourseTag } from "src/course/domain/value-objects/course-tag"
 import { CourseDate } from "src/course/domain/value-objects/course-date"
 import { CreateCourseServiceResponseDto } from "../../dto/responses/create-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { CourseTrainer } from "src/course/domain/value-objects/course-trainer"
+import { CourseCategory } from "src/course/domain/value-objects/course-category"
 
 
 
@@ -56,7 +58,7 @@ export class CreateCourseApplicationService implements IApplicationService<Creat
 
         const imageId = await this.idGenerator.generateId()
         const imageUrl = await this.fileUploader.UploadFile( data.image, imageId )
-        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), trainerResult.Value.Id, CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(data.minutesDuration), CourseLevel.create(data.level), [], categoryResult.Value.Id, CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
+        const course = Course.create( CourseId.create(await this.idGenerator.generateId()), CourseTrainer.create(trainerResult.Value.Id), CourseName.create(data.name), CourseDescription.create(data.description), CourseWeeksDuration.create(data.weeksDuration), CourseMinutesDuration.create(0), CourseLevel.create(data.level), [], CourseCategory.create(categoryResult.Value.Id), CourseImage.create(imageUrl), data.tags.map(tag => CourseTag.create(tag)), CourseDate.create(new Date()) )
         const result = await this.courseRepository.saveCourseAggregate( course )
         if ( !result.isSuccess() )
         {

@@ -2,7 +2,6 @@ import { IApplicationService } from "src/common/Application/application-services
 import { Result } from "src/common/Domain/result-handler/Result";
 import { ICodeGenerator } from "../../../common/Application/code-generator/code-generator.interface";
 import { IEmailSender } from "src/common/Application/email-sender/email-sender.interface.application";
-import { IInfraUserRepository } from "src/user/application/interfaces/orm-infra-user-repository.interface";
 import { ForgetPasswordEntryDto } from "./dto/entry/forget-password-entry.infraestructure.dto";
 import { GetCodeServiceResponseDto } from "./dto/response/get-code-service-response";
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";

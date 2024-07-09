@@ -13,7 +13,7 @@ import { OrmInfraUserRepositoryMock } from "test/common/repository-mocks/ormUser
 /* eslint-disable prettier/prettier */
 describe('UpdateUserProfileInfraService',() => {
 
-    let infraUserRepository: OrmInfraUserRepositoryMock
+    let sqlUserRepository: OrmAccountMockRepository
     let nosqlRepository: OdmAccountMockRepository
     let encryptor: EncryptorBcryptMock
     let fileUploader: FileUploaderMock
@@ -21,13 +21,13 @@ describe('UpdateUserProfileInfraService',() => {
     let service: UpdateUserProfileInfraService
 
     beforeEach(() => {
-        infraUserRepository = new OrmInfraUserRepositoryMock()
+        sqlUserRepository = new OrmAccountMockRepository()
         nosqlRepository = new OdmAccountMockRepository()
         encryptor = new EncryptorBcryptMock()
         fileUploader = new FileUploaderMock()
         idGenerator = new UuidGeneratorMock()
         service = new UpdateUserProfileInfraService(
-            infraUserRepository,
+            sqlUserRepository,
             nosqlRepository,
             idGenerator,
             encryptor,
@@ -40,7 +40,7 @@ describe('UpdateUserProfileInfraService',() => {
         const readModelObjectMother = new ReadModelObjectMother();
 
         const user = await UserObjectMother.createOrmUser()
-        await infraUserRepository.saveOrmUser(user)
+        await sqlUserRepository.saveUser(user)
         
         const odmUser = await new UserObjectMother(readModelObjectMother.getUserModel()).createOdmUser();
         await nosqlRepository.saveUser(odmUser)

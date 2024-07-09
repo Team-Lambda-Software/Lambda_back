@@ -56,6 +56,7 @@ import { OrmTrainerRepository } from '../../../trainer/infraestructure/repositor
 import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository"
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 
 @ApiTags( 'Blog' )
@@ -151,14 +152,17 @@ export class BlogController
             new ExceptionDecorator(
                 new AuditingDecorator(
                     new LoggingDecorator(
-                        new CreateBlogApplicationService(
-                            this.blogRepository,
-                            this.idGenerator,
-                            this.fileUploader,
-                            eventBus,
-                            this.ormTrainerRepository,
-                            this.ormCategoryRepository
-                        ),
+                        new PerformanceDecorator(
+                            new CreateBlogApplicationService(
+                                this.blogRepository,
+                                this.idGenerator,
+                                this.fileUploader,
+                                eventBus,
+                                this.ormTrainerRepository,
+                                this.ormCategoryRepository
+                            ),
+                        new NativeLogger( this.logger )
+                    ),
                         new NativeLogger( this.logger )
                     ),
                     this.auditingRepository,
@@ -201,10 +205,13 @@ export class BlogController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetBlogService(
-                        this.odmBlogRepository
+                    new PerformanceDecorator(
+                        new GetBlogService(
+                            this.odmBlogRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
-                    new NativeLogger( this.logger )
+                new NativeLogger( this.logger )
                 ),
                 new HttpExceptionHandler()
             )
@@ -228,8 +235,11 @@ export class BlogController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchMostPopularBlogsByCategoryService(
-                                this.odmBlogRepository
+                            new PerformanceDecorator(
+                                new SearchMostPopularBlogsByCategoryService(
+                                    this.odmBlogRepository
+                                ),
+                                new NativeLogger( this.logger )
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -243,8 +253,11 @@ export class BlogController
                 const service =
                     new ExceptionDecorator(
                         new LoggingDecorator(
-                            new SearchRecentBlogsByCategoryService(
-                                this.odmBlogRepository
+                            new PerformanceDecorator(
+                                new SearchRecentBlogsByCategoryService(
+                                    this.odmBlogRepository
+                                ),
+                                new NativeLogger( this.logger )
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -264,8 +277,11 @@ export class BlogController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchMostPopularBlogsByTrainerService(
-                            this.odmBlogRepository
+                        new PerformanceDecorator(
+                            new SearchMostPopularBlogsByTrainerService(
+                                this.odmBlogRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -279,8 +295,11 @@ export class BlogController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new SearchRecentBlogsByTrainerService(
-                            this.odmBlogRepository
+                        new PerformanceDecorator(
+                            new SearchRecentBlogsByTrainerService(
+                                this.odmBlogRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -303,8 +322,11 @@ export class BlogController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetBlogCountService(
-                        this.odmBlogRepository
+                    new PerformanceDecorator(
+                        new GetBlogCountService(
+                            this.odmBlogRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),

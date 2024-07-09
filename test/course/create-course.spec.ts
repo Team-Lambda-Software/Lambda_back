@@ -34,7 +34,6 @@ describe('Create Course', () => {
             name: "Curso yoga",
             description: "desripction of the course",
             weeksDuration: 10,
-            minutesDuration: 50,
             level: 2,
             categoryId: category.Id.Value,
             tags: ['test'],
@@ -75,7 +74,6 @@ describe('Create Course', () => {
             name: "",
             description: "desripction of the course",
             weeksDuration: 10,
-            minutesDuration: 50,
             level: 2,
             categoryId: category.Id.Value,
             tags: ['test'],
@@ -119,7 +117,6 @@ describe('Create Course', () => {
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 0,
-            minutesDuration: 50,
             level: 2,
             categoryId: category.Id.Value,
             tags: ['test'],
@@ -145,49 +142,6 @@ describe('Create Course', () => {
                 
     })
 
-    it('should fail if invalid minutes duration', async () => {
-        const user = await UserObjectMother.createNormalUser();
-        const userRepositoryMock = new UserMockRepository();
-        userRepositoryMock.saveUserAggregate(user);
-
-        const trainer = await TrainerObjectMother.createNormalTrainer();
-        const trainerRepositoryMock = new TrainerMockRepository();
-        trainerRepositoryMock.saveTrainer(trainer);
-
-        const category = await CategoryObjectMother.createNormalCategory('category 1');
-        const categoryRepositoryMock = new CategoryMockRepository();
-        categoryRepositoryMock.createCategory(category);
-
-        const entry: CreateCourseServiceEntryDto ={
-            trainerId: trainer.Id.Value,
-            name: "Course 1",
-            description: "desripction of the course",
-            weeksDuration: 10,
-            minutesDuration: 0,
-            level: 2,
-            categoryId: category.Id.Value,
-            tags: ['test'],
-            image: await FileObjectMother.createFile(),
-            userId: user.Id.Id
-        }
-
-        const service = new CreateCourseApplicationService(
-            new CourseRepositoryMock(),
-            new UuidGeneratorMock(),
-            new FileUploaderMock(),
-            new EventHandlerMock(),
-            trainerRepositoryMock,
-            categoryRepositoryMock,
-        )
-
-        try{
-            await service.execute(entry)
-        }catch(error){
-            expect(error.message).toEqual('La duración en minutos del curso tiene que ser válida')
-        }
-        expect.assertions(1)
-                
-    })
 
     it('should fail if invalid level', async () => {
         const user = await UserObjectMother.createNormalUser();
@@ -207,7 +161,6 @@ describe('Create Course', () => {
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 10,
-            minutesDuration: 10,
             level: 0,
             categoryId: category.Id.Value,
             tags: ['test'],
@@ -251,7 +204,6 @@ describe('Create Course', () => {
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 10,
-            minutesDuration: 10,
             level: 10,
             categoryId: category.Id.Value,
             tags: ['test'],
@@ -292,7 +244,6 @@ describe('Create Course', () => {
             name: "Course 1",
             description: "desripction of the course",
             weeksDuration: 10,
-            minutesDuration: 10,
             level: 10,
             categoryId: 'c3a3b3b3-3b3b-3b3b-3b3b-3b3b3b3b3b3b',
             tags: ['test'],

@@ -19,6 +19,7 @@ export class SectionQuerySyncronizer implements Querysynchronizer<SectionCreated
         const odmSection = { id: event.id, name: event.name, duration: event.duration, description: event.description, video: event.video }
         
         try{
+
             await this.courseRepository.addSectionToCourse(event.courseId,odmSection)
         }catch (error){
             return Result.fail<string>( error, 500, error.message )

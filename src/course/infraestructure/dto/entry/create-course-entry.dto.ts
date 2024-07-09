@@ -28,11 +28,6 @@ export class CreateCourseEntryDto {
     
     @IsInt()
     @Min( 1 )
-    minutesDuration: number
-
-    
-    @IsInt()
-    @Min( 1 )
     level: number
 
     

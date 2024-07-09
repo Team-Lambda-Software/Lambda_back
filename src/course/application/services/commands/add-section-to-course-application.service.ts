@@ -12,6 +12,8 @@ import { SectionDuration } from "src/course/domain/entities/section/value-object
 import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
 import { AddSectionToCourseServiceResponseDto } from "../../dto/responses/add-section-to-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import { IDurationFetcher } from "src/common/Application/duration-fetcher/duration-fetcher.interface"
+import { CalculateCourseMinutesDurationDomainService } from "src/course/domain/services/calculate-course-minutes-duration.service"
 
 
 
@@ -21,14 +23,16 @@ export class AddSectionToCourseApplicationService implements IApplicationService
     private readonly courseRepository: ICourseRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: IFileUploader
+    private readonly durationFetcher: IDurationFetcher<string>
     private readonly eventHandler: IEventHandler
 
-    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler)
+    constructor ( courseRepository: ICourseRepository, idGenerator: IdGenerator<string>, fileUploader: IFileUploader, eventHandler: IEventHandler, durationFetcher: IDurationFetcher<string>)
     {
         this.idGenerator = idGenerator
         this.courseRepository = courseRepository
         this.fileUploader = fileUploader
         this.eventHandler = eventHandler
+        this.durationFetcher = durationFetcher
     }
 
     // TODO: Search the progress if exists one for that user
@@ -43,16 +47,38 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoId = await this.idGenerator.generateId()
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
         videoUrl = videoUrl + process.env.SAS_TOKEN
+        //console.log("wow se subio el video")
+        //! const duration = Math.floor(await this.durationFetcher.getDuration( videoUrl ))
+        const duration = Math.floor( data.duration )
+        //console.log("wow se obtuvo la duracion")
         const courseResult = await this.courseRepository.findCourseById( data.courseId )
         if ( !courseResult.isSuccess() )
         {
             return Result.fail<AddSectionToCourseServiceResponseDto>( courseResult.Error, courseResult.StatusCode, courseResult.Message )
         }
-
         const courseValue = courseResult.Value
+        const sections = await this.courseRepository.findCourseSections ( data.courseId )
+
+        if ( !sections.isSuccess() )
+        {
+            return Result.fail<AddSectionToCourseServiceResponseDto>( sections.Error, sections.StatusCode, sections.Message )
+        }
+        courseValue.changeSections( sections.Value )
         courseValue.pullEvents()
+        const domainService = new CalculateCourseMinutesDurationDomainService()
+
         let section: Section
-        section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
+        section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(duration), SectionVideo.create(videoUrl))
+        const courseMinutesDuration = domainService.execute( courseValue)
+        courseValue.changeMinutesDuration( courseMinutesDuration )
+        
+        const resultCourse = await this.courseRepository.saveCourseAggregate( courseValue )
+
+        if ( !resultCourse.isSuccess() )
+        {
+            return Result.fail<AddSectionToCourseServiceResponseDto>( resultCourse.Error, resultCourse.StatusCode, resultCourse.Message )
+        }
+
         const result = await this.courseRepository.addSectionToCourse( data.courseId, section )
         if ( !result.isSuccess() )
         {

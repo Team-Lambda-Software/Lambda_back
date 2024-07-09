@@ -19,6 +19,8 @@ import { SectionName } from "src/course/domain/entities/section/value-objects/se
 import { CategoryId } from "src/categories/domain/value-objects/category-id"
 import { SectionDuration } from "src/course/domain/entities/section/value-objects/section-duration"
 import { TrainerId } from "src/trainer/domain/value-objects/trainer-id"
+import { CourseTrainer } from "src/course/domain/value-objects/course-trainer"
+import { CourseCategory } from "src/course/domain/value-objects/course-category"
 
 
 export class OdmCourseMapper implements IMapper<Course, OdmCourseEntity>
@@ -30,7 +32,7 @@ export class OdmCourseMapper implements IMapper<Course, OdmCourseEntity>
     async fromPersistenceToDomain ( course: OdmCourseEntity ): Promise<Course>
     {
         return Course.create(CourseId.create(course.id), 
-            TrainerId.create(course.trainer.id),
+            CourseTrainer.create(TrainerId.create(course.trainer.id)),
             CourseName.create(course.name), 
             CourseDescription.create(course.description),
             CourseWeeksDuration.create(course.weeks_duration), 
@@ -38,7 +40,7 @@ export class OdmCourseMapper implements IMapper<Course, OdmCourseEntity>
             CourseLevel.create(course.level), course.sections.map(section => 
                 Section.create(SectionId.create(section.id), SectionName.create(section.name), 
                 SectionDescription.create(section.description), SectionDuration.create(section.duration), 
-                SectionVideo.create(section.video))), CategoryId.create(course.category.id), 
+                SectionVideo.create(section.video))), CourseCategory.create(CategoryId.create(course.category.id)), 
             CourseImage.create(course.image), course.tags.map(tag => CourseTag.create(tag)), 
             CourseDate.create(course.date))
     }

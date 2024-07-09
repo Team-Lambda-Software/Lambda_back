@@ -3,6 +3,7 @@ import { AddSectionToCourseApplicationService } from "src/course/application/ser
 import { CourseObjectMother } from "test/common/objects-mothers/course.object-mother"
 import { FileObjectMother } from "test/common/objects-mothers/file.object-mother"
 import { UserObjectMother } from "test/common/objects-mothers/user.object-mother"
+import { DurationFetcherMock } from "test/common/other-mocks/duration-fetcher.mock"
 import { EventHandlerMock } from "test/common/other-mocks/event-handler.mock"
 import { FileUploaderMock } from "test/common/other-mocks/file-uploader.mock"
 import { UuidGeneratorMock } from "test/common/other-mocks/uuid-generator.mock"
@@ -27,14 +28,15 @@ describe('Add Section to Course', () => {
             courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            new DurationFetcherMock()
         )
 
 
         const entry: AddSectionToCourseServiceEntryDto = {
             name: "section 1",
             description: "description of the section",
-            duration: 60,
+            duration: 100,
             file: await FileObjectMother.createFile(),
             courseId: course.Id.Value,
             userId: user.Id.Id
@@ -58,13 +60,14 @@ describe('Add Section to Course', () => {
             courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            new DurationFetcherMock()
         )
 
         const entry: AddSectionToCourseServiceEntryDto = {
             name: "",
             description: "description of the section",
-            duration: 60,
+            duration: 100,
             file: await FileObjectMother.createFile(),
             courseId: course.Id.Value,
             userId: user.Id.Id
@@ -80,40 +83,6 @@ describe('Add Section to Course', () => {
         expect.assertions(1)
     })
 
-    it('should fail if invalid duration', async () => {
-        const user = await UserObjectMother.createNormalUser();
-        const userRepositoryMock = new UserMockRepository();
-        userRepositoryMock.saveUserAggregate(user);
-
-        const course = await CourseObjectMother.createCourse();
-        const courseRepositoryMock = new CourseRepositoryMock();
-        courseRepositoryMock.saveCourseAggregate(course);
-
-        const service = new AddSectionToCourseApplicationService(
-            courseRepositoryMock,
-            new UuidGeneratorMock(),
-            new FileUploaderMock(),
-            new EventHandlerMock()
-        )
-
-        const entry: AddSectionToCourseServiceEntryDto = {
-            name: "Section 1",
-            description: "description of the section",
-            duration: 0,
-            file: await FileObjectMother.createFile(),
-            courseId: course.Id.Value,
-            userId: user.Id.Id
-        }
-
-        try {
-            await service.execute(entry)
-        }
-        catch (error){
-            expect(error.message).toEqual('La duración de la sección tiene que ser válida')
-        }
-        
-        expect.assertions(1)
-    })
 
     it('should fail if no file', async () => {
         const user = await UserObjectMother.createNormalUser();
@@ -128,13 +97,14 @@ describe('Add Section to Course', () => {
             courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            new DurationFetcherMock()
         )
 
         const entry: AddSectionToCourseServiceEntryDto = {
             name: "Section 1",
             description: "description of the section",
-            duration: 60,
+            duration: 100,
             file: null,
             courseId: course.Id.Value,
             userId: user.Id.Id
@@ -158,13 +128,14 @@ describe('Add Section to Course', () => {
             courseRepositoryMock,
             new UuidGeneratorMock(),
             new FileUploaderMock(),
-            new EventHandlerMock()
+            new EventHandlerMock(),
+            new DurationFetcherMock()
         )
 
         const entry: AddSectionToCourseServiceEntryDto = {
             name: "Section 1",
             description: "description of the section",
-            duration: 10,
+            duration: 100,
             file: await FileObjectMother.createFile(),
             courseId: 'c1a2b3c4-5d6e-7f8g-9h0i-1j2k3l4m5n6',
             userId: user.Id.Id

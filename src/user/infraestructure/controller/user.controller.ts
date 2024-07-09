@@ -11,6 +11,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -25,14 +26,12 @@ import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { userUpdateEntryInfraestructureDto } from '../dto/entry/user-update-entry-infraestructure';
 import { UpdateUserProfileAplicationService } from "src/user/application/services/command/update-user-profile.application.service";
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { User } from "src/user/domain/user";
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
 import { UpdateUserProfileSwaggerResponseDto } from "src/user/infraestructure/dto/response/update-user-profile-swagger-response.dto";
 import { FolloUnfollowSwaggerResponseDto } from "../dto/response/follow-unfollow-entry-swagger-response.dto";
-import { GetUserSwaggerResponseDto } from "../dto/response/get-user-swagger-response.dto";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
 import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
 import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
@@ -47,31 +46,26 @@ import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
 import { AzureFileUploader } from "src/common/Infraestructure/azure-file-uploader/azure-file-uploader"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
-import { IInfraUserRepository } from "../../application/interfaces/orm-infra-user-repository.interface";
-import { OrmInfraUserRepository } from "../repositories/orm-repositories/orm-infra-user-repository";
 import { OrmAuditingRepository } from 'src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository';
 import { AuditingDecorator } from 'src/common/Application/application-services/decorators/decorators/auditing-decorator/auditing.decorator';
 import { IEncryptor } from 'src/common/Application/encryptor/encryptor.interface';
 import { EncryptorBcrypt } from 'src/common/Infraestructure/encryptor/encryptor-bcrypt';
-import { InfraUserQuerySynchronizer } from '../query-synchronizer/user-infra-query-synchronizer';
-import { UserQueryRepository } from '../repositories/user-query-repository.interface';
+import { AccountQuerySynchronizer } from '../query-synchronizer/account-query-synchronizer';
 import { OdmUserRepository } from '../repositories/odm-repository/odm-user-repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { OdmUserEntity } from '../entities/odm-entities/odm-user.entity';
-import { RabbitEventBus } from 'src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus';
-import { OdmUserMapper } from '../mappers/odm-mappers/odm-user-mapper';
 import { OrmUser } from '../entities/orm-entities/user.entity';
 import { UserEmailModified } from 'src/user/domain/events/user-email-modified-event';
 import { UserQuerySynchronizer } from '../query-synchronizer/user-query-synchronizer';
 import { UpdateUserProfileInfraService } from '../services/update-user-profile-infra.service';
 import { UpdateUserProfileInfraServiceEntryDto } from '../services/dto/update-user-profile-infra-service-entry-dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UserNameModified } from 'src/user/domain/events/user-name-modified-event';
 import { UserPhoneModified } from 'src/user/domain/events/user-phone-modified-event';
 import { EventBus } from 'src/common/Infraestructure/event-bus/event-bus';
 import { IAccountRepository } from 'src/user/application/interfaces/account-user-repository.interface';
 import { OdmAccountRepository } from '../repositories/odm-repository/odm-account-repository';
+import { OrmAccountRepository } from '../repositories/orm-repositories/orm-account-repository';
 
 
 @ApiTags('User')
@@ -84,35 +78,35 @@ export class UserController {
   private readonly imageTransformer: ImageTransformer
   private readonly idGenerator: IdGenerator<string>
   private readonly fileUploader: AzureFileUploader
-  private readonly infraUserRepository: IInfraUserRepository;
   private readonly auditingRepository: OrmAuditingRepository;
   private readonly encryptor: IEncryptor
-  //private readonly queryUserRepository: UserQueryRepository
-  private readonly infraUserQuerySyncronizer: InfraUserQuerySynchronizer
+  private readonly accountQuerySyncronizer: AccountQuerySynchronizer
   private readonly userQuerySyncronizer: UserQuerySynchronizer
+  
   private readonly odmAccountRepository: IAccountRepository<OdmUserEntity>
+  private readonly ormAccountRepository: IAccountRepository<OrmUser>
     
   constructor(
     @Inject('DataSource') private readonly dataSource: DataSource,
     @InjectModel('User') private userModel: Model<OdmUserEntity>
   ) {
     this.odmUserRepository = new OdmUserRepository(userModel)
-    //this.queryUserRepository = new OdmUserRepository(userModel)
     this.encryptor = new EncryptorBcrypt()
-    this.infraUserRepository = new OrmInfraUserRepository(dataSource)
     this.userRepository = new OrmUserRepository(new OrmUserMapper(), dataSource)
     this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource)
     this.imageTransformer = new ImageTransformer()
     this.idGenerator = new UuidGenerator()
     this.fileUploader = new AzureFileUploader()
     this.auditingRepository = new OrmAuditingRepository(dataSource)
-    this.infraUserQuerySyncronizer = new InfraUserQuerySynchronizer(this.odmUserRepository, userModel)
+    this.accountQuerySyncronizer = new AccountQuerySynchronizer(this.odmUserRepository, userModel) 
     this.userQuerySyncronizer = new UserQuerySynchronizer(this.odmUserRepository, userModel)
+
+    this.ormAccountRepository = new OrmAccountRepository( dataSource )
     this.odmAccountRepository = new OdmAccountRepository( userModel )
 
   }
 
-  @Patch('/update')
+  @Put('update')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOkResponse({
@@ -164,7 +158,7 @@ export class UserController {
         new ExceptionDecorator(
           new LoggingDecorator(
             new UpdateUserProfileInfraService(
-              this.infraUserRepository,
+              this.ormAccountRepository,
               this.odmAccountRepository,
               this.idGenerator,
               this.encryptor,
