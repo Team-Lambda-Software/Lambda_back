@@ -107,7 +107,7 @@ export class AuthController {
             email: user.email,
             name: user.name,
             phone: user.phone,
-            image: (image) ? image.getValue : image
+            image: (image) ? image.Value : image
         } 
     }
 
