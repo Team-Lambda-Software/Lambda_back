@@ -12,6 +12,7 @@ import { SectionDuration } from "src/course/domain/entities/section/value-object
 import { SectionVideo } from "src/course/domain/entities/section/value-objects/section-video"
 import { AddSectionToCourseServiceResponseDto } from "../../dto/responses/add-section-to-course-service-response.dto"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
+import getVideoDurationInSeconds from "get-video-duration"
 
 
 
@@ -43,6 +44,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         videoId = await this.idGenerator.generateId()
         videoUrl = await this.fileUploader.UploadFile( data.file, videoId )
         videoUrl = videoUrl + process.env.SAS_TOKEN
+        const duration = Math.floor(await getVideoDurationInSeconds( videoUrl ))
         const courseResult = await this.courseRepository.findCourseById( data.courseId )
         if ( !courseResult.isSuccess() )
         {
@@ -52,7 +54,7 @@ export class AddSectionToCourseApplicationService implements IApplicationService
         const courseValue = courseResult.Value
         courseValue.pullEvents()
         let section: Section
-        section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(data.duration), SectionVideo.create(videoUrl))
+        section = courseValue.createSection( SectionId.create(await this.idGenerator.generateId()), SectionName.create(data.name), SectionDescription.create(data.description), SectionDuration.create(duration), SectionVideo.create(videoUrl))
         const result = await this.courseRepository.addSectionToCourse( data.courseId, section )
         if ( !result.isSuccess() )
         {

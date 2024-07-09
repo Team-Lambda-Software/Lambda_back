@@ -73,6 +73,7 @@ import { FirebaseNotifier } from "src/notification/infraestructure/notifier/fire
 import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
+import getVideoDurationInSeconds from "get-video-duration"
 
 
 @ApiTags( 'Course' )
@@ -190,6 +191,7 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'image' ) )
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
+        
         const eventBus = RabbitEventBus.getInstance()
 
         const service =
@@ -248,9 +250,6 @@ export class CourseController
             properties: {
                 name: { type: 'integer' },
                 description: { type: 'string' },
-                duration: { type: 'integer' },
-                paragraph: { type: 'string' },
-
                 file: {
                     type: 'string',
                     format: 'binary',
@@ -284,16 +283,17 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        let fileType = null
+        
         let newFile = null
-        if ( file )
+
+
+        
+        newFile = new File( [ file.buffer ], file.originalname, { type: file.mimetype } )
+        if ( ![ 'mp4' ].includes( file.originalname.split( '.' ).pop() ) )
         {
-            newFile = new File( [ file.buffer ], file.originalname, { type: file.mimetype } )
-            if ( ![ 'mp4' ].includes( file.originalname.split( '.' ).pop() ) )
-            {
-                return Result.fail( new Error( "Invalid file format (videos in mp4, images in png, jpg or jpeg)" ), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
-            }
+            return Result.fail( new Error( "Invalid file format (videos in mp4, images in png, jpg or jpeg)" ), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
         }
+
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
