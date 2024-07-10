@@ -2,6 +2,7 @@ import { Result } from "src/common/Domain/result-handler/Result"
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OdmUserEntity } from "../../entities/odm-entities/odm-user.entity";
 import { Model } from "mongoose";
+import { UserNotFoundException } from "../../exceptions/user-not-found-exception";
 
 export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
 
@@ -16,7 +17,7 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
             await this.userModel.findOneAndUpdate( { email: email }, { password: newPassword } )
             return Result.success<boolean>( true, 200 )
         } catch (error) {
-            return Result.fail<boolean>( error, 500, "Internal Server Error" )
+            return Result.fail<boolean>( error, 500, "Error al cambiar contraseña" )
         }
     }
 
@@ -26,9 +27,9 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
             if (user){
                 return Result.success<OdmUserEntity[]>(user,200)
             }
-            return Result.fail<OdmUserEntity[]>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity[]>(new UserNotFoundException(), 403, "User not founded")
         } catch(error){
-            return Result.fail<OdmUserEntity[]>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity[]>( error, 500, "Error al buscar usuarios" )
         }
     }
 
@@ -37,7 +38,7 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
             const result = await this.userModel.create(user)
             return Result.success<boolean>(true, 200)
         } catch (error) {
-            return Result.fail<boolean>( error, 500, "Internal Server Error" )
+            return Result.fail<boolean>( error, 500, "Error registrando usuario" )
         }
     }
 
@@ -47,9 +48,9 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
             if (user){
                 return Result.success<OdmUserEntity>(user,200)
             }
-            return Result.fail<OdmUserEntity>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity>(new UserNotFoundException(), 403, "User not founded")
         } catch(error){
-            return Result.fail<OdmUserEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity>( error, 500, "Error al buscar usuario" )
         }
     }
 
@@ -57,9 +58,9 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
         try{
             const user = await this.userModel.findOne( { email: email } )
             if (user) return Result.success<OdmUserEntity>(user,200)
-            return Result.fail<OdmUserEntity>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity>(new UserNotFoundException(), 403, "User not founded")
         } catch(error){
-            return Result.fail<OdmUserEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity>( error, 500, "Error al buscar usuario" )
         }
     }
 

@@ -5,6 +5,14 @@ import { User } from "src/user/domain/user"
 
 
 export class UserMockRepository implements IUserRepository{
+
+    async verifyUserExistenceByEmail(email: string): Promise<Result<boolean>> {
+        const user = this.users.find( user => user.Email.Email === email  )
+        if( user === undefined )
+            return Result.fail<boolean>( new Error('Email registered'), 403, `Email registered`)    
+        return Result.success<boolean>( false , 200 )   
+    }
+    
     async findUserByEmail ( email: string ): Promise<Result<User>> {
         const user = this.users.find( user => user.Email.Email === email  )
         if( user === undefined )
