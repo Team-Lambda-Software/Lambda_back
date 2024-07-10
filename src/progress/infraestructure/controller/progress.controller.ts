@@ -56,6 +56,9 @@ import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
 import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
 import { OdmProgressRepository } from "../repositories/odm-repositories/odm-progress-repository";
+import { GetCourseProgressService } from "../query-services/services/get-all-sections-from-course.service";
+import { GetTrendingCourseService } from "../query-services/services/get-trending-course.service";
+import { GetAllStartedCoursesService } from "../query-services/services/get-all-started-courses.service";
 
 @ApiTags('Progress')
 @Controller('progress')
@@ -217,7 +220,7 @@ export class ProgressController {
 
         const getAllSectionsApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllSectionsFromCourseApplicationService(this.progressRepository, this.courseRepository),
+                new GetCourseProgressService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -247,7 +250,7 @@ export class ProgressController {
 
         const getTrendingApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetTrendingCourseApplicationService(this.progressRepository, this.courseRepository),
+                new GetTrendingCourseService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -309,7 +312,7 @@ export class ProgressController {
 
         const getAllStartedCoursesApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllStartedCoursesApplicationService(this.progressRepository, this.courseRepository, this.categoryRepository, this.trainerRepository),
+                new GetAllStartedCoursesService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
