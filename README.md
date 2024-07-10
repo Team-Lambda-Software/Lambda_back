@@ -28,7 +28,7 @@ Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para gara
 $ npm install
 ```
 
-Requisitos
+## Requisitos
 - Copiar las variables de entorno del .env.template
 - Es necesario dos bases de datos: una noSQL y una SQL
 - Tener una cuenta de mailjet, firebase y azure storage
