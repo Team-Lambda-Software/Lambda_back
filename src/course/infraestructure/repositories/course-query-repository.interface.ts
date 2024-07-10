@@ -10,7 +10,8 @@ import { SectionComment } from "src/course/domain/entities/section-comment/secti
 
 export interface CourseQueryRepository {
     saveCourse ( course: OdmCourseEntity ): Promise<void>
-    
+
+    changeCourseMinutesDuration ( courseId: string, minutesDuration: number ): Promise<void>
 
     addSectionToCourse ( courseId: string, section: {id: string, name: string, duration: number, description: string, video: string;} ): Promise<void>
     

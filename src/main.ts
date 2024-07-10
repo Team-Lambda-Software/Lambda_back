@@ -11,7 +11,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true, transformOptions: { enableImplicitConversion: true } }),
   );
-  app.use(json({ limit: '50mb' }));
+  app.use(json({ limit: '200mb' }));
   const config = new DocumentBuilder()
     .setTitle('Lambda Gymnastic API')
     .setDescription('Gymnastic endpoints')

@@ -57,6 +57,7 @@ import { OrmCategoryRepository } from "src/categories/infraesctructure/repositor
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
+import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
 
 
 @ApiTags( 'Blog' )
@@ -71,6 +72,8 @@ export class BlogController
     private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly ormTrainerRepository: OrmTrainerRepository
     private readonly ormCategoryRepository: OrmCategoryRepository
+    private readonly eventBus = RabbitEventBus.getInstance();
+    private readonly imageTransformer: ImageTransformer
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
@@ -86,6 +89,7 @@ export class BlogController
         @InjectModel('BlogComment') private blogCommentModel: Model<OdmBlogCommentEntity>,
         @InjectModel('User') private userModel: Model<OdmUserEntity>)
     {
+        this.imageTransformer = new ImageTransformer()
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.blogRepository =
@@ -122,31 +126,8 @@ export class BlogController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Crea un blog' } )
-    @ApiConsumes( 'multipart/form-data' )
-    @ApiBody( {
-        schema: {
-            type: 'object',
-            properties: {
-                trainerId: { type: 'integer' },
-                title: { type: 'string' },
-                body: { type: 'integer' },
-                categoryId: { type: 'string' },
-                tags: { type: 'array', items: { type: 'string' } },
-                images: {
-                    type: "array",
-                    items: {
-                        type: "string",
-                        format: "binary"
-                    }
-                }
-            },
-        },
-    } )
-    @UseInterceptors( FilesInterceptor( 'images', 5 ) )
-    async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
+    async createBlog (@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
-
-        const eventBus = RabbitEventBus.getInstance();
 
         const service =
             new ExceptionDecorator(
@@ -157,7 +138,7 @@ export class BlogController
                                 this.blogRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus,
+                                this.eventBus,
                                 this.ormTrainerRepository,
                                 this.ormCategoryRepository
                             ),
@@ -170,17 +151,26 @@ export class BlogController
                 ),
                 new HttpExceptionHandler()
             )
-        const newImages = []
-        for ( const image of images ){
-            const newImage = new File( [image.buffer], image.originalname, {type: image.mimetype})
-            newImages.push(newImage)
-            if ( !['png','jpg','jpeg'].includes(image.originalname.split('.').pop())){
-                return Result.fail( new Error("Invalid image format"), 400, "Invalid image format" )
-            }
-        }
         
-        const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
-        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+        const newImages: File[] = []
+        for ( const image of createBlogParams.images ){
+            let newImage: File
+            try{
+                newImage = await this.imageTransformer.base64ToFile(image)
+            } catch (error){
+                throw new BadRequestException("Las imagenes deben ser en formato base64")
+            }
+            newImages.push(newImage)
+           
+        }
+        const result = await service.execute( { images: newImages, 
+            userId: user.id, 
+            trainerId: createBlogParams.trainerId,
+            title: createBlogParams.title,
+            body: createBlogParams.body,
+            categoryId: createBlogParams.categoryId,
+            tags: createBlogParams.tags} )
+        this.eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
             this.blogQuerySyncronizer.execute(event)
             const pushService = new NewPublicationPushInfraService(
                 this.notiAddressRepository,

@@ -7,6 +7,13 @@ import { CourseQueryRepository } from "src/course/infraestructure/repositories/c
 
 
 export class CourseQueryRepositoryMock implements CourseQueryRepository{
+    async changeCourseMinutesDuration ( courseId: string, minutesDuration: number ): Promise<void>
+    {
+        await this.courses.map( course => {
+            if ( course.id === courseId ){
+                course.minutes_per_section = minutesDuration
+            }})
+    }
 
     private readonly courses: OdmCourseEntity[] = []
     private readonly sectionComments: OdmSectionCommentEntity[] = []

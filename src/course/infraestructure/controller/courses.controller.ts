@@ -73,6 +73,11 @@ import { FirebaseNotifier } from "src/notification/infraestructure/notifier/fire
 import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
+import getVideoDurationInSeconds from "get-video-duration"
+import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-fetcher/video-duration-fetcher"
+import { CourseMinutesDurationChanged } from "src/course/domain/events/course-minutes-duration-changed-event"
+import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer';
+import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer';
 
 
 @ApiTags( 'Course' )
@@ -92,11 +97,15 @@ export class CourseController
     private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
+    private readonly videoDurationFetcher: VideoDurationFetcher
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
+    private readonly eventBus = RabbitEventBus.getInstance();
+    private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly imageTransformer: BufferBase64ImageTransformer
+    private readonly base64ImageTransformer: ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( 
@@ -109,6 +118,8 @@ export class CourseController
         @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
+        this.videoDurationFetcher = new VideoDurationFetcher()
+        this.base64ImageTransformer = new ImageTransformer()
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.courseRepository =
@@ -150,6 +161,9 @@ export class CourseController
             this.odmCategoryRepository,
             this.odmTrainerRepository
         )
+        this.courseMinutesDurationChangedQuerySynchronizer = new CourseMinutesDurationChangedQuerySynchronizer(
+            this.odmCourseRepository
+        )
 
         this.odmTrainerMapper = new OdmTrainerMapper()
 
@@ -166,32 +180,10 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Crea un curso', type: CreateCourseSwaggerResponseDto } )
-    @ApiConsumes( 'multipart/form-data' )
-    @ApiBody( {
-        schema: {
-            type: 'object',
-            properties: {
-                trainerId: { type: 'string' },
-                name: { type: 'integer' },
-                description: { type: 'string' },
-                weeksDuration: { type: 'integer' },
-                minutesDuration: { type: 'integer' },
-                level: { type: 'integer' },
-                categoryId: { type: 'string' },
-                tags: { type: 'array', items: { type: 'string' } },
-                image: {
-                    type: 'string',
-                    format: 'binary',
-                },
-            },
-        },
-    } )
-    @UseInterceptors( FileExtender )
-    @UseInterceptors( FileInterceptor( 'image' ) )
-    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
+    
+    async createCourse ( @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
-        const eventBus = RabbitEventBus.getInstance()
-
+        
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -201,7 +193,7 @@ export class CourseController
                                 this.courseRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus,
+                                this.eventBus,
                                 this.trainerRepository,
                                 this.ormCategoryRepository
                             ),
@@ -214,15 +206,23 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        if ( ![ 'png', 'jpg', 'jpeg' ].includes( image.originalname.split( '.' ).pop() ) )
-        {
-            return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
+        let newImage: File
+        try{
+            newImage = await this.base64ImageTransformer.base64ToFile(createCourseServiceEntryDto.image)
+        } catch (error){
+            throw new BadRequestException("Las imagenes deben ser en formato base64")
         }
-        const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
         
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, categoryId: createCourseServiceEntryDto.categoryId, trainerId: createCourseServiceEntryDto.trainerId} )
+        const result = await service.execute( { image: newImage, userId: user.id, 
+            trainerId: createCourseServiceEntryDto.trainerId,
+            name: createCourseServiceEntryDto.name,
+            description: createCourseServiceEntryDto.description,
+            weeksDuration: createCourseServiceEntryDto.weeksDuration,
+            level: createCourseServiceEntryDto.level,
+            categoryId: createCourseServiceEntryDto.categoryId,
+            tags: createCourseServiceEntryDto.tags} )
                     
-        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
+        this.eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
             const pushService = new NewPublicationPushInfraService(
                 this.notiAddressRepository,
@@ -241,28 +241,9 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
-    @ApiConsumes( 'multipart/form-data' )
-    @ApiBody( {
-        schema: {
-            type: 'object',
-            properties: {
-                name: { type: 'integer' },
-                description: { type: 'string' },
-                duration: { type: 'integer' },
-                paragraph: { type: 'string' },
-
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                }
-            },
-        },
-    } )
-    @UseInterceptors( FileExtender )
-    @UseInterceptors( FileInterceptor( 'file' ) )
-    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
+    
+    async addSectionToCourse ( @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
-        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -273,7 +254,8 @@ export class CourseController
                                 this.courseRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus
+                                this.eventBus,
+                                this.videoDurationFetcher
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -284,20 +266,23 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        let fileType = null
-        let newFile = null
-        if ( file )
-        {
-            newFile = new File( [ file.buffer ], file.originalname, { type: file.mimetype } )
-            if ( ![ 'mp4' ].includes( file.originalname.split( '.' ).pop() ) )
-            {
-                return Result.fail( new Error( "Invalid file format (videos in mp4, images in png, jpg or jpeg)" ), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
-            }
+        
+        let newVideo: File
+        try{
+            newVideo = await this.base64ImageTransformer.base64ToVideo(addSectionToCourseEntryDto.video)
+        } catch (error){
+            throw new BadRequestException("los videos deben ser en formato base64")
         }
 
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
-        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
+
+        const result = await service.execute( { file: newVideo, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
+        
+        this.eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
+        })
+
+        this.eventBus.subscribe( 'CourseMinutesDurationChanged', async (event: CourseMinutesDurationChanged) => {
+            this.courseMinutesDurationChangedQuerySynchronizer.execute(event)
         })
         return result.Value
     }

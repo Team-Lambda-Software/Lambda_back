@@ -43,7 +43,7 @@ import { GetTrainerProfileApplicationService } from "../query-services/services/
 import { GetUserFollowingCountApplicationService } from "../query-services/services/get-user-following-count.application.service"
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
 import { TrainerFollowed } from "src/trainer/domain/events/trainer-followed-event"
-import { TrainerFollowQuerySyncronizer } from "../query-synchronizers/trainer-follow-query-synchronizer"
+import { TrainerFollowQuerySyncronizer } from '../query-synchronizers/trainer-follow-query-synchronizer';
 import { TrainerUnfollowed } from "src/trainer/domain/events/trainer-unfollowed-event"
 import { TrainerUnFollowQuerySyncronizer } from "../query-synchronizers/trainer-unfollow-query-synchronizer"
 
@@ -53,6 +53,9 @@ export class TrainerController {
 
     private readonly trainerRepository:OrmTrainerRepository;
     private readonly odmTrainerRepository:OdmTrainerRepository;
+    private readonly trainerFollowQuerySyncronizer: TrainerFollowQuerySyncronizer
+    private readonly trainerUnFollowQuerySyncronizer: TrainerUnFollowQuerySyncronizer
+    private readonly eventBus = RabbitEventBus.getInstance();
     //Course and Blog coupling
     private readonly courseRepository:OrmCourseRepository;
     private readonly blogRepository:OrmBlogRepository;
@@ -82,6 +85,8 @@ export class TrainerController {
                 new OrmBlogCommentMapper(),
                 dataSource
             );
+        this.trainerFollowQuerySyncronizer = new TrainerFollowQuerySyncronizer(this.odmTrainerRepository);
+        this.trainerUnFollowQuerySyncronizer = new TrainerUnFollowQuerySyncronizer(this.odmTrainerRepository);
     }
     
     @Get( 'one/:id' )
@@ -110,8 +115,7 @@ export class TrainerController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
-    {
-        const eventBus = RabbitEventBus.getInstance();
+    { 
         //to-do Sync databases on follow/unfollow event instance
 
         const trainerResult = await this.trainerRepository.findTrainerById(id);
@@ -130,12 +134,12 @@ export class TrainerController {
             const doesFollow = doesFollowResult.Value;
             if (doesFollow)
             {
-                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, eventBus);
+                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, this.eventBus);
                 
             }
             else
             {
-                baseService = new FollowTrainerApplicationService(this.trainerRepository, eventBus);
+                baseService = new FollowTrainerApplicationService(this.trainerRepository, this.eventBus);
                 
             }
         }
@@ -149,15 +153,14 @@ export class TrainerController {
             new HttpExceptionHandler()
         );
         await service.execute({userId: user.id, trainer: trainer})
-        if ( baseService instanceof FollowTrainerApplicationService )
-            eventBus.subscribe( TrainerFollowed.name, async (event: TrainerFollowed) => {
-                const synchonizer = new TrainerFollowQuerySyncronizer(this.odmTrainerRepository);
-                synchonizer.execute(event);
+        if ( baseService instanceof FollowTrainerApplicationService ){
+            this.eventBus.subscribe( TrainerFollowed.name, async (event: TrainerFollowed) => {
+                this.trainerFollowQuerySyncronizer.execute(event);
             })
+        }
         else 
-            eventBus.subscribe( TrainerUnfollowed.name, async (event: TrainerUnfollowed) => {
-                const synchonizer = new TrainerUnFollowQuerySyncronizer(this.odmTrainerRepository);
-                synchonizer.execute(event);
+            this.eventBus.subscribe( TrainerUnfollowed.name, async (event: TrainerUnfollowed) => {
+                this.trainerUnFollowQuerySyncronizer.execute(event);
             })
     }
 

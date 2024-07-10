@@ -46,9 +46,14 @@ export class CourseRepositoryMock implements ICourseRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    findCourseSections ( id: string ): Promise<Result<Section[]>>
+    async findCourseSections ( id: string ): Promise<Result<Section[]>>
     {
-        throw new Error( "Method not implemented." )
+        const course = this.courses.find( course => course.Id.Value === id )
+        if ( !course )
+        {
+            return Result.fail<Section[]>( new Error('Course not found'), 404, 'Course not found')
+        }
+        return Result.success<Section[]>( course.Sections, 200 )
     }
     async addCommentToSection ( comment: SectionComment ): Promise<Result<SectionComment>>
     {
