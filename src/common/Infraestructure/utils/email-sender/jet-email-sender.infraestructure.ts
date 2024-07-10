@@ -47,8 +47,12 @@ export abstract class JetEmailSender implements IEmailSender {
                 TemplateLanguage: true,
             }],
           })
-        .then( result => { console.log('email_sended') })
-        .catch( err => { console.log('error_in_email_sending') })
+        .then( result => { 
+            //console.log('email_sended') 
+        })
+        .catch( err => { 
+            //console.log('error_in_email_sending') 
+            })
 
     }
 }

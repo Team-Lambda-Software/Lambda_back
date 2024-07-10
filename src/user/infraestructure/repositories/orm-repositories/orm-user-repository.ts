@@ -16,6 +16,13 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
         super( OrmUser, dataSource.createEntityManager() )
         this.ormUserMapper = ormUserMapper
     }
+
+    async verifyUserExistenceByEmail(email: string): Promise<Result<boolean>> {
+        const user = await this.findOneBy({email})
+        if (!user)             
+            return Result.success<boolean>(true, 200);
+        return Result.fail<boolean>(new Error('Email registered'), 403,'Email registered');
+    }
     
     async findUserByEmail(email: string): Promise<Result<User>> {
         const user = await this.findOneBy({email})

@@ -6,6 +6,7 @@ import { LogInEntryDto } from "./dto/entry/log-in-entry.infraestructure.dto";
 import { LogInResponseDto } from "./dto/response/log-in-response.dto";
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
+import { IncorrectPasswordException } from "../exceptions/invalid-secret-code-exception copy";
 
 export class LogInUserInfraService implements IApplicationService<LogInEntryDto, LogInResponseDto> { 
     
@@ -25,10 +26,10 @@ export class LogInUserInfraService implements IApplicationService<LogInEntryDto,
     
     async execute(logInDto: LogInEntryDto): Promise<Result<LogInResponseDto>> {
         const findResult = await this.accountRepository.findUserByEmail( logInDto.email )
-        if ( !findResult.isSuccess() ) return Result.fail( new Error('Email not registered'), 403, 'Email not registered' )
+        if ( !findResult.isSuccess() ) return Result.fail( findResult.Error, findResult.StatusCode, findResult.Message )
         const userResult = await findResult.Value
         const checkPassword = await this.encryptor.comparePlaneAndHash(logInDto.password, userResult.password)
-        if (!checkPassword) return Result.fail( new Error('Incorrect password'), 400, 'Incorrect password' )
+        if (!checkPassword) return Result.fail( new IncorrectPasswordException(), 403, 'Incorrect password' )
         const token = this.tokenGenerator.generateJwt( userResult.id )   
         const answer = {
             token: token,

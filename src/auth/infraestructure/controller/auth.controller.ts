@@ -54,6 +54,7 @@ import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabb
 import { AccountQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/account-query-synchronizer";
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer";
 import { Result } from "src/common/Domain/result-handler/Result"
+import { InvalidSecretCodeException } from "../exceptions/invalid-secret-code-exception";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -145,8 +146,8 @@ export class AuthController {
             const ormUser = OrmUser.create( 
                 event.userId, event.userName, event.userPhone, event.userEmail, null, plainToHash, data.type, 
             )
-            this.syncroInfraUser.execute( ormUser )
             this.ormAccountRepository.saveUser( ormUser )
+            this.syncroInfraUser.execute( ormUser )
             emailSender.sendEmail( signUpDto.email, signUpDto.name )
         })
 
@@ -166,7 +167,9 @@ export class AuthController {
             email: data.email,
             name: data.name,
             phone: data.phone,
-        }))
+        }));
+        (await suscribe).unsubscribe()
+
         return { id: resultService.Value.id }
     }
     
@@ -197,7 +200,7 @@ export class AuthController {
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         this.cleanSecretCodes()
         const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
-        if ( !result ) throw new BadRequestException('Invalid secret code')
+       if ( !result ) throw new InvalidSecretCodeException()
         const data = { userId: 'none',  ...updatePasswordDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -216,7 +219,7 @@ export class AuthController {
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('Invalid secret code')
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new InvalidSecretCodeException()
     }
 
     private validateCode( code: string, email: string ) {
