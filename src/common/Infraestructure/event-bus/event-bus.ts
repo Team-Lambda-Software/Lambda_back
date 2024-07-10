@@ -16,7 +16,10 @@ export class EventBus implements IEventHandler{
     }
 
     public static getInstance(): IEventHandler {
-        return this.instance = new EventBus()
+        if (!this.instance)
+            this.instance = new EventBus()
+        return this.instance
+
     }
 
     async publish ( events: DomainEvent[] ): Promise<void>

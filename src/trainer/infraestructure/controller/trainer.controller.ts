@@ -55,6 +55,7 @@ export class TrainerController {
     private readonly odmTrainerRepository:OdmTrainerRepository;
     private readonly trainerFollowQuerySyncronizer: TrainerFollowQuerySyncronizer
     private readonly trainerUnFollowQuerySyncronizer: TrainerUnFollowQuerySyncronizer
+    private readonly eventBus = RabbitEventBus.getInstance();
     //Course and Blog coupling
     private readonly courseRepository:OrmCourseRepository;
     private readonly blogRepository:OrmBlogRepository;
@@ -114,8 +115,7 @@ export class TrainerController {
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     async ToggleFollowState( @Param('id', ParseUUIDPipe) id:string, @GetUser()user)
-    {
-        const eventBus = RabbitEventBus.getInstance();
+    { 
         //to-do Sync databases on follow/unfollow event instance
 
         const trainerResult = await this.trainerRepository.findTrainerById(id);
@@ -134,12 +134,12 @@ export class TrainerController {
             const doesFollow = doesFollowResult.Value;
             if (doesFollow)
             {
-                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, eventBus);
+                baseService = new UnfollowTrainerApplicationService(this.trainerRepository, this.eventBus);
                 
             }
             else
             {
-                baseService = new FollowTrainerApplicationService(this.trainerRepository, eventBus);
+                baseService = new FollowTrainerApplicationService(this.trainerRepository, this.eventBus);
                 
             }
         }
@@ -154,12 +154,12 @@ export class TrainerController {
         );
         await service.execute({userId: user.id, trainer: trainer})
         if ( baseService instanceof FollowTrainerApplicationService ){
-            eventBus.subscribe( TrainerFollowed.name, async (event: TrainerFollowed) => {
+            this.eventBus.subscribe( TrainerFollowed.name, async (event: TrainerFollowed) => {
                 this.trainerFollowQuerySyncronizer.execute(event);
             })
         }
         else 
-            eventBus.subscribe( TrainerUnfollowed.name, async (event: TrainerUnfollowed) => {
+            this.eventBus.subscribe( TrainerUnfollowed.name, async (event: TrainerUnfollowed) => {
                 this.trainerUnFollowQuerySyncronizer.execute(event);
             })
     }
