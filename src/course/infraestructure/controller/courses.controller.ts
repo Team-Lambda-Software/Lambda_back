@@ -77,6 +77,7 @@ import getVideoDurationInSeconds from "get-video-duration"
 import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-fetcher/video-duration-fetcher"
 import { CourseMinutesDurationChanged } from "src/course/domain/events/course-minutes-duration-changed-event"
 import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer';
+import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer';
 
 
 @ApiTags( 'Course' )
@@ -104,6 +105,7 @@ export class CourseController
     private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly imageTransformer: BufferBase64ImageTransformer
+    private readonly base64ImageTransformer: ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( 
@@ -117,7 +119,7 @@ export class CourseController
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
         this.videoDurationFetcher = new VideoDurationFetcher()
-
+        this.base64ImageTransformer = new ImageTransformer()
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
         this.notiAlertRepository = new OdmNotificationAlertRepository( alertModel )
         this.courseRepository =
@@ -178,28 +180,8 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Crea un curso', type: CreateCourseSwaggerResponseDto } )
-    @ApiConsumes( 'multipart/form-data' )
-    @ApiBody( {
-        schema: {
-            type: 'object',
-            properties: {
-                trainerId: { type: 'string' },
-                name: { type: 'integer' },
-                description: { type: 'string' },
-                weeksDuration: { type: 'integer' },
-                level: { type: 'integer' },
-                categoryId: { type: 'string' },
-                tags: { type: 'array', items: { type: 'string' } },
-                image: {
-                    type: 'string',
-                    format: 'binary',
-                },
-            },
-        },
-    } )
-    @UseInterceptors( FileExtender )
-    @UseInterceptors( FileInterceptor( 'image' ) )
-    async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
+    
+    async createCourse ( @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
         
         const service =
@@ -224,13 +206,21 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        if ( ![ 'png', 'jpg', 'jpeg' ].includes( image.originalname.split( '.' ).pop() ) )
-        {
-            return Result.fail( new Error( "Invalid image format" ), 400, "Invalid image format" )
+        let newImage: File
+        try{
+            newImage = await this.base64ImageTransformer.base64ToFile(createCourseServiceEntryDto.image)
+        } catch (error){
+            throw new BadRequestException("Las imagenes deben ser en formato base64")
         }
-        const newImage = new File( [ image.buffer ], image.originalname, { type: image.mimetype } )
         
-        const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, categoryId: createCourseServiceEntryDto.categoryId, trainerId: createCourseServiceEntryDto.trainerId} )
+        const result = await service.execute( { image: newImage, userId: user.id, 
+            trainerId: createCourseServiceEntryDto.trainerId,
+            name: createCourseServiceEntryDto.name,
+            description: createCourseServiceEntryDto.description,
+            weeksDuration: createCourseServiceEntryDto.weeksDuration,
+            level: createCourseServiceEntryDto.level,
+            categoryId: createCourseServiceEntryDto.categoryId,
+            tags: createCourseServiceEntryDto.tags} )
                     
         this.eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
@@ -251,24 +241,8 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
-    @ApiConsumes( 'multipart/form-data' )
-    @ApiBody( {
-        schema: {
-            type: 'object',
-            properties: {
-                name: { type: 'integer' },
-                description: { type: 'string' },
-                duration: { type: 'integer' },
-                file: {
-                    type: 'string',
-                    format: 'binary',
-                }
-            },
-        },
-    } )
-    @UseInterceptors( FileExtender )
-    @UseInterceptors( FileInterceptor( 'file' ) )
-    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
+    
+    async addSectionToCourse ( @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
 
         const service =
@@ -293,18 +267,15 @@ export class CourseController
                 new HttpExceptionHandler()
             )
         
-        let newFile = null
-
-
-        
-        newFile = new File( [ file.buffer ], file.originalname, { type: file.mimetype } )
-        if ( ![ 'mp4' ].includes( file.originalname.split( '.' ).pop() ) )
-        {
-            return Result.fail( new Error( "Invalid file format (videos in mp4, images in png, jpg or jpeg)" ), 400, "Invalid file format (videos in mp4, images in png, jpg or jpeg)" )
+        let newVideo: File
+        try{
+            newVideo = await this.base64ImageTransformer.base64ToVideo(addSectionToCourseEntryDto.video)
+        } catch (error){
+            throw new BadRequestException("los videos deben ser en formato base64")
         }
 
 
-        const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
+        const result = await service.execute( { file: newVideo, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         
         this.eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
