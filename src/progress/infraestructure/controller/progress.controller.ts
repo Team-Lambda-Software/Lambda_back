@@ -149,7 +149,7 @@ export class ProgressController {
         const service = 
         new ExceptionDecorator (
             new LoggingDecorator (
-                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, eventBus),
+                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, eventBus, new UuidGenerator()),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
@@ -190,6 +190,8 @@ export class ProgressController {
         const sectionUpdate = sectionUpdateResult.Value;
 
         eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
+            //TEST
+                console.log("Callback fn!")
             this.userProgressedQuerySynchronizer.execute( event );
         });
         if (sectionUpdate.sectionWasCompleted)

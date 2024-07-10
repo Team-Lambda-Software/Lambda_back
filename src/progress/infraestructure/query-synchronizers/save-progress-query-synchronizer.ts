@@ -15,6 +15,8 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
 
     async execute(event: UserHasProgressed): Promise<Result<string>> 
     {
+        //TEST
+            console.log("Entered synchronizer");
         const progressResult = await this.progressRepository.findProgressByCourseId(event.courseId, event.userId);
         if (!progressResult.isSuccess())
         {
@@ -38,7 +40,11 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
 
         try
         {
+            //TEST
+                console.log("Trying to save...",progress);
             await this.progressRepository.updateProgress(progress);
+            //TEST
+                console.log("Saved!");
         }
         catch (error)
         {
