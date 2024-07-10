@@ -37,7 +37,9 @@ export class RabbitEventBus implements IEventHandler{
                     },
                     );
                 channelWrapper.close();
+                
             }
+            connection.close();
           } catch (error) {
             throw new HttpException(
               error.message,
