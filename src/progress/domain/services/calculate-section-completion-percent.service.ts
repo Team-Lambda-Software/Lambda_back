@@ -20,7 +20,7 @@ export class CalculateSectionCompletionPercentDomainService {
         const sectionDuration:SectionDuration = course.getSectionDuration(sectionId);
         const videoProgress = subscription.getVideoProgressBySectionId(sectionId);
 
-        const completionPercent = SectionCompletionPercent.create(videoProgress.Value / sectionDuration.Value);
+        const completionPercent = SectionCompletionPercent.create(Math.floor( (videoProgress.Value / sectionDuration.Value) * 100 ) );
         return completionPercent;
     }
 }
