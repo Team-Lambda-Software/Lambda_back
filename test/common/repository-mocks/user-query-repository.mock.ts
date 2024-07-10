@@ -28,9 +28,12 @@ export class UserQueryRepositoryMock implements UserQueryRepository{
     {
         throw new Error( "Method not implemented." )
     }
-    findAllUser (): Promise<Result<OdmUserEntity[]>>
+    async findAllUser (): Promise<Result<OdmUserEntity[]>>
     {
-        throw new Error( "Method not implemented." )
+        if(this.users.length > 0){
+            return Result.success<OdmUserEntity[]>( this.users, 200 )
+        }
+        return Result.fail<OdmUserEntity[]>(new Error( "Not users." ),400,'Not users')
     }
 
 }

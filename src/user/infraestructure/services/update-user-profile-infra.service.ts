@@ -15,7 +15,7 @@ import { OdmUserEntity } from "../entities/odm-entities/odm-user.entity";
 export class UpdateUserProfileInfraService implements IApplicationService<UpdateUserProfileInfraServiceEntryDto,UpdateUserProfileInfraServiceResponseDto>{
     
     private readonly sqlRepository: IAccountRepository<OrmUser>
-    private nosqlRepository: IAccountRepository<OdmUserEntity>
+    private readonly nosqlRepository: IAccountRepository<OdmUserEntity>
     private readonly idGenerator: IdGenerator<string>
     private readonly encryptor: IEncryptor
     private readonly fileUploader: IFileUploader
@@ -42,7 +42,7 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(user.Error,user.StatusCode,user.Message)
 
         const userResult = user.Value
-
+        
         const userUpdate: OrmUser = await OrmUser.create(
             userResult.id,
             userResult.name,
@@ -58,6 +58,9 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(updateResult.Error,updateResult.StatusCode,updateResult.Message)
 
         const findResult = await this.nosqlRepository.findUserById( userResult.id )
+        if(!findResult.isSuccess()){
+            return Result.fail<UpdateUserProfileInfraServiceResponseDto>(findResult.Error,findResult.StatusCode,findResult.Message)
+        }
         const findValue = findResult.Value
         if ( data.image ) findValue.image = userUpdate.image
         if ( data.password ) findValue.password = userUpdate.password
