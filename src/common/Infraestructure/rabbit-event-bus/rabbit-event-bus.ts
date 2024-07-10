@@ -23,7 +23,6 @@ export class RabbitEventBus implements IEventHandler{
     {
         try {
             const connection = amqp.connect([process.env.RABBITMQ_URL]);
-            
             for (const event of events) {
                 const channelWrapper = connection.createChannel({
                     setup: (channel: Channel) => {
@@ -37,7 +36,7 @@ export class RabbitEventBus implements IEventHandler{
                         persistent: false,
                     },
                     );
-              
+                channelWrapper.close();
             }
           } catch (error) {
             throw new HttpException(

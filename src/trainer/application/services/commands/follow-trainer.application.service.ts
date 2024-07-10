@@ -59,7 +59,6 @@ export class FollowTrainerApplicationService implements IApplicationService<Togg
         {
             return Result.fail<ToggleTrainerFollowServiceResponseDto>( persistenceUpdateResult.Error, persistenceUpdateResult.StatusCode, persistenceUpdateResult.Message );
         }
-
         await this.eventHandler.publish( trainerValue.pullEvents() );
         //TEST
         return Result.success<ToggleTrainerFollowServiceResponseDto>( {message: "Suscrito exitosamente"}, 200 );
