@@ -1,8 +1,10 @@
 # Bienvenidos al Backend de Gymnastic Lambda
 
+
 <p align="center">
   <img src="./imgs/logo.svg" width="200" alt="Descripción de la imagen" />
 </p>
+
 
 Repositorio del Backend de la aplicación Gymnastic Center del Equipo Lambda, aplicación que basa su contenido en video tutoriales y blogs sobre yoga, ejercicio y semejantes.
 
@@ -83,6 +85,19 @@ $ npm run test
 - Despliegue:
     
     Encargado de la realización del github actions para el despliegue automático del backend, dockerización del backend, despliegue de las bases de datos en la nube, despliegue en azure del backend. Despliegue del servicio de RabbitMQ para el manejo de colas
+
+### Hualong Chiang
+
+- Capa de Aplicación: 
+    Servicio de registro del usuario. Implementación del decorador de seguridad.
+
+- Capa de Infraestructura:
+    Relacionado a la auténticación y autorización de usuarios: implementación del manejo y generación de códigos de seguridad (JWT, Hash, RandomCodes)
+    Relacionado a notificaciones del sistema: implementación de la persistencia y el envío de la mismas
+    Sin relación a un contexto concreto: implementación de los contratos de envío de correos
+
+- Tests:
+    Tests unitarios del módulo de Authentication
 
 ### "colocar aqui los demas"
 
