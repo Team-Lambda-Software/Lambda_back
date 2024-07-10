@@ -23,6 +23,7 @@ import { CourseSchema } from './course/infraestructure/entities/odm-entities/odm
 import { SectionCommentSchema } from './course/infraestructure/entities/odm-entities/odm-section-comment.entity'
 import { NotificationAlertSchema } from './notification/infraestructure/entities/odm-entities/odm-notification-alert.entity';
 import { NotificationAddressSchema } from './notification/infraestructure/entities/odm-entities/odm-notification-address.entity';
+import { ProgressSchema } from './progress/infraestructure/entities/odm-entities/odm-progress.entity';
 
 @Module( {
   imports: [
@@ -42,7 +43,8 @@ import { NotificationAddressSchema } from './notification/infraestructure/entiti
       { name: 'Course', schema: CourseSchema, },
       { name: 'SectionComment', schema: SectionCommentSchema, },
       { name: 'NotificationAddress', schema: NotificationAddressSchema, },
-      { name: 'NotificationAlert', schema: NotificationAlertSchema, }
+      { name: 'NotificationAlert', schema: NotificationAlertSchema, },
+      { name: 'Progress', schema:ProgressSchema, }
     ])
   ],
   controllers: [
