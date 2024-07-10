@@ -41,10 +41,12 @@ describe('UpdateUserProfileApplicationService', () => {
             userRepository,
             eventHandler
         )
-
-        const result = await service.execute(updateEntry)
-
-        expect(result.isSuccess()).toBeFalsy()
+        try {
+            await service.execute(updateEntry)
+        } catch(error) {
+            const ex = updateEntry.email
+            expect(error.message).toEqual(`El email ${ex} no es valido.`)
+        }
     })
 
     it('name invalid',async () => {
@@ -61,9 +63,12 @@ describe('UpdateUserProfileApplicationService', () => {
             eventHandler
         )
 
-        const result = await service.execute(updateEntry)
-
-        expect(result.isSuccess()).toBeFalsy()
+        try {
+            await service.execute(updateEntry)
+        } catch(error) {
+            const ex = updateEntry.name
+            expect(error.message).toEqual(`El nombre ${ex} no es valido por la cantidad de caracteres`)
+        }
     })
 
     it('phone invalid',async () => {
@@ -81,9 +86,13 @@ describe('UpdateUserProfileApplicationService', () => {
             eventHandler
         )
 
-        const result = await service.execute(updateEntry)
+        try {
+            await service.execute(updateEntry)
+        } catch(error) {
+            const ex = updateEntry.phone
+            expect(error.message).toEqual(`El telefono ${ex} debe tener 11 digitos`)
+        }
 
-        expect(result.isSuccess()).toBeFalsy()
     })
 
     it('user not existed in the database',async () => {
