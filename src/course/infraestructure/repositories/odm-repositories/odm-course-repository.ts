@@ -18,6 +18,182 @@ export class OdmCourseRepository implements CourseQueryRepository{
         this.sectionCommentModel = sectionCommentModel
 
     }
+    async findCoursesOrderByPopularity ( pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        try{
+            const {page, perPage} = pagination
+            const courses = await this.courseModel.aggregate( [
+                {
+                  '$lookup': {
+                    'from': 'progresses', 
+                    'localField': 'id', 
+                    'foreignField': 'course.id', 
+                    'as': 'progress'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'name': 1, 
+                    'description': 1, 
+                    'level': 1, 
+                    'weeks_duration': 1, 
+                    'minutes_per_section': 1, 
+                    'date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'image': 1, 
+                    'tags': 1, 
+                    'sections': 1, 
+                    'progress_count': {
+                      '$size': {
+                        '$ifNull': [
+                          '$progress', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'progress_count': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'progress_count': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmCourseEntity[]>( courses, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
+        }
+    }
+    async findCoursesByCategoryOrderByPopularity ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        try{
+            const {page, perPage} = pagination
+            const courses = await this.courseModel.aggregate( [
+                {
+                    '$match': {
+                        'category.id': categoryId
+                    }
+                },
+                {
+                  '$lookup': {
+                    'from': 'progresses', 
+                    'localField': 'id', 
+                    'foreignField': 'course.id', 
+                    'as': 'progress'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'name': 1, 
+                    'description': 1, 
+                    'level': 1, 
+                    'weeks_duration': 1, 
+                    'minutes_per_section': 1, 
+                    'date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'image': 1, 
+                    'tags': 1, 
+                    'sections': 1, 
+                    'progress_count': {
+                      '$size': {
+                        '$ifNull': [
+                          '$progress', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'progress_count': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'progress_count': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmCourseEntity[]>( courses, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
+        }
+    }
+
+    async findCoursesByTrainerOrderByPopularity ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        try{
+            const {page, perPage} = pagination
+            const courses = await this.courseModel.aggregate( [
+                {
+                    '$match': {
+                        'trainer.id': trainerId
+                    }
+                },
+                {
+                  '$lookup': {
+                    'from': 'progresses', 
+                    'localField': 'id', 
+                    'foreignField': 'course.id', 
+                    'as': 'progress'
+                  }
+                }, {
+                  '$project': {
+                    '_id': 0, 
+                    'id': 1, 
+                    'name': 1, 
+                    'description': 1, 
+                    'level': 1, 
+                    'weeks_duration': 1, 
+                    'minutes_per_section': 1, 
+                    'date': 1, 
+                    'category': 1, 
+                    'trainer': 1, 
+                    'image': 1, 
+                    'tags': 1, 
+                    'sections': 1, 
+                    'progress_count': {
+                      '$size': {
+                        '$ifNull': [
+                          '$progress', []
+                        ]
+                      }
+                    }
+                  }
+                }, {
+                  '$sort': {
+                    'progress_count': -1, 
+                    'id': -1
+                  }
+                }, {
+                  '$project': {
+                    'progress_count': 0
+                  }
+                }, {
+                  '$skip': page
+                }, {
+                  '$limit': perPage
+                }
+              ])
+            return Result.success<OdmCourseEntity[]>( courses, 200 )
+        }catch (error){
+            return Result.fail<OdmCourseEntity[]>( error, 500, error.message )
+        }
+    }
     async changeCourseMinutesDuration ( courseId: string, minutesDuration: number ): Promise<void>
     {
         await this.courseModel.updateOne( { id: courseId }, { $set: { minutes_per_section: minutesDuration } } )

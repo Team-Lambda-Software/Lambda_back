@@ -330,8 +330,7 @@ export class CourseController
                         new LoggingDecorator(
                             new PerformanceDecorator(
                                 new SearchMostPopularCoursesByCategoryService(
-                                    this.odmCourseRepository,
-                                    this.progressRepository
+                                    this.odmCourseRepository
                                 ),
                                 new NativeLogger( this.logger )
                             ),
@@ -373,8 +372,7 @@ export class CourseController
                     new LoggingDecorator(
                         new PerformanceDecorator(
                             new SearchMostPopularCoursesByTrainerService(
-                                this.odmCourseRepository,
-                                this.progressRepository
+                                this.odmCourseRepository
                             ),
                             new NativeLogger( this.logger )
                         ),

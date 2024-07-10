@@ -46,6 +46,13 @@ export class InitiateCourseProgressApplicationService implements IApplicationSer
         {
             return Result.fail<InitiateCourseProgressResponseDto>(new Error("El progreso ya fue iniciado previamente. No se puede volver a iniciar"), 409, "El progreso ya fue iniciado previamente. No se puede volver a iniciar");
         }
+        else
+        {
+            if(progressResult.StatusCode != 404) //! Coupling with a StatusCode in Application, not good
+            {
+                return Result.fail<InitiateCourseProgressResponseDto>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
+            }
+        }
 
         const sectionsResult = await this.courseRepository.findCourseSections(data.courseId);
         if (!sectionsResult.isSuccess())

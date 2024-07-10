@@ -8,6 +8,11 @@ import { CalculateSectionCompletionPercentDomainService } from "./calculate-sect
 export class CalculateCourseCompletionPercentDomainService {
     execute (course:Course, subscription:CourseSubscription):CourseCompletionPercent
     {
+        if (subscription.IsCompleted.Value)
+        {
+            return CourseCompletionPercent.create(100);
+        }
+
         const calculateSectionCompletionService:CalculateSectionCompletionPercentDomainService = new CalculateSectionCompletionPercentDomainService();
         let sectionCompletions:SectionCompletionPercent[] = [];
         for (let sectionProgress of subscription.Sections)
