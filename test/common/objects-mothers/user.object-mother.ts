@@ -98,7 +98,7 @@ export class UserObjectMother {
         return {
             userId: id.Id,
             name: "Luigi",
-            email: "email",
+            email: "test@gmail.com",
             phone: "+58 123",
         }
     }
