@@ -71,6 +71,7 @@ export class BlogController
     private readonly odmTrainerRepository: OdmTrainerRepository
     private readonly ormTrainerRepository: OrmTrainerRepository
     private readonly ormCategoryRepository: OrmCategoryRepository
+    private readonly eventBus = RabbitEventBus.getInstance();
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
@@ -146,8 +147,6 @@ export class BlogController
     async createBlog (@UploadedFiles() images: Express.Multer.File[] ,@GetUser() user, @Body() createBlogParams: CreateBlogEntryDto )
     {
 
-        const eventBus = RabbitEventBus.getInstance();
-
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -157,7 +156,7 @@ export class BlogController
                                 this.blogRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus,
+                                this.eventBus,
                                 this.ormTrainerRepository,
                                 this.ormCategoryRepository
                             ),
@@ -180,7 +179,7 @@ export class BlogController
         }
         
         const result = await service.execute( { images: newImages, ...createBlogParams, userId: user.id } )
-        eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
+        this.eventBus.subscribe('BlogCreated', async (event: BlogCreated) => {
             this.blogQuerySyncronizer.execute(event)
             const pushService = new NewPublicationPushInfraService(
                 this.notiAddressRepository,
