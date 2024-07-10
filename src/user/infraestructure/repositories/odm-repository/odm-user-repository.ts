@@ -3,6 +3,7 @@ import { Result } from "src/common/Domain/result-handler/Result";
 import { OdmUserEntity } from "../../entities/odm-entities/odm-user.entity";
 import { UserQueryRepository } from "../user-query-repository.interface";
 import { Model } from "mongoose";
+import { UserNotFoundException } from "../../exceptions/user-not-found-exception";
 
 export class OdmUserRepository implements UserQueryRepository{
 
@@ -13,9 +14,7 @@ export class OdmUserRepository implements UserQueryRepository{
     }
 
     async saveUser(user: OdmUserEntity): Promise<void> {
-        
         const newUserOdm = new this.userModel(user)
-        
         await newUserOdm.save()
     }
 
@@ -25,9 +24,9 @@ export class OdmUserRepository implements UserQueryRepository{
             if(user){
                 return Result.success<OdmUserEntity>(user,200)
             }
-            return Result.fail<OdmUserEntity>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity>(new UserNotFoundException(), 403, "User not founded")
         }catch(error){
-            return Result.fail<OdmUserEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity>( new Error(error.message), 500, "Error al buscar usuario" )
         }
     }
 
@@ -37,9 +36,9 @@ export class OdmUserRepository implements UserQueryRepository{
             if(user){
                 return Result.success<OdmUserEntity>(user,200)
             }
-            return Result.fail<OdmUserEntity>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity>(new UserNotFoundException(), 403, "User not founded")
         }catch(error){
-            return Result.fail<OdmUserEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity>( new Error(error.message), 500, "Error al buscar usuario" )
         }
     }
 
@@ -49,9 +48,9 @@ export class OdmUserRepository implements UserQueryRepository{
             if(user){
                 return Result.success<OdmUserEntity[]>(user,200)
             }
-            return Result.fail<OdmUserEntity[]>(new Error("User not founded"),404,"User not founded")
+            return Result.fail<OdmUserEntity[]>(new UserNotFoundException(), 403, "User not founded")
         }catch(error){
-            return Result.fail<OdmUserEntity[]>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmUserEntity[]>( new Error(error.message), 500, "Error al buscar usuarios" )
         }
     }
     

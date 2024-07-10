@@ -26,12 +26,9 @@ export class AccountQuerySynchronizer implements Querysynchronizer<OrmUser>{
             phone: user.phone,
             type: user.type
         })
-        
         try{
             await this.odmUserRepository.saveUser(userOdmPersistence)            
         }catch(error){
-            console.log(error)
-        
             return Result.fail<string>( error, 500, error.detail )
         }
 

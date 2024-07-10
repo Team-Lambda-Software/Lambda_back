@@ -26,34 +26,24 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
     }
 
     async execute(data: UpdateUserProfileServiceEntryDto): Promise<Result<UpdateUserProfileServiceResponseDto>> {
-        
         const user = await this.userRepository.findUserById(data.userId)
-        
-        if(!user.isSuccess())
-            return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
-
+        if(!user.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
         const userResult = user.Value
+        
+        if (data.name) userResult.updateName(UserName.create(data.name))
+        if (data.email) userResult.updateEmail(UserEmail.create(data.email))
+        if (data.phone) userResult.updatePhone(UserPhone.create(data.phone))
+        const updateResult = await this.userRepository.saveUserAggregate(userResult);
 
-        try{
-
-            if(data.name) userResult.updateName(UserName.create(data.name))
-
-            if(data.email) userResult.updateEmail(UserEmail.create(data.email))
-
-            if(data.phone) userResult.updatePhone(UserPhone.create(data.phone))
-
-            const updateResult = await this.userRepository.saveUserAggregate(userResult);
-            await this.eventHandler.publish(userResult.pullEvents())
-
-            const respuesta: UpdateUserProfileServiceResponseDto = {
-                userId: updateResult.Value.Id.Id,
-            }
-
-            return Result.success<UpdateUserProfileServiceResponseDto>(respuesta,200)
-
-        }catch(error){
-            return Result.fail<UpdateUserProfileServiceResponseDto>(error,500,error.message)
+        if ( !updateResult.isSuccess() ) 
+            Result.fail<UpdateUserProfileAplicationService>(updateResult.Error, 500, updateResult.Message)
+        
+        await this.eventHandler.publish(userResult.pullEvents())
+        const respuesta: UpdateUserProfileServiceResponseDto = {
+            userId: updateResult.Value.Id.Id
         }
+        return Result.success<UpdateUserProfileServiceResponseDto>(respuesta,200)
+
     }
 
     get name(): string {

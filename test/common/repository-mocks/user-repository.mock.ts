@@ -7,18 +7,14 @@ import { User } from "src/user/domain/user"
 
 export class UserMockRepository implements IUserRepository{
 
-
     private readonly users: User[] = []
 
-
-    async verifyUserExistenceByEmail ( email: string ): Promise<Result<boolean>>
-    {
-        const user = this.users.find( user => user.Email.Email === email )
+    async verifyUserExistenceByEmail(email: string): Promise<Result<boolean>> {
+        const user = this.users.find( user => user.Email.Email === email  )
         if( user === undefined )
-            return Result.success<boolean>( false, 200 )
-        return Result.success<boolean>( true, 200 )
-    }
-
+            return Result.fail<boolean>( new Error('Email registered'), 403, `Email registered`)    
+        return Result.success<boolean>( false , 200 )   
+    }    
     async findUserByEmail ( email: string ): Promise<Result<User>> {
         const user = this.users.find( user => user.Email.Email === email  )
         if( user === undefined )

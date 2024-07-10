@@ -117,6 +117,7 @@ export class UserController {
   async updateUser(@GetUser() user, @Body() updateEntryDTO: userUpdateEntryInfraestructureDto) {
     const eventBus = EventBus.getInstance()
     let image: File = null
+    
     if (updateEntryDTO.image) image = await this.imageTransformer.base64ToFile(updateEntryDTO.image)
 
     if (updateEntryDTO.email) 
@@ -128,9 +129,9 @@ export class UserController {
       eventBus.subscribe('UserNameModified', async (event: UserNameModified) => {
         await this.userQuerySyncronizer.execute(event)
       })
-
+      
     if (updateEntryDTO.phone) 
-      eventBus.subscribe('UserPhoneModified', async (event: UserPhoneModified) => {
+      await eventBus.subscribe('UserPhoneModified', async (event: UserPhoneModified) => {
         await this.userQuerySyncronizer.execute(event);
       })
     
@@ -140,19 +141,14 @@ export class UserController {
       new ExceptionDecorator(
         new LoggingDecorator(
           new UpdateUserProfileAplicationService(
-            this.userRepository,
-            eventBus
-          ),
-          new NativeLogger(this.logger),
-        ),
-        new HttpExceptionHandler(),
-      ),
-      this.auditingRepository,
-      this.idGenerator,
+            this.userRepository, eventBus
+          ), new NativeLogger(this.logger),
+        ), new HttpExceptionHandler(),
+      ), this.auditingRepository, this.idGenerator,
     );
 
     const resultUpdate = (await updateUserProfileService.execute(userUpdateDto))
-
+    
     const updateUserProfileInfraService =
       new AuditingDecorator(
         new ExceptionDecorator(
@@ -178,18 +174,11 @@ export class UserController {
         password: updateEntryDTO.password,
         image: image
       }
-
       const updateInfraResult = await updateUserProfileInfraService.execute(userInfraUpdateDto)
-
-      if (!updateInfraResult.isSuccess) return updateInfraResult.Error
+      if (!updateInfraResult.isSuccess()) return updateInfraResult.Error
       const Respuesta: UpdateUserProfileSwaggerResponseDto = { Id: updateInfraResult.Value.userId }
       return Respuesta
     }
-
-    const respuesta: UpdateUserProfileSwaggerResponseDto = { Id: resultUpdate.Value.userId }
-
-    return respuesta
-    
+    return { Id: resultUpdate.Value.userId }
   }
-
 }
