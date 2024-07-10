@@ -100,6 +100,7 @@ export class CourseController
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
+    private readonly eventBus = RabbitEventBus.getInstance();
     private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly imageTransformer: BufferBase64ImageTransformer
@@ -201,8 +202,6 @@ export class CourseController
     async createCourse ( @UploadedFile() image: Express.Multer.File, @Body() createCourseServiceEntryDto: CreateCourseEntryDto, @GetUser() user )
     {
         
-        const eventBus = RabbitEventBus.getInstance()
-
         const service =
             new ExceptionDecorator(
                 new AuditingDecorator(
@@ -212,7 +211,7 @@ export class CourseController
                                 this.courseRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus,
+                                this.eventBus,
                                 this.trainerRepository,
                                 this.ormCategoryRepository
                             ),
@@ -233,7 +232,7 @@ export class CourseController
         
         const result = await service.execute( { image: newImage, ...createCourseServiceEntryDto, userId: user.id, categoryId: createCourseServiceEntryDto.categoryId, trainerId: createCourseServiceEntryDto.trainerId} )
                     
-        eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
+        this.eventBus.subscribe( 'CourseCreated', async ( event: CourseCreated ) =>{
             this.courseQuerySyncronizer.execute( event )
             const pushService = new NewPublicationPushInfraService(
                 this.notiAddressRepository,
@@ -271,7 +270,6 @@ export class CourseController
     @UseInterceptors( FileInterceptor( 'file' ) )
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
-        const eventBus = RabbitEventBus.getInstance()
 
         const service =
             new ExceptionDecorator(
@@ -282,7 +280,7 @@ export class CourseController
                                 this.courseRepository,
                                 this.idGenerator,
                                 this.fileUploader,
-                                eventBus,
+                                this.eventBus,
                                 this.videoDurationFetcher
                             ),
                             new NativeLogger( this.logger )
@@ -308,11 +306,11 @@ export class CourseController
 
         const result = await service.execute( { file: newFile, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         
-        eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
+        this.eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
         })
 
-        eventBus.subscribe( 'CourseMinutesDurationChanged', async (event: CourseMinutesDurationChanged) => {
+        this.eventBus.subscribe( 'CourseMinutesDurationChanged', async (event: CourseMinutesDurationChanged) => {
             this.courseMinutesDurationChangedQuerySynchronizer.execute(event)
         })
         return result.Value

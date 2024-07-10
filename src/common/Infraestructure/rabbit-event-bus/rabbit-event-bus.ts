@@ -1,5 +1,6 @@
 import { HttpException } from "@nestjs/common"
 import amqp, { ChannelWrapper } from "amqp-connection-manager"
+import { IAmqpConnectionManager } from "amqp-connection-manager/dist/types/AmqpConnectionManager"
 import { Channel, ConfirmChannel, ConsumeMessage } from "amqplib"
 import { IEventHandler } from "src/common/Application/event-handler/event-handler.interface"
 import { IEventSubscriber } from "src/common/Application/event-handler/subscriber.interface"
@@ -10,36 +11,40 @@ import { DomainEvent } from "src/common/Domain/domain-event/domain-event"
 export class RabbitEventBus implements IEventHandler{
 
     public static instance?: IEventHandler = undefined
-    
+    private readonly publishConnection: IAmqpConnectionManager
+    private readonly subscribeConnection: IAmqpConnectionManager
+    private readonly publishChannelWrapper: ChannelWrapper
+    private readonly subscribeChannelWrapper: ChannelWrapper
     private constructor (){
-        
+        this.publishConnection = amqp.connect([process.env.RABBITMQ_URL]);
+        this.subscribeConnection = amqp.connect([process.env.RABBITMQ_URL]);
+        this.publishChannelWrapper = this.publishConnection.createChannel();
+        this.subscribeChannelWrapper = this.subscribeConnection.createChannel();
     }
 
     public static getInstance(): IEventHandler {
-        return this.instance = new RabbitEventBus()
+        if (!this.instance)
+            this.instance = new RabbitEventBus()
+        return this.instance
     }
 
     async publish ( events: DomainEvent[] ): Promise<void>
     {
         try {
-            const connection = amqp.connect([process.env.RABBITMQ_URL]);
             for (const event of events) {
-                const channelWrapper = connection.createChannel({
-                    setup: (channel: Channel) => {
-                      return channel.assertQueue(event.eventName, { durable: true });
-                    },
-                  });
-                await channelWrapper.sendToQueue(
+                
+                await this.publishChannelWrapper.assertQueue(event.eventName, { durable: true });
+                    
+                await this.publishChannelWrapper.sendToQueue(
                     event.eventName,
                     Buffer.from(JSON.stringify(event)),
                     {
                         persistent: false,
                     },
                     );
-                channelWrapper.close();
                 
             }
-            connection.close();
+
           } catch (error) {
             throw new HttpException(
               error.message,
@@ -50,20 +55,17 @@ export class RabbitEventBus implements IEventHandler{
     
     async subscribe ( eventName: string, callback: ( event: DomainEvent ) => Promise<void> ): Promise<IEventSubscriber>
     {
-        const connection = amqp.connect([process.env.RABBITMQ_URL]);
-        const channel = connection.createChannel();
-        await channel.assertQueue(eventName, { durable: true });
-        await channel.consume(eventName, async (message) => {
+        await this.subscribeChannelWrapper.assertQueue(eventName, { durable: true });
+        await this.subscribeChannelWrapper.consume(eventName, async (message) => {
             if (message) {
                 const event = JSON.parse(message.content.toString());
                 await callback(event);
-                channel.ack(message);
+                this.subscribeChannelWrapper.ack(message);
             }
         },
         {
             noAck: false,
         });
-        
         return {
             unsubscribe: async () => {
                 
