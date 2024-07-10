@@ -84,7 +84,7 @@ export class OdmProgressRepository implements ProgressQueryRepository {
         {
             const {page, perPage} = pagination;
             const startedCourses = await this.progressModel.find( {'user_id': userId} ).skip((page-1)*perPage).limit(perPage).sort( {'last_seen_date':'desc'} );
-            if ( (startedCourses == null)||(startedCourses.length === 0) )
+            if ( startedCourses == null )
             {
                 return Result.fail<OdmProgressEntity[]>(new Error("No progress found for the given user"), 404, "No progress found for the given user");
             }
