@@ -8,20 +8,10 @@ import { SectionProgress } from "src/progress/domain/entities/progress-section/s
 import { OrmProgressSection } from "../../entities/orm-entities/orm-progress-section";
 import { OrmProgressSectionMapper } from "../../mappers/orm-mappers/orm-progress-section-mapper";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto";
-//? Couple with OrmCourseRepository to get all info from courses and fully construct progress' objects
-import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
-import { Course } from "src/course/domain/course";
-//import { SectionVideo } from "src/course/domain/entities/compose-fields/section-video";
-import { skip } from "node:test";
 import { ICourseRepository } from "src/course/domain/repositories/course-repository.interface";
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
 import { SectionProgressId } from "src/progress/domain/entities/progress-section/value-objects/section-progress-id";
 import { SectionId } from "src/course/domain/entities/section/value-objects/section-id";
-import { CourseSubscriptionId } from "src/progress/domain/value-objects/course-subscription-id";
-import { UserId } from "src/user/domain/value-objects/user-id";
-import { CourseId } from "src/course/domain/value-objects/course-id";
-import { CourseProgressionDate } from "src/progress/domain/value-objects/course-progression-date";
-import { CourseCompletion } from "src/progress/domain/value-objects/course-completed";
 
 export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> implements IProgressCourseRepository
 {
@@ -156,13 +146,6 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         //         return Result.fail<ProgressVideo>(new Error(error.message), error.code, error.message);
         //     }
         // }
-
-    async startCourseProgress (userId:string, courseId:string): Promise<Result<CourseSubscription>>
-    {
-        const newId:string = await this.uuidGenerator.generateId();
-        const domainProgress = CourseSubscription.create(CourseSubscriptionId.create(newId), CourseProgressionDate.create(new Date()), CourseCompletion.create(false), [], CourseId.create(courseId), UserId.create(userId));
-        return Result.success<CourseSubscription>( domainProgress, 200 );
-    }
 
     async saveSectionProgress (progress:SectionProgress, userId?:string, completionPercent?:number): Promise<Result<SectionProgress>>
     {

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Result } from "src/common/Domain/result-handler/Result"
 import { Repository, DataSource } from 'typeorm'
 import { OrmUser } from "../../entities/orm-entities/user.entity"

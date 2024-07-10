@@ -95,12 +95,13 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
     {
         const subscriptionCreated: CourseSubscriptionCreated = CourseSubscriptionCreated.create (
             id.Value, lastProgression.Value, isCompleted.Value,
-            sectionProgress.map( progress => { return {   
+            sectionProgress.map( progress => ({   
                     id: progress.Id.Value,
                     isCompleted: progress.IsCompleted.Value,
                     videoProgress: progress.VideoProgress.Value,
                     sectionId: progress.SectionId.Value
-                }}),
+                })
+            ),
             courseId.Value, userId.Id
         );
         super (id, subscriptionCreated);

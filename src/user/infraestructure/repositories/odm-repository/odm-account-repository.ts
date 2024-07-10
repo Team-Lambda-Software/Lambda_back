@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Result } from "src/common/Domain/result-handler/Result"
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OdmUserEntity } from "../../entities/odm-entities/odm-user.entity";
@@ -36,6 +37,7 @@ export class OdmAccountRepository implements IAccountRepository<OdmUserEntity> {
     async saveUser(user: OdmUserEntity): Promise<Result<boolean>> {
         try { 
             const result = await this.userModel.create(user)
+            if(!result) return Result.success<boolean>(true,200)
             return Result.success<boolean>(true, 200)
         } catch (error) {
             return Result.fail<boolean>( error, 500, "Error registrando usuario" )

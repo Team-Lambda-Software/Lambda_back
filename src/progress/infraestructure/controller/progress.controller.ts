@@ -42,6 +42,23 @@ import { InitiateCourseProgressApplicationService } from "src/progress/applicati
 import { UserHasProgressed } from "src/progress/domain/events/user-has-progressed-event";
 import { SectionCompleted } from "src/progress/domain/events/section-completed-event";
 import { CourseCompleted } from "src/progress/domain/events/course-completed-event";
+import { CourseSubscriptionCreated } from "src/progress/domain/events/course-subscription-created-event";
+import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface";
+import { ProgressQueryRepository } from "../repositories/progress-query-repository.interface";
+import { Model } from "mongoose";
+import { OdmProgressEntity } from "../entities/odm-entities/odm-progress.entity";
+import { InitiateProgressQuerySynchronizer } from "../query-synchronizers/initiate-progress-query-synchronizer";
+import { CourseCompletedQuerySynchronizer } from "../query-synchronizers/course-completed-query-synchronizer";
+import { SectionCompletedQuerySynchronizer } from "../query-synchronizers/section-completed-query-synchronizer";
+import { SaveProgressQuerySynchronizer } from "../query-synchronizers/save-progress-query-synchronizer";
+import { InjectModel } from "@nestjs/mongoose";
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository";
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
+import { OdmProgressRepository } from "../repositories/odm-repositories/odm-progress-repository";
+import { GetCourseProgressService } from "../query-services/services/get-all-sections-from-course.service";
+import { GetTrendingCourseService } from "../query-services/services/get-trending-course.service";
+import { GetAllStartedCoursesService } from "../query-services/services/get-all-started-courses.service";
 
 @ApiTags('Progress')
 @Controller('progress')
@@ -51,10 +68,24 @@ export class ProgressController {
     private readonly courseRepository:OrmCourseRepository;
     private readonly categoryRepository:OrmCategoryRepository;
     private readonly trainerRepository:OrmTrainerRepository;
+
+    private readonly odmCourseRepository:CourseQueryRepository;
+    private readonly odmProgressRepository:ProgressQueryRepository;
+
+    private readonly initiateProgressQuerySynchronizer:InitiateProgressQuerySynchronizer;
+    private readonly courseCompletedQuerySynchronizer:CourseCompletedQuerySynchronizer;
+    private readonly sectionCompletedQuerySynchronizer:SectionCompletedQuerySynchronizer;
+    private readonly userProgressedQuerySynchronizer:SaveProgressQuerySynchronizer;
+
     private readonly eventBus = RabbitEventBus.getInstance();
+
     private readonly logger:Logger = new Logger( "ProgressController" );
 
-    constructor ( @Inject( 'DataSource' ) private readonly dataSource:DataSource )
+    constructor ( 
+        @InjectModel( 'Progress' ) private readonly progressModel:Model<OdmProgressEntity>,
+        @InjectModel( 'Course' ) private readonly courseModel: Model<OdmCourseEntity>,
+        @InjectModel( 'SectionComment' ) private readonly sectionCommentModel: Model<OdmSectionCommentEntity>,
+        @Inject( 'DataSource' ) private readonly dataSource:DataSource )
     {
         this.courseRepository = new OrmCourseRepository(
             new OrmCourseMapper(
@@ -79,6 +110,29 @@ export class ProgressController {
             new OrmTrainerMapper(),
             dataSource
         );
+
+        this.odmCourseRepository = new OdmCourseRepository(
+            this.courseModel,
+            this.sectionCommentModel
+        );
+        this.odmProgressRepository = new OdmProgressRepository(
+            this.progressModel
+        );
+
+        this.initiateProgressQuerySynchronizer = new InitiateProgressQuerySynchronizer(
+            this.odmCourseRepository,
+            this.odmProgressRepository,
+            this.progressModel
+        );
+        this.courseCompletedQuerySynchronizer = new CourseCompletedQuerySynchronizer(
+            this.odmProgressRepository
+        );
+        this.sectionCompletedQuerySynchronizer = new SectionCompletedQuerySynchronizer(
+            this.odmProgressRepository
+        );
+        this.userProgressedQuerySynchronizer = new SaveProgressQuerySynchronizer(
+            this.odmProgressRepository
+        );
     }
 
     //Initiate progress on a given course ("subscribe" to it)
@@ -96,15 +150,15 @@ export class ProgressController {
         const service = 
         new ExceptionDecorator (
             new LoggingDecorator (
-                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus),
+                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus, new UuidGenerator()),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
         );
 
         const result = await service.execute(initiateCourseDto);
-        this.eventBus.subscribe('CourseInitiated', async (event: CourseInitiated) => {
-            //to-do
+        this.eventBus.subscribe('CourseSubscriptionCreated', async (event: CourseSubscriptionCreated) => {
+            this.initiateProgressQuerySynchronizer.execute( event );
         });
     }
 
@@ -136,18 +190,20 @@ export class ProgressController {
         const sectionUpdate = sectionUpdateResult.Value;
 
         this.eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
-            //to-do
+            //TEST
+                console.log("Callback fn!")
+            this.userProgressedQuerySynchronizer.execute( event );
         });
         if (sectionUpdate.sectionWasCompleted)
         { 
             this.eventBus.subscribe('SectionCompleted', async (event: SectionCompleted) => {
-                //to-do
+                this.sectionCompletedQuerySynchronizer.execute( event );
             });
         }
         if (sectionUpdate.courseWasCompleted)
         {
             this.eventBus.subscribe('CourseCompleted', async (event: CourseCompleted) => {
-                //to-do
+                this.courseCompletedQuerySynchronizer.execute( event );
             });
         }
     }
@@ -166,7 +222,7 @@ export class ProgressController {
 
         const getAllSectionsApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllSectionsFromCourseApplicationService(this.progressRepository, this.courseRepository),
+                new GetCourseProgressService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -196,7 +252,7 @@ export class ProgressController {
 
         const getTrendingApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetTrendingCourseApplicationService(this.progressRepository, this.courseRepository),
+                new GetTrendingCourseService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -258,7 +314,7 @@ export class ProgressController {
 
         const getAllStartedCoursesApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllStartedCoursesApplicationService(this.progressRepository, this.courseRepository, this.categoryRepository, this.trainerRepository),
+                new GetAllStartedCoursesService(this.odmProgressRepository),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
