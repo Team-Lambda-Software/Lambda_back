@@ -65,6 +65,7 @@ export class CommentController
     private readonly odmUserRepository: OdmUserRepository
     private readonly odmCourseMapper: OdmCourseMapper
     private readonly odmBlogMapper: OdmBlogMapper
+    private readonly eventBus = RabbitEventBus.getInstance();
     private readonly blogCommentQuerySynchronizer: BlogCommentQuerySyncronizer
     private readonly sectionCommentQuerySyncronizer: SectionCommentQuerySyncronizer
     private readonly logger: Logger = new Logger( "CourseController" )
@@ -176,7 +177,6 @@ export class CommentController
     async addComment ( @Body() entryData: AddCommentEntryDto, @GetUser() user )
     {
         const { target, targetType, body } = entryData
-        const eventBus = RabbitEventBus.getInstance();
         
         if ( targetType === 'LESSON' )
         {
@@ -188,7 +188,7 @@ export class CommentController
                             new AddCommentToSectionApplicationService(
                                 this.courseRepository,
                                 this.idGenerator,
-                                eventBus
+                                this.eventBus
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -203,13 +203,12 @@ export class CommentController
                 comment: body
             }
             const result = await service.execute( data )
-            eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
+            this.eventBus.subscribe('SectionCommentCreated', async (event: SectionCommentCreated) => {
                 this.sectionCommentQuerySyncronizer.execute(event)
             })
             return
         } else
         {
-            const eventBus = RabbitEventBus.getInstance();
              
             const service =
                 new ExceptionDecorator(
@@ -218,7 +217,7 @@ export class CommentController
                             new AddCommentToBlogApplicationService(
                                 this.blogRepository,
                                 this.idGenerator,
-                                eventBus
+                                this.eventBus
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -235,7 +234,7 @@ export class CommentController
             }
             const result = await service.execute( data )
 
-            eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
+            this.eventBus.subscribe('BlogCommentCreated', async (event: BlogCommentCreated) => {
                 this.blogCommentQuerySynchronizer.execute(event)
             })
             return

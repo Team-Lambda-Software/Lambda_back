@@ -8,7 +8,6 @@ export interface CreateCourseServiceEntryDto extends ApplicationServiceEntryDto
     name: string
     description: string
     weeksDuration: number
-    minutesDuration: number
     level: number
     categoryId: string
     tags: string[]

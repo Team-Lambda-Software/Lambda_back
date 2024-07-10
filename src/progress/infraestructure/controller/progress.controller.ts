@@ -77,6 +77,8 @@ export class ProgressController {
     private readonly sectionCompletedQuerySynchronizer:SectionCompletedQuerySynchronizer;
     private readonly userProgressedQuerySynchronizer:SaveProgressQuerySynchronizer;
 
+    private readonly eventBus = RabbitEventBus.getInstance();
+
     private readonly logger:Logger = new Logger( "ProgressController" );
 
     constructor ( 
@@ -139,7 +141,6 @@ export class ProgressController {
     @ApiBearerAuth()
     async subscribeToCourse(@Param('courseId', ParseUUIDPipe) courseId:string, @GetUser()user )
     {
-        const eventBus = RabbitEventBus.getInstance();
 
         const initiateCourseDto:InitiateCourseProgressEntryDto = {
             courseId: courseId,
@@ -149,14 +150,14 @@ export class ProgressController {
         const service = 
         new ExceptionDecorator (
             new LoggingDecorator (
-                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, eventBus, new UuidGenerator()),
+                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus, new UuidGenerator()),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
         );
 
         const result = await service.execute(initiateCourseDto);
-        eventBus.subscribe('CourseSubscriptionCreated', async (event: CourseSubscriptionCreated) => {
+        this.eventBus.subscribe('CourseSubscriptionCreated', async (event: CourseSubscriptionCreated) => {
             this.initiateProgressQuerySynchronizer.execute( event );
         });
     }
@@ -168,7 +169,6 @@ export class ProgressController {
     @ApiOkResponse({description: 'Guarda el progreso de una leccion de un curso dado'})
     async saveSectionProgress( @Body() saveDTO: SaveProgressEntryDto, @GetUser()user)
     {
-        const eventBus = RabbitEventBus.getInstance();
 
         const saveSectionProgressDto:SaveSectionProgressServiceEntryDto = {
             courseId: saveDTO.courseId,
@@ -180,7 +180,7 @@ export class ProgressController {
 
         const saveSectionProgressService = new ExceptionDecorator(
             new LoggingDecorator(
-                new SaveSectionProgressApplicationService(this.progressRepository, this.courseRepository, eventBus),
+                new SaveSectionProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -189,20 +189,20 @@ export class ProgressController {
         const sectionUpdateResult = await saveSectionProgressService.execute(saveSectionProgressDto);
         const sectionUpdate = sectionUpdateResult.Value;
 
-        eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
+        this.eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
             //TEST
                 console.log("Callback fn!")
             this.userProgressedQuerySynchronizer.execute( event );
         });
         if (sectionUpdate.sectionWasCompleted)
         { 
-            eventBus.subscribe('SectionCompleted', async (event: SectionCompleted) => {
+            this.eventBus.subscribe('SectionCompleted', async (event: SectionCompleted) => {
                 this.sectionCompletedQuerySynchronizer.execute( event );
             });
         }
         if (sectionUpdate.courseWasCompleted)
         {
-            eventBus.subscribe('CourseCompleted', async (event: CourseCompleted) => {
+            this.eventBus.subscribe('CourseCompleted', async (event: CourseCompleted) => {
                 this.courseCompletedQuerySynchronizer.execute( event );
             });
         }

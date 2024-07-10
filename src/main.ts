@@ -5,18 +5,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { json } from 'express'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
-  /*app.enableCors({
-    origin: true,
-    methods: ["GET","HEAD","PUT","PATCH","POST","DELETE","OPTIONS"],
-    credentials: true,
-  });*/
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
+
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true, transformOptions: { enableImplicitConversion: true } }),
   );
-  app.use(json({ limit: '50mb' }));
+  app.use(json({ limit: '200mb' }));
   const config = new DocumentBuilder()
-
     .setTitle('Lambda Gymnastic API')
     .setDescription('Gymnastic endpoints')
     .setVersion('1.0')

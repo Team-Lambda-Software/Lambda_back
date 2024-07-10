@@ -25,7 +25,7 @@ export class ChangePasswordUserInfraService implements IApplicationService<Chang
     async execute(updateDto: ChangePasswordEntryDto): Promise<Result<boolean>> {
         const hashPassword = await this.encryptor.hashPassword( updateDto.password )
         const result = await this.sqlAccountRepo.updateUserPassword( updateDto.email, hashPassword )
-        if ( !result.isSuccess() ) return Result.fail( new Error('Something went wrong changing password'), 500, 'Something whent wrong changing password' )
+        if ( !result.isSuccess() ) return Result.fail( result.Error, result.StatusCode, result.Message )
         await this.nosqlAccountRepo.updateUserPassword( updateDto.email, hashPassword )
         return Result.success(true, 200)
     }

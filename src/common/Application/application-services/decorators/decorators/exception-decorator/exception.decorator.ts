@@ -19,10 +19,14 @@ export class ExceptionDecorator<D extends ApplicationServiceEntryDto, R> extends
 
     async execute ( data: D ): Promise<Result<R>>
     {
-        const result = await this.applicationService.execute( data )
-        if ( result.isSuccess() )
-            return result
-        this.exceptionHandler.HandleException( result.StatusCode, result.Message, result.Error )
+        try{
+            const result = await this.applicationService.execute( data )
+            if ( result.isSuccess() )
+                return result
+            this.exceptionHandler.HandleException( result.StatusCode, result.Message, result.Error )
+        }catch( error ){
+            this.exceptionHandler.HandleException( error.status, error.message, error )
+        }
     }
 
 }

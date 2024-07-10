@@ -24,7 +24,7 @@ export class GetCodeUpdatePasswordUserInfraService implements IApplicationServic
     
     async execute(forgetDto: ForgetPasswordEntryDto): Promise<Result<GetCodeServiceResponseDto>> {
         const result = await this.accountRepository.findUserByEmail( forgetDto.email )
-        if ( !result.isSuccess() ) return Result.fail( new Error('Email not registered'), 400, 'Email not registered' )
+        if ( !result.isSuccess() ) return Result.fail( result.Error, result.StatusCode, result.Message )
         const code = this.codeGenerator.generateCode(4)
         this.emailSender.setVariables( { firstname: result.Value.name, secretcode: code } )
         this.emailSender.sendEmail( forgetDto.email, forgetDto.email )
