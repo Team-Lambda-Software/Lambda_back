@@ -17,7 +17,7 @@ export interface IProgressCourseRepository
     findLatestCourse (userId:string): Promise<Result<{course: CourseSubscription, lastSeen: Date}>>;
     getTotalViewtime (userId:string): Promise<Result<number>>;
 
-    startCourseProgress (userId:string, courseId:string): Promise<Result<CourseSubscription>>;
+    //unused Modeled as service. startCourseProgress (userId:string, courseId:string): Promise<Result<CourseSubscription>>;
     saveCourseProgress (progress:CourseSubscription, courseCompletionPercent?:number, sectionsCompletionPercent?:Map<string,number>): Promise<Result<CourseSubscription>>;
     saveSectionProgress (progress:SectionProgress, userId?:string, completionPercent?:number): Promise<Result<SectionProgress>>;
     //unused saveVideoProgress (progress:ProgressVideo): Promise<Result<ProgressVideo>>;
