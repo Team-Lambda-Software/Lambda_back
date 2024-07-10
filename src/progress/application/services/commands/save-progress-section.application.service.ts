@@ -89,10 +89,9 @@ export class SaveSectionProgressApplicationService implements IApplicationServic
         }
 
         //TEST
-            console.log("Awaiting event publish");
-        await this.eventHandler.publish ( progressUpdate.pullEvents() );
-        //TEST
-            console.log("Event publish success");
+            const events = progressUpdate.pullEvents();
+            events.forEach(event => console.log(event.eventName, event));
+        await this.eventHandler.publish ( events );
         return Result.success<SaveSectionProgressServiceResponseDto>( responseDTO, 200 );
     }
 

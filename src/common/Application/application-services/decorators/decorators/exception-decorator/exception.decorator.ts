@@ -25,7 +25,6 @@ export class ExceptionDecorator<D extends ApplicationServiceEntryDto, R> extends
                 return result
             this.exceptionHandler.HandleException( result.StatusCode, result.Message, result.Error )
         }catch( error ){
-            console.log( error )
             this.exceptionHandler.HandleException( error.status, error.message, error )
         }
     }
