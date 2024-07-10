@@ -128,21 +128,15 @@ export class NotificationController {
         return (await service.execute(dataentry)).Value    
     }
 
-    @Get('ip')
-    async ipTester( @Ip() ipaddress ){
-        return { ip : ipaddress }
-    }
-
     @Post('tester')  
     async tester( @Body() dtoTester:{ title: string, body: string, icon: string }  ) {
         const findResult = await this.notiAddressRepository.findAllTokens()
-        if ( !findResult.isSuccess() ) return 'no tokens'
+        if ( !findResult.isSuccess() ) throw new Error('not tokens registered')
         const listTokens = findResult.Value
         listTokens.forEach( async e => {
             const pushMessage = { token: e.token, notification: { title: dtoTester.title, body: dtoTester.body, icon: dtoTester.icon } }    
             const result = await this.pushNotifier.sendNotificationPush( pushMessage )
         })
-        return 'tested'  
     }
 
     @Cron(CronExpression.EVERY_DAY_AT_7AM)

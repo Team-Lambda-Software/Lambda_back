@@ -15,7 +15,7 @@ export class OdmNotificationAddressRepository implements INotificationAddressRep
             const noti = await this.notiModel.findOne( { user_id: userId } )
             return Result.success<OdmNotificationAddressEntity>( noti, 200 )
         } catch (error) {
-            return Result.fail<OdmNotificationAddressEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmNotificationAddressEntity>( error, 500, "Error buscando PushToken" )
         }
     }
 
@@ -35,7 +35,7 @@ export class OdmNotificationAddressRepository implements INotificationAddressRep
             const noti = await this.notiModel.find()
             return Result.success<OdmNotificationAddressEntity[]>( noti, 200 )
         } catch (error) {
-            return Result.fail<OdmNotificationAddressEntity[]>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmNotificationAddressEntity[]>( error, 500, "Error buscando PushToken" )
         }
     }
 
