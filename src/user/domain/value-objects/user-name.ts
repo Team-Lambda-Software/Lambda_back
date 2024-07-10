@@ -7,7 +7,7 @@ export class UserName implements IValueObject<UserName> {
     protected constructor(name: string) {
         let _existente: boolean = true;
 
-        if (!name) _existente = false;
+        if (!name || name == '') _existente = false;
 
         if (!_existente)
             throw new InvalidUserName('El nombre no puede estar vacío');
