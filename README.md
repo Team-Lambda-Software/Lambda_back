@@ -15,7 +15,9 @@ Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para gara
 - **Arquitectura Hexagonal**: Esta arquitectura nos permite separar la lógica de negocio de los detalles técnicos, lo que facilita el mantenimiento y las pruebas de la aplicación.
 
 - **Principio Command–query separation**: Utilizamos este principio para separar las consultas de las modificaciones a la base de datos. Esto nos permite mantener la integridad de la base de datos de escritura mientras mejoramos la eficiencia y velocidad de las consultas a la base de datos. Para ello, hemos creado 2 bases de datos:
+
       Una NoSQL, empleando mongodb, enfocada a las lecturas
+
       Una SQL, empleando postgres, enfocada a las escrituras.
   
 - **Arquitectura Orientada a Eventos**: Utilizamos esta arquitectura para manejar acciones asíncronas y operaciones en tiempo real, como el envío de notificaciones y, más importante, la sincronización de la base de datos de escritura con la de lectura.
