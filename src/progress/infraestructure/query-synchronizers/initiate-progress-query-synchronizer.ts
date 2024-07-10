@@ -27,6 +27,19 @@ export class InitiateProgressQuerySynchronizer implements Querysynchronizer<Cour
         }
         const course = courseResult.Value;
 
+        const progressResult = await this.progressRepository.findProgressByCourseId(event.courseId, event.userId);
+        if (progressResult.isSuccess())
+        {
+            return Result.fail<string>(new Error("El progreso ya fue iniciado previamente. No se puede volver a iniciar"), 409, "El progreso ya fue iniciado previamente. No se puede volver a iniciar");
+        }
+        else
+        {
+            if(progressResult.StatusCode != 404) 
+            {
+                return Result.fail<string>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
+            }
+        }
+
         const persistenceProgress = new this.progressModel({
             progress_id: event.id,
             course_id: event.courseId,
