@@ -33,7 +33,7 @@ export class GetAllStartedCoursesSwaggerResponseDto
     trainer: string;
 
     @ApiProperty( {
-        example: 21.11
+        example: 21
     } )
     percent: number;
 }
