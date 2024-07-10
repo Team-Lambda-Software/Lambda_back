@@ -14,9 +14,9 @@ export class GetNotificationByIdInfraService implements IApplicationService<Appl
         this.notiAlertRepository = notiAlertRepository
     }
     async execute(data: GetNotificationUserEntryAplicationDto): Promise<Result<GetNotificationByIdDtoResponse>> {
-        const notificationResult= await this.notiAlertRepository.findNotificationById(data.userId, data.notificationId)
-        if (!notificationResult.isSuccess()) return Result.fail( new Error('Something went wrong'), 500, 'Something went wrong' )
-        const noti = notificationResult.Value
+        const notiResult= await this.notiAlertRepository.findNotificationById(data.userId, data.notificationId)
+        if (!notiResult.isSuccess()) return Result.fail( notiResult.Error, notiResult.StatusCode, notiResult.Message )
+        const noti = notiResult.Value
         noti.user_readed = true
         const result = await this.notiAlertRepository.saveNotificationAlert(noti)
         const answer = {

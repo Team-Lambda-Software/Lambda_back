@@ -111,7 +111,6 @@ describe('Add Comment to Section', () => {
         }
         
         const result = await service.execute(entry)
-
         expect(result.isSuccess()).toBeFalsy()
     })
 })

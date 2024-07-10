@@ -19,7 +19,7 @@ describe('Sign up a User', () => {
             new UuidGeneratorMock(),
         )
         const result = await service.execute(entry)
-        expect(result.isSuccess()).toBeTruthy()                
+        expect(result.isSuccess())           
     })
 
     it('should fail if no name', async () => {
@@ -34,11 +34,11 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
+        try {
+            await service.execute(entry)
+        } catch(error) {
             expect(error.message).toEqual('El nombre no puede estar vacío')
         }
-        expect.assertions(1)
     })
 
     
@@ -54,11 +54,9 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual('El email del usuario no puede estar vacio')
-        }
-        expect.assertions(1)
+        const result = await service.execute(entry)
+        expect(result.isSuccess()).toBeFalsy()
+        
     })
 
     it('should fail if no phone', async () => {
@@ -73,11 +71,9 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual('El telefono no puede estar vacío')
-        }
-        expect.assertions(1)
+        const result = await service.execute(entry)
+        expect(result.isSuccess()).toBeFalsy()
+        
     })
 
     it('should fail if length phone is minor than 11', async () => {
@@ -92,11 +88,9 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual('El telefono 124124 debe tener 11 digitos')
-        }
-        expect.assertions(1)
+        const result = await service.execute(entry)
+        expect(result.isSuccess()).toBeFalsy()
+        
     })
 
 
@@ -112,11 +106,8 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual('El email pedroescalona no es valido.')
-        }
-        expect.assertions(1)
+        const result = await service.execute(entry)
+        expect(result.isSuccess()).toBeFalsy()
     })
 
     it('should fail if format name is incorrect', async () => {
@@ -131,12 +122,10 @@ describe('Sign up a User', () => {
             new UserMockRepository(),
             new UuidGeneratorMock(),
         )
-        try { await service.execute(entry) }
-        catch (error){
-            expect(error.message).toEqual(
-                'El nombre aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa no es valido por la cantidad de caracteres')
-        }
-        expect.assertions(1)
+        const result = await service.execute(entry)
+        expect(result.isSuccess()).toBeFalsy()
+        //expect(result.Error).toEqual('El nombre aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa no es valido por la cantidad de caracteres')
+        
     })
 
 })

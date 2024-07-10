@@ -47,7 +47,7 @@ export class UserQuerySynchronizer implements Querysynchronizer<UserCreated>{
         try{
             await this.odmUserRepository.saveUser(userOdmPersistence)            
         }catch(error){
-            return Result.fail<string>( error, 500, error.detail )
+            return Result.fail<string>( error, 500, error.message )
         }
 
         return Result.success<string>( 'success', 201 )

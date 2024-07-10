@@ -17,18 +17,16 @@ export class GetManyNotificationByUserInfraService implements IApplicationServic
     async execute(data: GetNotificationsUserDtoEntryAplicationDto): Promise<Result<GetNotificationByIdDtoResponse[]>> {
         let {userId,...dataPagination}=data;
         dataPagination.page = dataPagination.page * dataPagination.perPage - dataPagination.perPage
-        const notificationResult= await this.notiAlertRepository.findManyNotificationsByIdUser(userId,dataPagination)
-        if (!notificationResult.isSuccess()) return Result.fail( new Error('Something went wrong'), 500, 'Something went wrong' );
+        const notiResult= await this.notiAlertRepository.findManyNotificationsByIdUser(userId,dataPagination)
+        if (!notiResult.isSuccess()) return Result.fail( notiResult.Error, notiResult.StatusCode, notiResult.Message );
         const result = []
-        notificationResult.Value.forEach( e => result.push(
-            {
+        notiResult.Value.forEach( e => result.push({
                 title: e.title,
                 body: e.body,
                 id: e.alert_id,
                 date: e.date,
                 userReaded: e.user_readed
-            }
-        ))
+        }))
         return Result.success(result, 200)
     }
     get name(): string { return this.constructor.name }

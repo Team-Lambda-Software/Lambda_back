@@ -13,10 +13,10 @@ export class GetNumberNotificationNotSeenByUserInfraService implements IApplicat
         this.notiAlertRepository = notiAlertRepository
     }
     async execute(data: ApplicationServiceEntryDto): Promise<Result<GetCountNotReadedDtoResponse>> {
-        const findNotifyResult= await this.notiAlertRepository.findAllByIdUserNotReaded(data.userId)
-        if (!findNotifyResult.isSuccess()) return Result.fail( new Error('Something went wrong'), 500, 'Something went wrong' );
-        let Answer = { count: findNotifyResult.Value.length }
-        return(Result.success(Answer,200) )
+        const notiResult= await this.notiAlertRepository.findAllByIdUserNotReaded(data.userId)
+        if (!notiResult.isSuccess()) return Result.fail( notiResult.Error, notiResult.StatusCode, notiResult.Message );
+        let Answer = { count: notiResult.Value.length }
+        return(Result.success(Answer, 200) )
     }
     get name(): string { return this.constructor.name }
     

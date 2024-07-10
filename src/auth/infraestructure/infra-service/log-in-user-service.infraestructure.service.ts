@@ -6,7 +6,7 @@ import { LogInEntryDto } from "./dto/entry/log-in-entry.infraestructure.dto";
 import { LogInResponseDto } from "./dto/response/log-in-response.dto";
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
-import { IncorrectPasswordException } from "../exceptions/invalid-secret-code-exception copy";
+import { IncorrectPasswordException } from "../exceptions/incorrect-password-exception copy";
 
 export class LogInUserInfraService implements IApplicationService<LogInEntryDto, LogInResponseDto> { 
     

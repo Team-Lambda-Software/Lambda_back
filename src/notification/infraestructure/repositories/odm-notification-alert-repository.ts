@@ -12,7 +12,11 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
     }
 
     async deleteNotificationsByUser(user_id: string) {
-        await this.notiModel.deleteMany( { "user_id": user_id } )
+        try {
+            await this.notiModel.deleteMany( { "user_id": user_id } )
+        } catch(error) {
+            return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Error al eliminar notificaciones" )
+        }
     }
     
     async findManyNotificationsByIdUser(userId: string, pagDto: PaginationDto): Promise<Result<OdmNotificationAlertEntity[]>> {
@@ -21,7 +25,7 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
             const noti = await this.notiModel.find( { "user_id": userId } ).skip(page).limit(perPage)
             return Result.success<OdmNotificationAlertEntity[]>( noti, 200 )
         } catch (error) {
-            return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Error buscando Notificaciones" )
         }
     }
     
@@ -35,7 +39,7 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
             const noti = await this.notiModel.findOne( { "user_id": user_id, "alert_id": notification_id } )
             return Result.success<OdmNotificationAlertEntity>( noti, 200 )
         } catch (error) {
-            return Result.fail<OdmNotificationAlertEntity>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmNotificationAlertEntity>( error, 500, "Error buscando Notificacion" )
         }
     }
     
@@ -44,7 +48,7 @@ export class OdmNotificationAlertRepository implements INotificationAlertReposit
             const noti = await this.notiModel.find( { "user_id": user_id, "user_readed": false } )
             return Result.success<OdmNotificationAlertEntity[]>( noti, 200 )
         } catch (error) {
-            return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Internal Server Error" )
+            return Result.fail<OdmNotificationAlertEntity[]>( error, 500, "Error buscando Notificaciones" )
         }
     }
 
