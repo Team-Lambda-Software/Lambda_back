@@ -26,7 +26,7 @@ export class CalculateCourseCompletionPercentDomainService {
             sum += completion.Value;
         }
 
-        const completionPercent = CourseCompletionPercent.create(sum / sectionCompletions.length);
+        const completionPercent = CourseCompletionPercent.create( Math.floor( sum / sectionCompletions.length ) );
         return completionPercent;
     }
 }

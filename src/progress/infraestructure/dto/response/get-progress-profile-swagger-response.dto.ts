@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger"
 export class GetProgressProfileSwaggerResponseDto
 {
     @ApiProperty({
-        example: 21.11, type:Number
+        example: 21, type:Number
     })
     percent: number
 
