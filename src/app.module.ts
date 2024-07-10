@@ -28,7 +28,7 @@ import { NotificationAddressSchema } from './notification/infraestructure/entiti
   imports: [
     ConfigModule.forRoot(),
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot( process.env.MONGO_DB, { dbName: 'mongodb', } ),
+    MongooseModule.forRoot( process.env.MONGO_DB, { dbName: 'lambdaMongoDb', } ),
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
       signOptions: { expiresIn: '48h' }
