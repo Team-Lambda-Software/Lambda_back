@@ -23,16 +23,22 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
             return Result.fail<string>(progressResult.Error, progressResult.StatusCode, progressResult.Message);
         }
         let progress:OdmProgressEntity = progressResult.Value;
+        //TEST
+            console.log("Obtained...");
+            console.log(progress);
 
+        let sum:number = 0;
         for (let section of progress.section_progress)
         {
-            if (section.section_id = event.sectionId)
+            if (section.section_id === event.sectionId)
             {
                 section.completion_percent = event.percentage;
                 section.video_second = event.seconds;
-                break;
             }
+            sum += section.completion_percent;
         }
+        progress.completion_percent = (sum / progress.section_progress.length);
+        
         const errors = progress.validateSync();
         if (errors) {
             return Result.fail<string>( errors, 400, errors.name )
