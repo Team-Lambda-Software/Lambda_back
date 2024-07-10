@@ -50,12 +50,8 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
     }
 
     async saveUserAggregate ( user: User ): Promise<Result<User>> {
-        try {
-            const ormUser = await this.ormUserMapper.fromDomainToPersistence( user )
-            await this.save( ormUser )
-            return Result.success<User>( user, 200 )
-        } catch ( error ) {
-            return Result.fail<User>( new Error( error.message ), error.code, error.message )
-        }
+        const ormUser = await this.ormUserMapper.fromDomainToPersistence( user )
+        await this.save( ormUser )
+        return Result.success<User>( user, 200 )
     }
 }

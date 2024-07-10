@@ -63,8 +63,8 @@ export class UpdateUserProfileInfraService implements IApplicationService<Update
         if ( data.password ) findValue.password = userUpdate.password
 
         const synchronizerResponse = await this.nosqlRepository.saveUser( findValue )
-
-        if(!synchronizerResponse.isSuccess)
+        
+        if(!synchronizerResponse.isSuccess())
             return Result.fail<UpdateUserProfileInfraServiceResponseDto>(synchronizerResponse.Error,synchronizerResponse.StatusCode,synchronizerResponse.Message)
 
         const respuesta: UpdateUserProfileInfraServiceResponseDto = {
