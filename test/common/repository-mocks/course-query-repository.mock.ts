@@ -7,6 +7,18 @@ import { CourseQueryRepository } from "src/course/infraestructure/repositories/c
 
 
 export class CourseQueryRepositoryMock implements CourseQueryRepository{
+    findCoursesOrderByPopularity ( pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
+    findCoursesByCategoryOrderByPopularity ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
+    findCoursesByTrainerOrderByPopularity ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    {
+        throw new Error( "Method not implemented." )
+    }
     async changeCourseMinutesDuration ( courseId: string, minutesDuration: number ): Promise<void>
     {
         await this.courses.map( course => {

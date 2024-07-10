@@ -7,45 +7,30 @@ import { OdmCourseEntity } from '../../entities/odm-entities/odm-course.entity'
 import { CourseQueryRepository } from '../../repositories/course-query-repository.interface'
 
 
-interface CoursePopularity {
-    course: OdmCourseEntity
-    users: number
-
-}
-
-
 export class SearchMostPopularCoursesByCategoryService implements IApplicationService<SearchCoursesByCategoryServiceEntryDto, SearchCourseServiceResponseDto[]>{
     private readonly courseRepository: CourseQueryRepository
-    private readonly progressRepository: IProgressCourseRepository
 
-    constructor ( courseRepository: CourseQueryRepository, progressRepository: IProgressCourseRepository)
+    constructor ( courseRepository: CourseQueryRepository)
     {
         this.courseRepository = courseRepository
-        this.progressRepository = progressRepository
 
 
     }
     async execute ( data: SearchCoursesByCategoryServiceEntryDto ): Promise<Result<SearchCourseServiceResponseDto[]>>
     {
-        const coursesDict: {[key: string]: CoursePopularity} = {}
         data.pagination.page = data.pagination.page * data.pagination.perPage - data.pagination.perPage
-        const courses = await this.courseRepository.findCoursesByCategory( data.categoryId, data.pagination )
+        let courses: Result<OdmCourseEntity[]>
+        if ( data.categoryId )
+            courses = await this.courseRepository.findCoursesByCategoryOrderByPopularity( data.categoryId, data.pagination )
+        else 
+            courses = await this.courseRepository.findCoursesOrderByPopularity( data.pagination )
         if ( !courses.isSuccess() )
         {
             return Result.fail<SearchCourseServiceResponseDto[]>( courses.Error, courses.StatusCode, courses.Message )
         }
 
-        for ( const course of courses.Value )
-        {
-            const courseUsers = await this.progressRepository.findUserCountInCourse( course.id )
-            // console.log(courseUsers.Value)
-            if ( !courseUsers.isSuccess() )
-            {
-                return Result.fail<SearchCourseServiceResponseDto[]>( courseUsers.Error, courseUsers.StatusCode, courseUsers.Message )
-            }
-            coursesDict[course.id] = {course, users: courseUsers.Value}
-        }
-        const sortedCourses = Object.values( coursesDict ).sort( ( a, b ) => b.users - a.users ).map( course => course.course )
+        
+        const sortedCourses = courses.Value
         const responseCourses: SearchCourseServiceResponseDto[] = []
 
         for (const course of sortedCourses){
