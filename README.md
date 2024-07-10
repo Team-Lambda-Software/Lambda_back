@@ -1,38 +1,37 @@
+# Bienvenidos al Backend de Gymnastic Lambda
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <img src="./imgs/logo.svg" width="200" alt="Descripción de la imagen" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este es el repositorio del backend de la aplicación de gymnasctic center del equipo lambda, esta es una aplicación de video tutoriales y blogs de yoga y ejercicio
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Arquitectura
 
-## Description
+Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para garantizar un código limpio, mantenible y eficiente, centrandonos en la capacidad de poder mantener la integridad de los datos y mejorar la velocidad de las peticiones:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Arquitectura Hexagonal**: Esta arquitectura nos permite separar la lógica de negocio de los detalles técnicos, lo que facilita el mantenimiento y las pruebas de la aplicación.
 
-## Installation
+- **Principio Command–query separation**: Utilizamos este principio para separar las consultas de las modificaciones de la base de datos, creando 2 base de datos (una para lectura en mongodb y una para escritura en postgresql) permitiendonos mantener la integridad de los datos en la base de datos de escritura, y mejorar la eficiencia y velocidad haciendo las consultas a la base de datos de lectura.
+
+- **Arquitectura Orientada a Eventos**: Utilizamos esta arquitectura para manejar acciones asíncronas y operaciones en tiempo real, como el envío de notificaciones y más importante, la sincronización de la base de datos de escritura con la de lectura.
+
+- **Programación Orientada a Aspectos (AOP) con Decoradores**: Los decoradores nos permiten añadir funcionalidades adicionales a nuestras clases y métodos de una manera limpia y reutilizable.
+
+- **Diseño Guiado por el Dominio (DDD)**: Este enfoque nos ayuda a modelar la lógica de negocio de nuestra aplicación de una manera que refleja el dominio del problema.
+
+
+## Instalacion
 
 ```bash
 $ npm install
 ```
+- Copiar las variables de entorno del .env.template
+- Es necesario tener una base de datos mongodb y una postgreSql
+- Tener una cuenta de mailjet, firebase y azure storage
+- colocar todas las credenciales en las env
 
-## Running the app
+## Correr la aplicacion
 
 ```bash
 # development
@@ -41,8 +40,6 @@ $ npm run start
 # watch mode
 $ npm run start:dev
 
-# production mode
-$ npm run start:prod
 ```
 
 ## Test
@@ -50,24 +47,43 @@ $ npm run start:prod
 ```bash
 # unit tests
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
-## Support
+## Documentación
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Diagrama del Modelo de Dominio
+![App Screenshot](./imgs/Lambda_back_Diagrams%20-%20Domain.svg)
 
-## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Diagrama de Arquitectura Hexagonal
+![App Screenshot](./imgs/Lambda_back_Diagrams%20-%20Hexagonal.svg)
 
-## License
+## Aportes de cada desarrollador
 
-Nest is [MIT licensed](LICENSE).
+### Samuel Alonso
+
+- Capa de Dominio:
+  
+    Creacion de todas las interfaces iniciales de DDD, realización del modelo de dominio de la aplicación, implementación de los aggregates de curso (junto con su entidad de sección y comentario), blog (junto con su entidad de comentario) y categoría
+
+- Capa de Aplicación: 
+
+    Todos los servicios de commands de los modulos curso, blog y categoría. Implementación de la interfaz de servicio base y realización del decorador base, asi como los decoradores para los aspectos de logging, auditoría, manejo de excepciones y performance.
+
+- Capa de Infraestructura:
+
+    Adaptadores para la subida de archivos a azure blob storage y para obtener archivos de allá también, entidades de odm y orm de los modulos curso, blog, categoría y las entidades odm de los modulos user y trainer. Synchronizadores de las base de datos para los modulos de curso, trainer y blog, asi como los servicios de queries de estos mismos módulos y del módulo de categoría. Realización del event bus con RabbitMQ
+
+- Tests:
+
+    Tests unitarios de los servicios y synchronizadores de los módulos de curso, blog y trainer
+
+- Despliegue:
+    
+    Encargado de la realización del github actions para el despliegue automático del backend, dockerización del backend, despliegue de las bases de datos en la nube, despliegue en azure del backend. Despliegue del servicio de RabbitMQ para el manejo de colas
+
+### "colocar aqui los demas"
+
+## Autores
+| <img src="https://avatars.githubusercontent.com/u/114821565?s=400&u=ff1e744b3abd5e4315b008d3ad96168b508319ab&v=4" width=115><br><sub>Samuel Alonso</sub> |  
+| :---: | 
