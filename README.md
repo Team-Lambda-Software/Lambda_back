@@ -89,14 +89,19 @@ $ npm run test
 ### Hualong Chiang
 
 - Capa de Aplicación: 
+
     Servicio de registro del usuario. Implementación del decorador de seguridad.
 
 - Capa de Infraestructura:
+
     Relacionado a la auténticación y autorización de usuarios: implementación del manejo y generación de códigos de seguridad (JWT, Hash, RandomCodes)
+
     Relacionado a notificaciones del sistema: implementación de la persistencia y el envío de la mismas
+
     Sin relación a un contexto concreto: implementación de los contratos de envío de correos
 
 - Tests:
+
     Tests unitarios del módulo de Authentication
 
 ### "colocar aqui los demas"
