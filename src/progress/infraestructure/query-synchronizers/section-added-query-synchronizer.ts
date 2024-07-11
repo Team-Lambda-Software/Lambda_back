@@ -58,7 +58,7 @@ export class SectionAddedQuerySynchronizer implements Querysynchronizer<SectionC
                         return Result.fail<string>( sectionWatched.Error, sectionWatched.StatusCode, sectionWatched.Message )
                     }
 
-                    if (section.completed)
+                    if (section.completion_percent == 100 || section.completed)
                         watchedSeconds += sectionWatched.Value.Duration.Value
                     else
                         watchedSeconds += section.video_second
