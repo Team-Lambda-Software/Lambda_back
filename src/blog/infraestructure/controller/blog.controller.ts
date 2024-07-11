@@ -181,7 +181,7 @@ export class BlogController
             pushService.execute( { userId:'', publicationName: event.title, trainerId: event.trainerId, publicationType: 'Blog' } )
         
         })
-        return result.Value
+        return 
     }
 
 

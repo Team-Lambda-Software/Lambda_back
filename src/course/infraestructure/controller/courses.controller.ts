@@ -71,6 +71,7 @@ import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchron
 import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer'
 import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
 import { AnyFilesInterceptor, FileInterceptor } from "@nestjs/platform-express"
+import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
 
 
 @ApiTags( 'Course' )
@@ -223,6 +224,7 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
+    @UseInterceptors(FileExtender)
     @UseInterceptors(FileInterceptor('file'))
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
@@ -249,16 +251,13 @@ export class CourseController
                 new HttpExceptionHandler()
             )
         let newVideo: File
-        
         try{
             // newVideo = await this.base64ImageTransformer.base64ToVideo(addSectionToCourseEntryDto.video)
             newVideo = new File([file.buffer], file.originalname, {type: file.mimetype})
         } catch (error){
             throw new BadRequestException("los videos deben ser de tipo file")
         }
-
         const result = await service.execute( { file: newVideo, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
-        
         this.eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
             this.sectionQuerySyncronizer.execute(event)
         })
