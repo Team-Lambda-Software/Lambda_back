@@ -194,6 +194,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         try
         {
             const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId, completionPercent);
+            if ( ormProgress.completion_percent == 100 )
+                ormProgress.completed = true;
             await this.ormProgressSectionRepository.save( ormProgress );
 
             return Result.success<SectionProgress>( progress, 200 );
