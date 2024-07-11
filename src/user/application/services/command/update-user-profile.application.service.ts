@@ -26,10 +26,21 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
     }
 
     async execute(data: UpdateUserProfileServiceEntryDto): Promise<Result<UpdateUserProfileServiceResponseDto>> {
+
+        if ( data.email ) {
+            const verifyEmail = await this.userRepository.verifyUserExistenceByEmail(data.email)
+            if ( !verifyEmail.isSuccess() ) return Result.fail( verifyEmail.Error, verifyEmail.StatusCode, verifyEmail.Message )
+        }
+
+        if ( data.phone ) {
+            const verifyPhone = await this.userRepository.verifyUserExistenceByPhone(data.phone)
+            if ( !verifyPhone.isSuccess() ) return Result.fail( verifyPhone.Error, verifyPhone.StatusCode, verifyPhone.Message )
+        }
+
         const user = await this.userRepository.findUserById(data.userId)
         if(!user.isSuccess()) return Result.fail<UpdateUserProfileServiceResponseDto>(user.Error,user.StatusCode,user.Message)
         const userResult = user.Value
-        
+        userResult.pullEvents()
         if (data.name) userResult.updateName(UserName.create(data.name))
         if (data.email) userResult.updateEmail(UserEmail.create(data.email))
         if (data.phone) userResult.updatePhone(UserPhone.create(data.phone))
@@ -38,7 +49,7 @@ export class UpdateUserProfileAplicationService implements IApplicationService<U
         if ( !updateResult.isSuccess() ) 
             Result.fail<UpdateUserProfileAplicationService>(updateResult.Error, 500, updateResult.Message)
         
-        await this.eventHandler.publish(userResult.pullEvents())
+        this.eventHandler.publish(userResult.pullEvents())
         const respuesta: UpdateUserProfileServiceResponseDto = {
             userId: updateResult.Value.Id.Id
         }

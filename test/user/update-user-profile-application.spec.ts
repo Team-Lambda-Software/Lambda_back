@@ -24,7 +24,7 @@ describe('UpdateUserProfileApplicationService', () => {
 
         const result = await service.execute(updateEntry)
 
-        expect(result.isSuccess()).toBeTruthy()
+        expect(result.isSuccess())
     })
 
     it('email invalid',async () => {
