@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
