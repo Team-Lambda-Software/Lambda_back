@@ -124,8 +124,22 @@ $ npm run test
 
     Tests unitarios del módulo de User
 
-### "colocar aqui los demas"
+### Andres Forero
+
+- Capa de Dominio
+  
+  Implementación de los aggregates de 'Subscripción a Curso' (junto a entidad 'Progreso de Sección') y 'Entrenador'. Además, implementación de todos los eventos, excepciones y servicios de dominio pertenecientes a dos módulos ('Progress' y 'Trainer')
+  
+- Capa de aplicación
+
+  Todos los servicios de aplicación de los módulos de Progreso ('Progress') y Entrenador ('Trainer'), con sus DTOs correspondientes
+
+- Capa de infraestructura
+
+  Controlador de módulos Progress y Trainer. Entidades ORM de los módulos Progress y Trainer. Entidades ODM, sincronizadores de las bases de datos y servicios de query del módulo Progress.
 
 ## Autores
 | <img src="https://avatars.githubusercontent.com/u/114821565?s=400&u=ff1e744b3abd5e4315b008d3ad96168b508319ab&v=4" width=115><br><sub>Samuel Alonso</sub> |  
+| :---: | 
+| <img src="https://lh3.googleusercontent.com/pw/AP1GczPamRvw2yI6KQwiUu7H4FIw9GdPDo8ZY1b4ElwGL8hh1TqT4RddKGwdnDOaJktXejqgHJvYEiTCgUo8dykZ4a9LUXb55Cxkot9ZywUXkSzrwzF3Uhp3=w2400" width=115><br><sub>Andres Forero</sub> | 
 | :---: | 
