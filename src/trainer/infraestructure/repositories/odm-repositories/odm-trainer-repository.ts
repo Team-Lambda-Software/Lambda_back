@@ -82,7 +82,7 @@ export class OdmTrainerRepository implements TrainerQueryRepository {
             const odmTrainers = await this.trainerModel.find( {latitude: latitude, longitude: longitude} ).skip( (pagination.page-1)*pagination.perPage ).limit( pagination.perPage );
             if (odmTrainers.length == 0)
             {
-                return Result.fail<OdmTrainerEntity[]>( new Error("Trainers not found"), 404, "Trainers not found");
+                return Result.success<OdmTrainerEntity[]>( [], 200 );
             }
             return Result.success<OdmTrainerEntity[]>( odmTrainers, 200 );
         } catch (error)
@@ -96,7 +96,7 @@ export class OdmTrainerRepository implements TrainerQueryRepository {
             const odmTrainers = await this.trainerModel.find( {"followers.id": followerID} ).skip( (pagination.page-1)*pagination.perPage ).limit( pagination.perPage );
             if (odmTrainers.length == 0)
             {
-                return Result.fail<OdmTrainerEntity[]>( new Error("Trainers not found"), 404, "Trainers not found");
+                return Result.success<OdmTrainerEntity[]>( [], 200 );
             }
             return Result.success<OdmTrainerEntity[]>( odmTrainers, 200 );
         } catch (error)
@@ -110,7 +110,7 @@ export class OdmTrainerRepository implements TrainerQueryRepository {
             const odmTrainers = await this.trainerModel.find().skip( (pagination.page-1)*pagination.perPage ).limit( pagination.perPage );
             if (odmTrainers.length == 0)
             {
-                return Result.fail<OdmTrainerEntity[]>( new Error("Trainers not found"), 404, "Trainers not found");
+                return Result.success<OdmTrainerEntity[]>( [], 200 );
             }
             return Result.success<OdmTrainerEntity[]>( odmTrainers, 200 );
         } catch (error)

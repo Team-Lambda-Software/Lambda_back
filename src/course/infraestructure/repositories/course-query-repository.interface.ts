@@ -27,10 +27,14 @@ export interface CourseQueryRepository {
 
     findSectionComments ( sectionId: string, pagination: PaginationDto): Promise<Result<OdmSectionCommentEntity[]>>
     
+    findCoursesOrderByPopularity ( pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
     findCoursesByCategory ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+
+    findCoursesByCategoryOrderByPopularity ( categoryId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
     
 
     findCoursesByTrainer ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
+    findCoursesByTrainerOrderByPopularity ( trainerId: string, pagination: PaginationDto ): Promise<Result<OdmCourseEntity[]>>
     
 
     findSectionById ( sectionId: string ): Promise<Result<{id: string, name: string, duration: number, description: string, video: string}>>

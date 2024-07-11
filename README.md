@@ -1,35 +1,41 @@
 # Bienvenidos al Backend de Gymnastic Lambda
 
+
 <p align="center">
   <img src="./imgs/logo.svg" width="200" alt="Descripción de la imagen" />
 </p>
 
-Este es el repositorio del backend de la aplicación de gymnasctic center del equipo lambda, esta es una aplicación de video tutoriales y blogs de yoga y ejercicio
 
-## Arquitectura
+Repositorio del Backend de la aplicación Gymnastic Center del Equipo Lambda, aplicación que basa su contenido en video tutoriales y blogs sobre yoga, ejercicio y semejantes.
 
-Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para garantizar un código limpio, mantenible y eficiente, centrandonos en la capacidad de poder mantener la integridad de los datos y mejorar la velocidad de las peticiones:
+# Arquitectura
+
+Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para garantizar un código limpio, mantenible y eficiente, centrándonos en la capacidad de poder mantener la integridad de los datos y mejorar la velocidad de las peticiones:
 
 - **Arquitectura Hexagonal**: Esta arquitectura nos permite separar la lógica de negocio de los detalles técnicos, lo que facilita el mantenimiento y las pruebas de la aplicación.
 
-- **Principio Command–query separation**: Utilizamos este principio para separar las consultas de las modificaciones de la base de datos, creando 2 base de datos (una para lectura en mongodb y una para escritura en postgresql) permitiendonos mantener la integridad de los datos en la base de datos de escritura, y mejorar la eficiencia y velocidad haciendo las consultas a la base de datos de lectura.
+- **Principio Command–query separation**: Utilizamos este principio para separar las consultas de las modificaciones a la base de datos. Esto nos permite mantener la integridad de la base de datos de escritura mientras mejoramos la eficiencia y velocidad de las consultas a la base de datos. Para ello, hemos creado 2 bases de datos:
 
-- **Arquitectura Orientada a Eventos**: Utilizamos esta arquitectura para manejar acciones asíncronas y operaciones en tiempo real, como el envío de notificaciones y más importante, la sincronización de la base de datos de escritura con la de lectura.
+      Una NoSQL, empleando mongodb, enfocada a las lecturas
+
+      Una SQL, empleando postgres, enfocada a las escrituras.
+  
+- **Arquitectura Orientada a Eventos**: Utilizamos esta arquitectura para manejar acciones asíncronas y operaciones en tiempo real, como el envío de notificaciones y, más importante, la sincronización de la base de datos de escritura con la de lectura.
 
 - **Programación Orientada a Aspectos (AOP) con Decoradores**: Los decoradores nos permiten añadir funcionalidades adicionales a nuestras clases y métodos de una manera limpia y reutilizable.
 
-- **Diseño Guiado por el Dominio (DDD)**: Este enfoque nos ayuda a modelar la lógica de negocio de nuestra aplicación de una manera que refleja el dominio del problema.
-
+- **Diseño Guiado por el Dominio (DDD)**: Este enfoque nos ayuda a modelar la lógica del negocio buscando reflejar el dominio del problema.
 
 ## Instalacion
 
 ```bash
 $ npm install
 ```
+
+## Requisitos
 - Copiar las variables de entorno del .env.template
-- Es necesario tener una base de datos mongodb y una postgreSql
+- Es necesario dos bases de datos: una noSQL y una SQL
 - Tener una cuenta de mailjet, firebase y azure storage
-- colocar todas las credenciales en las env
 
 ## Correr la aplicacion
 
@@ -81,6 +87,24 @@ $ npm run test
 - Despliegue:
     
     Encargado de la realización del github actions para el despliegue automático del backend, dockerización del backend, despliegue de las bases de datos en la nube, despliegue en azure del backend. Despliegue del servicio de RabbitMQ para el manejo de colas
+
+### Hualong Chiang
+
+- Capa de Aplicación: 
+
+    Servicio de registro del usuario. Implementación del decorador de seguridad.
+
+- Capa de Infraestructura:
+
+    Relacionado a la auténticación y autorización de usuarios: implementación del manejo y generación de códigos de seguridad (JWT, Hash, RandomCodes)
+
+    Relacionado a notificaciones del sistema: implementación de la persistencia y el envío de la mismas
+
+    Sin relación a un contexto concreto: implementación de los contratos de envío de correos
+
+- Tests:
+
+    Tests unitarios del módulo de Authentication
 
 ### "colocar aqui los demas"
 

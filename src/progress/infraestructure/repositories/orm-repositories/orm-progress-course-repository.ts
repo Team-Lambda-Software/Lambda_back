@@ -247,7 +247,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
                 }
                 return Result.success<CourseSubscription[]>( domainCourses, 200 );
             }
-            return Result.fail<CourseSubscription[]>(new Error("No started courses found"), 404, "No started courses found");
+            return Result.success<CourseSubscription[]>( [],200 );
         }
         catch (error)
         {
@@ -300,7 +300,7 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
             {
                 return Result.success<SectionProgress[]>( progressArray, 200 );
             }
-            return Result.fail<SectionProgress[]>(new Error("No started sections found on course"), 404, "No started sections found on course");
+            return Result.success<SectionProgress[]>( [],200 );
         }
         catch (error)
         {

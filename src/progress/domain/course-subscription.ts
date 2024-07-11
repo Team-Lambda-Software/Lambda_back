@@ -84,6 +84,18 @@ export class CourseSubscription extends AggregateRoot<CourseSubscriptionId>
         throw new SectionProgressNotExistsException();
     }
 
+    public getCompletionBySectionId(sectionId:SectionId):SectionCompletion
+    {
+        for (let section of this.sectionProgress)
+        {
+            if (section.SectionId.equals(sectionId))
+            {
+                return section.IsCompleted;
+            }
+        }
+        throw new SectionProgressNotExistsException();
+    }
+
     protected ensureValidState(): void {
         if ( !this.courseId || !this.userId || !this.lastProgression || !this.isCompleted || !this.sectionProgress )
         {
