@@ -5,7 +5,10 @@ import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.d
 export interface ProgressQueryRepository {
     saveProgress (progress: OdmProgressEntity): Promise<void>;
     updateProgress (progress:OdmProgressEntity): Promise<Result<string>>;
-
+    addSectionProgressToCourse (section:{progress_id:string, section_id:string, completed:boolean, completion_percent:number, video_second:number}, progressId: string): Promise<Result<string>>;
+    changeCourseCompletitionPercent (courseId:string, userId:string, completionPercent:number): Promise<Result<string>>;
+    resetSectionProgress (sectionId:string, userId:string): Promise<Result<string>>;
+    findAllProgressByCourseId (courseId:string): Promise<Result<OdmProgressEntity[]>>;
     findProgressByCourseId (courseId:string, userId:string): Promise<Result<OdmProgressEntity>>;
     findProgressBySectionId (sectionId:string, userId:string): Promise<Result<OdmProgressEntity>>;
     findUserCountInCourse (courseId:string): Promise<Result<number>>;

@@ -72,6 +72,13 @@ import { ImageTransformer } from '../../../common/Infraestructure/image-helper/i
 import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
 import { AnyFilesInterceptor, FileInterceptor } from "@nestjs/platform-express"
 import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
+import { SectionAddedQuerySynchronizer } from "src/progress/infraestructure/query-synchronizers/section-added-query-synchronizer"
+import { OrmProgressCourseRepository } from "src/progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository"
+import { ProgressQueryRepository } from "src/progress/infraestructure/repositories/progress-query-repository.interface"
+import { OdmProgressRepository } from "src/progress/infraestructure/repositories/odm-repositories/odm-progress-repository"
+import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
+import { OdmProgressEntity } from "src/progress/infraestructure/entities/odm-entities/odm-progress.entity"
 
 
 @ApiTags( 'Course' )
@@ -79,6 +86,8 @@ import { FileExtender } from "src/common/Infraestructure/interceptors/file-exten
 export class CourseController
 {
 
+    private readonly progressRepository:OrmProgressCourseRepository;
+    private readonly odmProgressRepository:ProgressQueryRepository;
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: OrmCourseRepository
@@ -96,10 +105,12 @@ export class CourseController
     private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
     private readonly sectionQuerySyncronizer: SectionQuerySyncronizer
     private readonly imageTransformer: BufferBase64ImageTransformer
+    private readonly sectionAddedQuerySynchronizer: SectionAddedQuerySynchronizer
     private readonly base64ImageTransformer: ImageTransformer
     private readonly imageGetter: AzureBufferImageHelper
     private readonly logger: Logger = new Logger( "CourseController" )
     constructor ( 
+        @InjectModel( 'Progress' ) private readonly progressModel:Model<OdmProgressEntity>,
         @InjectModel('NotificationAddress') private addressModel: Model<OdmNotificationAddressEntity>,
         @InjectModel('NotificationAlert') private alertModel: Model<OdmNotificationAlertEntity>,
         @Inject( 'DataSource' ) private readonly dataSource: DataSource,
@@ -109,6 +120,20 @@ export class CourseController
         @InjectModel( 'Trainer' ) private readonly trainerModel: Model<OdmTrainerEntity>,
         @InjectModel( 'User' ) private readonly userModel: Model<OdmUserEntity> )
     {
+
+        this.progressRepository = new OrmProgressCourseRepository(
+            new OrmProgressCourseMapper(),
+            new OrmProgressSectionMapper(),
+            this.courseRepository,
+            dataSource,
+            new UuidGenerator()
+        );
+
+
+
+        this.odmProgressRepository = new OdmProgressRepository(
+            this.progressModel
+        );
         this.videoDurationFetcher = new VideoDurationFetcher()
         this.base64ImageTransformer = new ImageTransformer()
         this.notiAddressRepository = new OdmNotificationAddressRepository( addressModel )
@@ -129,6 +154,8 @@ export class CourseController
             new OrmTrainerMapper(),
             dataSource
         )
+
+        this.sectionAddedQuerySynchronizer = new SectionAddedQuerySynchronizer( this.odmProgressRepository, this.progressRepository)
 
         this.idGenerator = new UuidGenerator()
 
@@ -257,9 +284,12 @@ export class CourseController
         } catch (error){
             throw new BadRequestException("los videos deben ser de tipo file")
         }
+        
         const result = await service.execute( { file: newVideo, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
+        
         this.eventBus.subscribe( 'SectionCreated', async (event: SectionCreated) => {
-            this.sectionQuerySyncronizer.execute(event)
+            await this.sectionQuerySyncronizer.execute(event)
+            this.sectionAddedQuerySynchronizer.execute(event)
         })
 
         this.eventBus.subscribe( 'CourseMinutesDurationChanged', async (event: CourseMinutesDurationChanged) => {
