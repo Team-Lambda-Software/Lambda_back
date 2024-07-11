@@ -155,7 +155,7 @@ export class CourseController
             dataSource
         )
 
-        this.sectionAddedQuerySynchronizer = new SectionAddedQuerySynchronizer( this.odmProgressRepository, this.progressRepository)
+        this.sectionAddedQuerySynchronizer = new SectionAddedQuerySynchronizer( this.odmProgressRepository, this.progressRepository, this.courseRepository)
 
         this.idGenerator = new UuidGenerator()
 
