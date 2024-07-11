@@ -12,11 +12,15 @@ export class CalculateSectionCompletionPercentDomainService {
         {
             throw new SectionNotExistsException();
         }
-        const sectionDuration:SectionDuration = course.getSectionDuration(sectionId);
+        if (subscription.getCompletionBySectionId(sectionId).Value)
+        {
+            return SectionCompletionPercent.create(100);
+        }
 
+        const sectionDuration:SectionDuration = course.getSectionDuration(sectionId);
         const videoProgress = subscription.getVideoProgressBySectionId(sectionId);
 
-        const completionPercent = SectionCompletionPercent.create(videoProgress.Value / sectionDuration.Value);
+        const completionPercent = SectionCompletionPercent.create(Math.floor( (videoProgress.Value / sectionDuration.Value) * 100 ) );
         return completionPercent;
     }
 }
