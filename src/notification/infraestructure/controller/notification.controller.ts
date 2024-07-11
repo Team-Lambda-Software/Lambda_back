@@ -1,5 +1,5 @@
 import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common"
-import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator"
+import { Delete, Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator"
 import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
 import { DataSource } from "typeorm"
 import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
@@ -211,7 +211,7 @@ export class NotificationController {
         await service.execute(data)
     }
 
-    @Get('delete/all')
+    @Delete('delete/all')
     @UseGuards(JwtAuthGuard)
     @ApiOkResponse({ description: 'Borrar notificationes de un usuario', type: SaveTokenSwaggerResponseDto })
     @ApiBearerAuth()
