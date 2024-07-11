@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBase64, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class userUpdateEntryInfraestructureDto{
     
@@ -45,8 +45,7 @@ export class userUpdateEntryInfraestructureDto{
         example: "base64 string"
     })
     @IsOptional()
-    @IsString()
-    @MinLength(5)
+    @IsBase64()
     image?: string
 
 }
