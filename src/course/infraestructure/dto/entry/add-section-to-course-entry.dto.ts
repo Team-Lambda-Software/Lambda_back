@@ -26,11 +26,11 @@ export class AddSectionToCourseEntryDto {
     @Min( 1 )
     duration: number
 
-    @ApiProperty({
-        example: 'video'
-    })
-    @IsString()
-    @MinLength( 3 )
-    video: string
+    // @ApiProperty({
+    //     example: 'video'
+    // })
+    // @IsString()
+    // @MinLength( 3 )
+    // video: string
     
 }
