@@ -38,6 +38,48 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         this.uuidGenerator = uuidGenerator;
     }
 
+    async resetSectionProgress (userId:string, sectionId:string): Promise<Result<SectionProgress>>
+    {
+        try
+        {
+            const progressSection = await this.ormProgressSectionRepository.findOneBy( {user_id:userId, section_id:sectionId} );
+            if (progressSection == null)
+            {
+                return Result.fail<SectionProgress>(new Error("Progress not found"), 404, "Progress not found");
+            }
+            progressSection.video_second = 0;
+            progressSection.completion_percent = 0;
+            progressSection.completed = false;
+            await this.ormProgressSectionRepository.save( progressSection );
+            return Result.success<SectionProgress>(await this.ormProgressSectionMapper.fromPersistenceToDomain(progressSection), 200);
+        }
+        catch (error)
+        {
+            return Result.fail<SectionProgress>(new Error(error.message), error.code, error.message);
+        }
+    }
+
+    async changeCompletionPercent (userId:string, courseId:string, completionPercent:number): Promise<Result<CourseSubscription>>
+    {
+        try
+        {
+            const progressCourse = await this.findOneBy( {course_id: courseId, user_id: userId} );
+            if (progressCourse == null)
+            {
+                return Result.fail<CourseSubscription>(new Error("Progress not found"), 404, "Progress not found");
+            }
+            progressCourse.completion_percent = completionPercent;
+            progressCourse.completed = completionPercent == 100;
+            await this.save( progressCourse );
+            console.log ("Completion percent changed to: " + completionPercent);
+            return Result.success<CourseSubscription>(await this.ormProgressCourseMapper.fromPersistenceToDomain(progressCourse), 200);
+        }
+        catch (error)
+        {
+            return Result.fail<CourseSubscription>(new Error(error.message), error.code, error.message);
+        }
+    }
+
     //unused According to new specification of the API, video is now only one and part of the section. So, this method is not needed
         // async getVideoProgressById (userId:string, videoId:string): Promise<Result<ProgressVideo>>
         // {
