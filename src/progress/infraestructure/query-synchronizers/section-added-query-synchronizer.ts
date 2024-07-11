@@ -57,8 +57,11 @@ export class SectionAddedQuerySynchronizer implements Querysynchronizer<SectionC
                     {
                         return Result.fail<string>( sectionWatched.Error, sectionWatched.StatusCode, sectionWatched.Message )
                     }
-                    console.log(sectionWatched.Value.Duration.Value)
-                    watchedSeconds += section.video_second
+
+                    if (section.completed)
+                        watchedSeconds += sectionWatched.Value.Duration.Value
+                    else
+                        watchedSeconds += section.video_second
                     totalSeconds += sectionWatched.Value.Duration.Value
                 }
 
