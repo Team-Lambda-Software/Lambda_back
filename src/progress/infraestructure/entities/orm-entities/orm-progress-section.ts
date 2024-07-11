@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, Unique } from "typeorm";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { OrmSection } from "src/course/infraestructure/entities/orm-entities/orm-section";
 
+@Unique(["section_id", "user_id"])
 @Entity( {name:"progress_section"} )
 export class OrmProgressSection
 {
