@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -70,6 +70,7 @@ import { CourseMinutesDurationChanged } from "src/course/domain/events/course-mi
 import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer'
 import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer'
 import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
+import { AnyFilesInterceptor, FileInterceptor } from "@nestjs/platform-express"
 
 
 @ApiTags( 'Course' )
@@ -222,8 +223,8 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
-    
-    async addSectionToCourse ( @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
+    @UseInterceptors(FileInterceptor('file'))
+    async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
     {
 
         const service =
@@ -247,14 +248,14 @@ export class CourseController
                 ),
                 new HttpExceptionHandler()
             )
-        
         let newVideo: File
+        
         try{
-            newVideo = await this.base64ImageTransformer.base64ToVideo(addSectionToCourseEntryDto.video)
+            // newVideo = await this.base64ImageTransformer.base64ToVideo(addSectionToCourseEntryDto.video)
+            newVideo = new File([file.buffer], file.originalname, {type: file.mimetype})
         } catch (error){
-            throw new BadRequestException("los videos deben ser en formato base64")
+            throw new BadRequestException("los videos deben ser de tipo file")
         }
-
 
         const result = await service.execute( { file: newVideo, ...addSectionToCourseEntryDto, courseId: courseId, userId: user.id } )
         
