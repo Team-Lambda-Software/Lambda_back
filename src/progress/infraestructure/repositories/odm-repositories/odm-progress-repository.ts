@@ -12,6 +12,83 @@ export class OdmProgressRepository implements ProgressQueryRepository {
         this.progressModel = progressModel;
     }
 
+    async resetSectionProgress ( sectionId: string, userId: string ): Promise<Result<string>>
+    {
+        try
+        {
+            const progress = await this.progressModel.findOne( {'section_progress.section_id': sectionId, 'user_id': userId} );
+            if (progress == null)
+            {
+                return Result.fail<string>(new Error("Progress does not exist"), 404, "Progress does not exist");
+            }
+            const sec = progress.section_progress.find( (section) => section.section_id == sectionId );
+            sec.completed = false;
+            sec.completion_percent = 0;
+            sec.video_second = 0;
+            progress.section_progress = progress.section_progress.map( (section) => section.section_id == sectionId ? sec : section );
+            await this.progressModel.updateOne( {'section_progress.section_id': sectionId, 'user_id': userId}, progress );
+            return Result.success<string>("Section progress reset successfully", 200);
+        }
+        catch (error)
+        {
+            return Result.fail<string>(error, 500, error.message);
+        }
+    }
+
+    async changeCourseCompletitionPercent ( courseId: string, userId: string, completionPercent: number ): Promise<Result<string>>
+    {
+        try
+        {
+            const progress = await this.progressModel.findOne( {course_id: courseId, user_id: userId} );
+            if (progress == null)
+            {
+                return Result.fail<string>(new Error("Progress does not exist"), 404, "Progress does not exist");
+            }
+            progress.completion_percent = completionPercent;
+            progress.completed = completionPercent == 100;
+            await this.progressModel.updateOne( {course_id: courseId, user_id: userId}, progress );
+            return Result.success<string>("Course completion percent updated successfully", 200);
+        }
+        catch (error)
+        {
+            return Result.fail<string>(error, 500, error.message);
+        }
+    }
+    async addSectionProgressToCourse ( section: { progress_id: string; section_id: string; completed: boolean; completion_percent: number; video_second: number }, progressId: string ): Promise<Result<string>>
+    {
+        try
+        {
+            const progress = await this.progressModel.findOne( {progress_id: progressId} );
+            if (progress == null)
+            {
+                return Result.fail<string>(new Error("Progress does not exist"), 404, "Progress does not exist");
+            }
+            const sectionProgress = {
+                progress_id: section.progress_id,
+                section_id: section.section_id,
+                completed: section.completed,
+                completion_percent: section.completion_percent,
+                video_second: section.video_second
+            }
+            progress.section_progress.push( sectionProgress );
+            await this.progressModel.updateOne( {progress_id: progressId}, progress );
+            return Result.success<string>("Section progress added successfully", 200);
+        }
+        catch (error)
+        {
+            return Result.fail<string>(error, 500, error.message);
+        }
+    }
+    async findAllProgressByCourseId ( courseId: string ): Promise<Result<OdmProgressEntity[]>>
+    {
+        try{
+            const progresses = await this.progressModel.find( {course_id: courseId} );
+            return Result.success<OdmProgressEntity[]>( progresses, 200 );
+        }catch(error){
+            return Result.fail<OdmProgressEntity[]>( error, 500, error.message );
+        }
+    }
+
     async saveProgress (progress:OdmProgressEntity): Promise<void>
     {
         await this.progressModel.create( progress );
