@@ -78,6 +78,7 @@ import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-
 import { CourseMinutesDurationChanged } from "src/course/domain/events/course-minutes-duration-changed-event"
 import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer';
 import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer';
+import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
 
 
 @ApiTags( 'Course' )
@@ -409,7 +410,7 @@ export class CourseController
     @Get( 'count' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Devuelve la cantidad de courses', type: Number } )
+    @ApiOkResponse( { description: 'Devuelve la cantidad de courses', type: GetCountResponseDto } )
     async getCoursecount ( @GetUser() user, @Query() getCourseCountParams: GetCourseCountQueryParametersDto )
     {
         const service =
@@ -429,7 +430,7 @@ export class CourseController
             throw new BadRequestException("tiene que enviar o un entrenador o una categoria")
         }
         const result = await service.execute( {...getCourseCountParams, userId: user.id})
-        return result.Value
+        return {count: result.Value}
     }
 
 

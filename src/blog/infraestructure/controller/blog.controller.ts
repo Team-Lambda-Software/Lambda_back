@@ -58,6 +58,7 @@ import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-m
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 import { ImageTransformer } from "src/common/Infraestructure/image-helper/image-transformer"
+import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
 
 
 @ApiTags( 'Blog' )
@@ -306,7 +307,7 @@ export class BlogController
     @Get( 'count' )
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
-    @ApiOkResponse( { description: 'Devuelve la cantidad de blogs', type: Number } )
+    @ApiOkResponse( { description: 'Devuelve la cantidad de blogs', type: GetCountResponseDto } )
     async getBlogcount ( @GetUser() user, @Query() getBlogCountParams: GetBlogCountQueryParametersDto )
     {
         const service =
@@ -326,7 +327,7 @@ export class BlogController
             throw new BadRequestException("tiene que enviar o un entrenador o una categoria")
         }
         const result = await service.execute( {...getBlogCountParams, userId: user.id})
-        return result.Value
+        return {count: result.Value}
     }
 
 }
