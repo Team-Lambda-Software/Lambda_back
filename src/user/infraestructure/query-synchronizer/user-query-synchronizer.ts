@@ -43,7 +43,6 @@ export class UserQuerySynchronizer implements Querysynchronizer<UserCreated>{
             default: 
                 return Result.fail<string>(new Error("Evento no existente"),400,"Evento no existente")
         }
-
         try{
             await this.odmUserRepository.saveUser(userOdmPersistence)            
         }catch(error){
