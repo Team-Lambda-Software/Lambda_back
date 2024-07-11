@@ -24,7 +24,7 @@ export class SectionCompletedQuerySynchronizer implements Querysynchronizer<Sect
 
         for (let section of progress.section_progress)
         {
-            if (section.section_id = event.sectionId)
+            if (section.section_id === event.sectionId)
             {
                 section.completed = true;
                 break;

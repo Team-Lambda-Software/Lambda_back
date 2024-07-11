@@ -46,7 +46,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
             {
                 return Result.success<Trainer[]>( await Promise.all( trainers.map( async trainer => await this.ormTrainerMapper.fromPersistenceToDomain( trainer ) ) ), 200 )
             }
-            return Result.fail<Trainer[]>( new Error("Trainers not found"), 404, "Trainers not found");
+            return Result.success<Trainer[]>( [], 200 );
         }
         catch (error)
         {
@@ -69,7 +69,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
             {
                 return Result.success<Trainer[]>( await Promise.all( trainers.map( async trainer => await this.ormTrainerMapper.fromPersistenceToDomain( trainer ) ) ), 200 )
             }
-            return Result.fail<Trainer[]>( new Error("Trainers not found"), 404, "Trainers not found");
+            return Result.success<Trainer[]>( [], 200 );
         }
         catch (error)
         {
@@ -129,7 +129,7 @@ export class OrmTrainerRepository extends Repository<OrmTrainer> implements ITra
             {
                 return Result.success<string[]>( followersID, 200 )
             }
-            return Result.fail<string[]>( new Error("Followers not found"), 404, "Followers not found");
+            return Result.success<string[]>( [], 200 );
         }
         catch (error)
         {
