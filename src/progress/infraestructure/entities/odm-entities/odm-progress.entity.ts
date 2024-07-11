@@ -30,3 +30,4 @@ export class OdmProgressEntity extends Document {
 }
 
 export const ProgressSchema = SchemaFactory.createForClass(OdmProgressEntity);
+ProgressSchema.index({ course_id: 1, user_id: 1 }, { unique: true });

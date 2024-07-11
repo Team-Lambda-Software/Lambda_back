@@ -194,6 +194,8 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
         try
         {
             const ormProgress = await this.ormProgressSectionMapper.fromDomainToPersistence(progress, userId, completionPercent);
+            if ( ormProgress.completion_percent == 100 )
+                ormProgress.completed = true;
             await this.ormProgressSectionRepository.save( ormProgress );
 
             return Result.success<SectionProgress>( progress, 200 );
@@ -213,14 +215,23 @@ export class OrmProgressCourseRepository extends Repository<OrmProgressCourse> i
 
             //to-do When saving a course, also save all associated sections. Feels like a fragile solution, not sure how to rework
             const progressSections = progress.Sections;
-            for (let completionTuple of sectionsCompletionPercent)
-            {
-                for (let section of progressSections)
+            if (sectionsCompletionPercent){
+                for (let completionTuple of sectionsCompletionPercent)
                 {
-                    if ( section.SectionId.equals(SectionId.create(completionTuple[0])) )
+                    for (let section of progressSections)
                     {
-                        await this.saveSectionProgress( section, progress.UserId.Id, completionTuple[1] );
+                        if ( section.SectionId.equals(SectionId.create(completionTuple[0])) )
+                        {
+                            await this.saveSectionProgress( section, progress.UserId.Id, completionTuple[1] );
+                        }
                     }
+                }
+            }
+            else{
+                for (let section of progress.Sections)
+                {
+                    console.log("Saving section progress: " + section.Id.Value);
+                    await this.saveSectionProgress( section, progress.UserId.Id, 0 );
                 }
             }
 

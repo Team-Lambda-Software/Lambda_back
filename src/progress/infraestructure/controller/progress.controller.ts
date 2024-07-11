@@ -133,7 +133,7 @@ export class ProgressController {
                 new PerformanceDecorator(
                     new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus, new UuidGenerator()),
                     new NativeLogger( this.logger )
-                ),
+                ), 
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()

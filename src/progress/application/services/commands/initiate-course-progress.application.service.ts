@@ -41,7 +41,7 @@ export class InitiateCourseProgressApplicationService implements IApplicationSer
         }
         const baseCourse = courseResult.Value;
 
-        const progressResult = await this.progressRepository.getCourseProgressById(data.userId, data.courseId);
+        const progressResult = await this.progressRepository.getCourseProgressById(data.userId, data.courseId); 
         if (progressResult.isSuccess())
         {
             return Result.fail<InitiateCourseProgressResponseDto>(new Error("El progreso ya fue iniciado previamente. No se puede volver a iniciar"), 409, "El progreso ya fue iniciado previamente. No se puede volver a iniciar");

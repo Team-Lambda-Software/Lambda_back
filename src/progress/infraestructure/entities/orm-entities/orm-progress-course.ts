@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, UpdateDateColumn } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn, UpdateDateColumn, Unique } from "typeorm";
 import { OrmUser } from "src/user/infraestructure/entities/orm-entities/user.entity";
 import { OrmCourse } from "src/course/infraestructure/entities/orm-entities/orm-course";
 import { last } from "rxjs";
 
+@Unique(["course_id", "user_id"])
 @Entity( {name:"progress_course"} )
 export class OrmProgressCourse
 {
