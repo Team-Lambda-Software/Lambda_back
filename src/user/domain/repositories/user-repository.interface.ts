@@ -7,5 +7,6 @@ export interface IUserRepository {
   deleteById(id: string): Promise<Result<User>>;
   findUserByEmail(email: string): Promise<Result<User>>;
   verifyUserExistenceByEmail(email: string): Promise<Result<boolean>>;
+  verifyUserExistenceByPhone(phone: string): Promise<Result<boolean>>;
   findUserById(id: string): Promise<Result<User>>;
 }

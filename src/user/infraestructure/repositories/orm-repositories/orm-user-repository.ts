@@ -7,6 +7,7 @@ import { OrmUser } from "../../entities/orm-entities/user.entity"
 import { OrmUserMapper } from '../../mappers/orm-mapper/orm-user-mapper'
 import { UserNotFoundException } from "../../exceptions/user-not-found-exception"
 import { EmailRegisteredException } from "../../exceptions/email-registered-exception"
+import { PhoneRegisteredException } from "../../exceptions/phone-registered-exception"
 
 export class OrmUserRepository extends Repository<OrmUser> implements IUserRepository
 {
@@ -17,6 +18,13 @@ export class OrmUserRepository extends Repository<OrmUser> implements IUserRepos
     {
         super( OrmUser, dataSource.createEntityManager() )
         this.ormUserMapper = ormUserMapper
+    }
+
+    async verifyUserExistenceByPhone(phone: string): Promise<Result<boolean>> {
+        const user = await this.findOneBy({phone})
+        if (!user)             
+            return Result.success<boolean>(true, 200);
+        return Result.fail<boolean>(new PhoneRegisteredException(), 403, 'Phone registered');
     }
 
     async verifyUserExistenceByEmail(email: string): Promise<Result<boolean>> {

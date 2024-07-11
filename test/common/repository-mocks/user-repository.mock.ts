@@ -9,6 +9,13 @@ export class UserMockRepository implements IUserRepository{
 
     private readonly users: User[] = []
 
+    async verifyUserExistenceByPhone(phone: string): Promise<Result<boolean>> {
+        const user = this.users.find( user => user.Phone.Phone === phone  )
+        if( user === undefined )
+            return Result.fail<boolean>( new Error('Phone registered'), 403, `Phone registered`)    
+        return Result.success<boolean>( false , 200 )   
+    }
+
     async verifyUserExistenceByEmail(email: string): Promise<Result<boolean>> {
         const user = this.users.find( user => user.Email.Email === email  )
         if( user === undefined )
