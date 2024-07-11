@@ -106,6 +106,24 @@ $ npm run test
 
     Tests unitarios del módulo de Authentication
 
+### Luigi Bastidas
+
+- Capa de Dominio
+
+    Implementacion del agreggate User, junto con sus values objects, eventos de dominio y excepciones de dominio correspondientes.
+
+- Capa de Aplicación: 
+
+    Servicio de aplicacion para actualizar el perfil del usuario. Creacion de DTO's para el servicio de aplicacion
+
+- Capa de Infraestructura:
+
+    Controlador de User, aporte en la implementacion de los repositorios para las bases de datos de MongoDB y PostgresSQL. Synchronizadores de las base de datos para el modulo de user y la creacion de los servicios queries "findUserById" y "findUserByEmail". Creacion del servicio de infraestructura para cambiar la contraseña o imagen de perfil. Aporte en la entidad orm del modelo User y mappers. 
+
+- Tests:
+
+    Tests unitarios del módulo de User
+
 ### "colocar aqui los demas"
 
 ## Autores

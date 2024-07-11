@@ -1,43 +1,44 @@
-import { Body, Controller, Inject, Ip, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common";
-import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator";
-import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
-import { DataSource } from "typeorm";
-import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface";
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { SaveTokenAddressInfraService } from "src/notification/infraestructure/service/notification-service/save-token-address-services.service";
-import { NotifyGoodDayInfraService } from "src/notification/infraestructure/service/notification-service/notify-good-day-services.service";
-import { NotifyRecommendCourseInfraService } from "src/notification/infraestructure/service/notification-service/notify-recommend-course-services.service";
-import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
-import { SaveTokenSwaggerResponseDto } from "./dto/response/save-token-address-swagger-response.dto";
-import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
-import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
-import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton";
-import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
-import { GetManyNotificationByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-by-user.service";
-import { GetNumberNotificationNotSeenByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-count-not-readed.service";
+import { Body, Controller, Inject, Logger, Param, ParseUUIDPipe, Query, UseGuards } from "@nestjs/common"
+import { Get, Post } from "@nestjs/common/decorators/http/request-mapping.decorator"
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { DataSource } from "typeorm"
+import { IdGenerator } from "src/common/Application/Id-generator/id-generator.interface"
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { SaveTokenAddressInfraService } from "src/notification/infraestructure/service/notification-service/save-token-address-services.service"
+import { NotifyGoodDayInfraService } from "src/notification/infraestructure/service/notification-service/notify-good-day-services.service"
+import { NotifyRecommendCourseInfraService } from "src/notification/infraestructure/service/notification-service/notify-recommend-course-services.service"
+import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
+import { SaveTokenSwaggerResponseDto } from "./dto/response/save-token-address-swagger-response.dto"
+import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
+import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
+import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { FirebaseNotifier } from "../notifier/firebase-notifier-singleton"
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
+import { GetManyNotificationByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-by-user.service"
+import { GetNumberNotificationNotSeenByUserInfraService } from "src/notification/infraestructure/service/query-service/get-notifications-count-not-readed.service"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { Cron, CronExpression } from "@nestjs/schedule";
-import { GetNotificationByIdInfraService } from "../service/query-service/get-notification-by-notification-id.service";
-import { GetNotificationsUserDto } from "./dto/entry/get-notifications-by-user.entry.dto";
-import { GetNotReadedNotificationSwaggerResponse } from "./dto/response/get-not-readed.response.dto";
-import { GetNotificationByNotificationIdSwaggerResponse } from "./dto/response/get-notification-by-id.response";
-import { GetNotificationsUserSwaggerResponse } from "./dto/response/get-notifications-by-user.response.dto";
-import { SaveTokenDto } from "./dto/entry/save-token.infraestructure.dto";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { OdmNotificationAddressEntity } from "../entities/odm-entities/odm-notification-address.entity";
-import { OdmNotificationAlertEntity } from "../entities/odm-entities/odm-notification-alert.entity";
-import { INotificationAlertRepository } from "../repositories/interface/notification-alert-repository.interface";
-import { INotificationAddressRepository } from "../repositories/interface/notification-address-repository.interface";
-import { OdmNotificationAddressRepository } from "../repositories/odm-notification-address-repository";
-import { OdmNotificationAlertRepository } from "../repositories/odm-notification-alert-repository";
-import { DeleteNotificationsInfraService } from "../service/notification-service/delete-notifications-services";
-import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface";
-import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository";
-import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
-import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
-import { IPushSender } from "src/common/Application/push-sender/push-sender.interface";
+import { Cron, CronExpression } from "@nestjs/schedule"
+import { GetNotificationByIdInfraService } from "../service/query-service/get-notification-by-notification-id.service"
+import { GetNotificationsUserDto } from "./dto/entry/get-notifications-by-user.entry.dto"
+import { GetNotReadedNotificationSwaggerResponse } from "./dto/response/get-not-readed.response.dto"
+import { GetNotificationByNotificationIdSwaggerResponse } from "./dto/response/get-notification-by-id.response"
+import { GetNotificationsUserSwaggerResponse } from "./dto/response/get-notifications-by-user.response.dto"
+import { SaveTokenDto } from "./dto/entry/save-token.infraestructure.dto"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { OdmNotificationAddressEntity } from "../entities/odm-entities/odm-notification-address.entity"
+import { OdmNotificationAlertEntity } from "../entities/odm-entities/odm-notification-alert.entity"
+import { INotificationAlertRepository } from "../repositories/interface/notification-alert-repository.interface"
+import { INotificationAddressRepository } from "../repositories/interface/notification-address-repository.interface"
+import { OdmNotificationAddressRepository } from "../repositories/odm-notification-address-repository"
+import { OdmNotificationAlertRepository } from "../repositories/odm-notification-alert-repository"
+import { DeleteNotificationsInfraService } from "../service/notification-service/delete-notifications-services"
+import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface"
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity"
+import { IPushSender } from "src/common/Application/push-sender/push-sender.interface"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags('Notification')
 @Controller('notifications')
@@ -75,8 +76,11 @@ export class NotificationController {
     async getUserNotificationsNotReaded( @GetUser() user ) {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetNumberNotificationNotSeenByUserInfraService(
-                    this.notiAlertRepository
+                new PerformanceDecorator(    
+                    new GetNumberNotificationNotSeenByUserInfraService(
+                        this.notiAlertRepository
+                    ),
+                    new NativeLogger(this.logger)
                 ),
                 new NativeLogger(this.logger)
             ),
@@ -97,8 +101,11 @@ export class NotificationController {
         let dataentry = { notificationId: id, userId: user.id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetNotificationByIdInfraService(
-                    this.notiAlertRepository
+                new PerformanceDecorator(    
+                    new GetNotificationByIdInfraService(
+                        this.notiAlertRepository
+                    ),
+                    new NativeLogger(this.logger)
                 ),
                 new NativeLogger(this.logger)
             ),
@@ -118,8 +125,11 @@ export class NotificationController {
         let dataentry={ ...getNotifications, userId: user.id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetManyNotificationByUserInfraService(
-                    this.notiAlertRepository
+                new PerformanceDecorator(    
+                    new GetManyNotificationByUserInfraService(
+                        this.notiAlertRepository
+                    ),
+                    new NativeLogger(this.logger)
                 ),
                 new NativeLogger(this.logger)
             ),
@@ -144,11 +154,14 @@ export class NotificationController {
     async goodDayNotification() {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new NotifyGoodDayInfraService(
-                    this.notiAddressRepository,
-                    this.notiAlertRepository,
-                    this.uuidGenerator,
-                    this.pushNotifier
+                new PerformanceDecorator(
+                    new NotifyGoodDayInfraService(
+                        this.notiAddressRepository,
+                        this.notiAlertRepository,
+                        this.uuidGenerator,
+                        this.pushNotifier
+                    ),
+                    new NativeLogger(this.logger)
                 ),
                 new NativeLogger(this.logger)
             ),
@@ -162,12 +175,15 @@ export class NotificationController {
     async recommendCoursesRandomNotification() {
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new NotifyRecommendCourseInfraService( 
-                    this.notiAddressRepository,  
-                    this.notiAlertRepository,
-                    this.queryCourseRepository,
-                    this.uuidGenerator,
-                    this.pushNotifier
+                new PerformanceDecorator(
+                    new NotifyRecommendCourseInfraService( 
+                        this.notiAddressRepository,  
+                        this.notiAlertRepository,
+                        this.queryCourseRepository,
+                        this.uuidGenerator,
+                        this.pushNotifier
+                    ),
+                    new NativeLogger(this.logger)
                 ),
                 new NativeLogger(this.logger)
             ),
@@ -184,7 +200,10 @@ export class NotificationController {
         const data = { userId: user.id, ...saveTokenDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new SaveTokenAddressInfraService( this.notiAddressRepository ),
+                new PerformanceDecorator(
+                    new SaveTokenAddressInfraService( this.notiAddressRepository ),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()   
@@ -200,7 +219,10 @@ export class NotificationController {
         const data = { userId: user.id }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new DeleteNotificationsInfraService( this.notiAlertRepository ),
+                new PerformanceDecorator(
+                    new DeleteNotificationsInfraService( this.notiAlertRepository ),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()   

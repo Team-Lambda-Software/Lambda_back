@@ -2,7 +2,6 @@ import { Model } from "mongoose";
 import { ProgressQueryRepository } from "../progress-query-repository.interface";
 import { OdmProgressEntity } from "../../entities/odm-entities/odm-progress.entity";
 import { Result } from "src/common/Domain/result-handler/Result";
-import { count } from "console";
 import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto";
 
 export class OdmProgressRepository implements ProgressQueryRepository {

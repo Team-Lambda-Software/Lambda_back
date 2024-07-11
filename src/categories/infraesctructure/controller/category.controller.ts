@@ -1,6 +1,4 @@
 import { DataSource } from "typeorm"
-import { OrmCategoryMapper } from "../mappers/orm-mappers/orm-category-mapper"
-import { OrmCategoryRepository } from "../repositories/orm-repositories/orm-category-repository"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { Controller, Get, Inject, Logger, Query, UseGuards } from "@nestjs/common"
@@ -16,22 +14,18 @@ import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { OdmCategoryEntity } from "../entities/odm-entities/odm-category.entity"
 import { GetAllCategoriesService } from "../query-services/services/get-all-category.service"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags( 'Category' )
 @Controller( 'category' )
 export class CategoryController
 {
 
-    private readonly categoryRepository: OrmCategoryRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly logger: Logger = new Logger( "CategorieController" )
     constructor ( @Inject( 'DataSource' ) private readonly dataSource: DataSource, @InjectModel('Category') private categoryModel: Model<OdmCategoryEntity> )
     {
-        this.categoryRepository =
-            new OrmCategoryRepository(
-                new OrmCategoryMapper(),
-                dataSource
-            )
+        
         this.odmCategoryRepository = new OdmCategoryRepository(
             categoryModel
         )
@@ -46,9 +40,12 @@ export class CategoryController
         const getAllCategoriesService = 
         new ExceptionDecorator( 
             new LoggingDecorator( 
-                new GetAllCategoriesService( 
-                    this.odmCategoryRepository
-                ), 
+                new PerformanceDecorator(
+                    new GetAllCategoriesService( 
+                        this.odmCategoryRepository
+                    ),
+                    new NativeLogger( this.logger ) 
+                ),
                 new NativeLogger( this.logger ) 
             ),
             new HttpExceptionHandler() 

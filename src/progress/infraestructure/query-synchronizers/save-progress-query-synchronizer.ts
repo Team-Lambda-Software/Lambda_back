@@ -16,7 +16,7 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
     async execute(event: UserHasProgressed): Promise<Result<string>> 
     {
         //TEST
-            console.log("Entered synchronizer");
+            //console.log("Entered synchronizer");
         const progressResult = await this.progressRepository.findProgressByCourseId(event.courseId, event.userId);
         if (!progressResult.isSuccess())
         {
@@ -24,8 +24,8 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
         }
         let progress:OdmProgressEntity = progressResult.Value;
         //TEST
-            console.log("Obtained...");
-            console.log(progress);
+            //console.log("Obtained...");
+            //console.log(progress);
 
         let sum:number = 0;
         for (let section of progress.section_progress)
@@ -47,10 +47,10 @@ export class SaveProgressQuerySynchronizer implements Querysynchronizer<UserHasP
         try
         {
             //TEST
-                console.log("Trying to save...",progress);
+                //console.log("Trying to save...",progress);
             await this.progressRepository.updateProgress(progress);
             //TEST
-                console.log("Saved!");
+                //console.log("Saved!");
         }
         catch (error)
         {

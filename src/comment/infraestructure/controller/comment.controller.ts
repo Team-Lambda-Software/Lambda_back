@@ -43,12 +43,11 @@ import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm
 import { SectionCommentCreated } from "src/course/domain/events/section-comment-created-event"
 import { GetSectionCommentsServiceEntryDto } from "src/course/infraestructure/query-services/dto/param/get-section-comments-service-entry.dto"
 import { GetSectionCommentsService } from "src/course/infraestructure/query-services/services/get-section-comments.service"
-import { OdmCourseMapper } from "src/course/infraestructure/mappers/odm-mappers/odm-course-mapper"
-import { OdmBlogMapper } from "src/blog/infraestructure/mappers/odm-mappers/odm-blog-mapper"
 import { BlogCommentQuerySyncronizer } from "src/blog/infraestructure/query-synchronizer/blog-comment-query-synchronizer"
 import { SectionCommentQuerySyncronizer } from '../../../course/infraestructure/query-synchronizers/section-comment-query-synchronizer'
 import { OdmUserRepository } from '../../../user/infraestructure/repositories/odm-repository/odm-user-repository'
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 
 @ApiTags( 'Comment' )
@@ -63,8 +62,6 @@ export class CommentController
     private readonly odmBlogRepository: OdmBlogRepository
     private readonly odmCourseRepository: OdmCourseRepository
     private readonly odmUserRepository: OdmUserRepository
-    private readonly odmCourseMapper: OdmCourseMapper
-    private readonly odmBlogMapper: OdmBlogMapper
     private readonly eventBus = RabbitEventBus.getInstance();
     private readonly blogCommentQuerySynchronizer: BlogCommentQuerySyncronizer
     private readonly sectionCommentQuerySyncronizer: SectionCommentQuerySyncronizer
@@ -107,8 +104,6 @@ export class CommentController
             sectionCommentModel
         )
 
-        this.odmCourseMapper = new OdmCourseMapper()
-        this.odmBlogMapper = new OdmBlogMapper()
 
         this.odmUserRepository = new OdmUserRepository(userModel)
 
@@ -139,8 +134,11 @@ export class CommentController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new GetBlogCommentsService(
-                            this.odmBlogRepository
+                        new PerformanceDecorator(
+                            new GetBlogCommentsService(
+                                this.odmBlogRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -157,8 +155,11 @@ export class CommentController
             const service =
                 new ExceptionDecorator(
                     new LoggingDecorator(
-                        new GetSectionCommentsService(
-                            this.odmCourseRepository
+                        new PerformanceDecorator(
+                            new GetSectionCommentsService(
+                                this.odmCourseRepository
+                            ),
+                            new NativeLogger( this.logger )
                         ),
                         new NativeLogger( this.logger )
                     ),
@@ -185,10 +186,13 @@ export class CommentController
                 new ExceptionDecorator(
                     new AuditingDecorator(
                         new LoggingDecorator(
-                            new AddCommentToSectionApplicationService(
-                                this.courseRepository,
-                                this.idGenerator,
-                                this.eventBus
+                            new PerformanceDecorator(
+                                new AddCommentToSectionApplicationService(
+                                    this.courseRepository,
+                                    this.idGenerator,
+                                    this.eventBus
+                                ),
+                                new NativeLogger( this.logger )
                             ),
                             new NativeLogger( this.logger )
                         ),
@@ -214,10 +218,13 @@ export class CommentController
                 new ExceptionDecorator(
                     new AuditingDecorator(
                         new LoggingDecorator(
-                            new AddCommentToBlogApplicationService(
-                                this.blogRepository,
-                                this.idGenerator,
-                                this.eventBus
+                            new PerformanceDecorator(    
+                                new AddCommentToBlogApplicationService(
+                                    this.blogRepository,
+                                    this.idGenerator,
+                                    this.eventBus
+                                ),
+                                new NativeLogger( this.logger )
                             ),
                             new NativeLogger( this.logger )
                         ),

@@ -8,7 +8,7 @@ export class CalculateCourseMinutesDurationDomainService {
         let sum:number = 0;
         for (let section of course.Sections)
         {
-            console.log(section.Duration.Value)
+            // console.log(section.Duration.Value)
             sum += section.Duration.Value;
         }
         sum = Math.floor(sum / 60);

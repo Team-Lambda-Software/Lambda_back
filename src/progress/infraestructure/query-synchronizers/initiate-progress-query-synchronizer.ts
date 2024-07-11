@@ -65,7 +65,7 @@ export class InitiateProgressQuerySynchronizer implements Querysynchronizer<Cour
         try
         {
             //TEST
-                console.log("Initiating...", persistenceProgress);
+                //console.log("Initiating...", persistenceProgress);
             await this.progressRepository.saveProgress(persistenceProgress);
         }
         catch (error)

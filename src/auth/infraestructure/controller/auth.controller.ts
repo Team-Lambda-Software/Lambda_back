@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Put } from "@nestjs/common"
+import { Body, Controller, Get, Post, Put } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
 import { NativeLogger } from "src/common/Infraestructure/logger/logger";
@@ -50,11 +50,11 @@ import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-t
 import { IAccountRepository } from "src/user/application/interfaces/account-user-repository.interface";
 import { OrmAccountRepository } from "src/user/infraestructure/repositories/orm-repositories/orm-account-repository";
 import { OdmAccountRepository } from "src/user/infraestructure/repositories/odm-repository/odm-account-repository";
-import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus";
 import { AccountQuerySynchronizer } from "src/user/infraestructure/query-synchronizer/account-query-synchronizer";
 import { Querysynchronizer } from "src/common/Infraestructure/query-synchronizer/query-synchronizer";
 import { Result } from "src/common/Domain/result-handler/Result"
 import { InvalidSecretCodeException } from "../exceptions/invalid-secret-code-exception";
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -118,11 +118,14 @@ export class AuthController {
         const data = { userId: 'none', ...logInDto } 
         const logInUserService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new LogInUserInfraService(
-                    this.ormAccountRepository,
-                    this.tokenGenerator,
-                    this.encryptor
-                ), 
+                new PerformanceDecorator(
+                    new LogInUserInfraService(
+                        this.ormAccountRepository,
+                        this.tokenGenerator,
+                        this.encryptor
+                    ),
+                    new NativeLogger(this.logger) 
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -153,11 +156,14 @@ export class AuthController {
 
         const signUpApplicationService = new ExceptionDecorator( 
             new LoggingDecorator(
-                new SignUpUserApplicationService(
-                    eventBus,
-                    this.userRepository,
-                    this.uuidGenerator
-                ), 
+                new PerformanceDecorator(    
+                    new SignUpUserApplicationService(
+                        eventBus,
+                        this.userRepository,
+                        this.uuidGenerator
+                    ), 
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -180,11 +186,14 @@ export class AuthController {
         const data = { userId: 'none', ...getCodeUpdateDto, }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new GetCodeUpdatePasswordUserInfraService(
-                    this.ormAccountRepository,
-                    new UpdatePasswordSender(),
-                    new SecretCodeGenerator(),
-                ), 
+                new PerformanceDecorator(
+                    new GetCodeUpdatePasswordUserInfraService(
+                        this.ormAccountRepository,
+                        new UpdatePasswordSender(),
+                        new SecretCodeGenerator(),
+                    ), 
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -204,11 +213,14 @@ export class AuthController {
         const data = { userId: 'none',  ...updatePasswordDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
-                new ChangePasswordUserInfraService(
-                    this.ormAccountRepository,
-                    this.encryptor,
-                    this.odmAccountRepository
-                ), 
+                new PerformanceDecorator(
+                    new ChangePasswordUserInfraService(
+                        this.ormAccountRepository,
+                        this.encryptor,
+                        this.odmAccountRepository
+                    ), 
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
