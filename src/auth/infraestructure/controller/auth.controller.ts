@@ -201,6 +201,7 @@ export class AuthController {
         const result = await service.execute(data)
         this.secretCodes = this.secretCodes.filter( e => e.email != result.Value.email )
         this.secretCodes.push( result.Value )
+        console.log( this.secretCodes )
         return { date: result.Value.date }
     }
 
@@ -209,7 +210,7 @@ export class AuthController {
     async changePasswordUser(@Body() updatePasswordDto: ChangePasswordEntryInfraDto ) {     
         this.cleanSecretCodes()
         const result = this.signCode(updatePasswordDto.code, updatePasswordDto.email)  
-       if ( !result ) throw new InvalidSecretCodeException()
+        if ( !result ) throw new BadRequestException('invalid secret code')
         const data = { userId: 'none',  ...updatePasswordDto }
         const service = new ExceptionDecorator( 
             new LoggingDecorator(
@@ -231,7 +232,7 @@ export class AuthController {
     @Post('code/validate')
     @ApiOkResponse({  description: 'Validar codigo de cambio de contraseña', type: ValidateCodeForgetPasswordSwaggerResponseDto })
     async validateCodeForgetPassword( @Body() codeValDto: CodeValidateEntryInfraDto ) {  
-        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new InvalidSecretCodeException()
+        if ( !this.validateCode( codeValDto.code, codeValDto.email ) ) throw new BadRequestException('invalid secret code')
     }
 
     private validateCode( code: string, email: string ) {
