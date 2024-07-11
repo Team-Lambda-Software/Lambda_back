@@ -21,7 +21,7 @@ export class SecurityDecorator<L extends ApplicationServiceEntryDto, R> extends 
     }
 
     async execute ( data: L ): Promise<Result<R>> {
-        console.log(data)
+        // console.log(data)
         const userResult = await this.accountRepository.findUserById(data.userId);
         if ( !userResult.isSuccess() ) return Result.fail(new Error('Usuario no registrado'), 500, 'Usuario no existe')
         

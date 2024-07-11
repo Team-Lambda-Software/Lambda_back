@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
 import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
 import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
 import { DataSource } from "typeorm"
@@ -7,16 +7,13 @@ import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmSectionMapper } from "../mappers/orm-mappers/orm-section-mapper"
 import { OrmSectionCommentMapper } from "../mappers/orm-mappers/orm-section-comment-mapper"
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
 import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
 import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
 import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper"
-import { OrmProgressCourseRepository } from '../../../progress/infraestructure/repositories/orm-repositories/orm-progress-course-repository'
-import { OrmProgressCourseMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-course-mapper"
-import { OrmProgressSectionMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-section-mapper"
 //import { OrmProgressVideoMapper } from "src/progress/infraestructure/mappers/orm-mappers/orm-progress-video-mapper"
 import { SearchCourseQueryParametersDto } from "../dto/queryParameters/search-course-query-parameters.dto"
 import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository"
@@ -28,9 +25,6 @@ import { CreateCourseEntryDto } from "../dto/entry/create-course-entry.dto"
 import { AddSectionToCourseApplicationService } from "src/course/application/services/commands/add-section-to-course-application.service"
 import { AddSectionToCourseEntryDto } from "../dto/entry/add-section-to-course-entry.dto"
 import { AzureFileUploader } from '../../../common/Infraestructure/azure-file-uploader/azure-file-uploader'
-import { FileInterceptor } from "@nestjs/platform-express"
-import { FileExtender } from "src/common/Infraestructure/interceptors/file-extender"
-import { Result } from "src/common/Domain/result-handler/Result"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
 import { CreateCourseSwaggerResponseDto } from "../dto/responses/create-course-swagger-response.dto"
 import { AddSectionToCourseResponseDto } from "../dto/responses/add-section-to-course-response.dto"
@@ -52,13 +46,11 @@ import { SearchCoursesByTrainerServiceEntryDto } from "../query-services/dto/par
 import { SearchMostPopularCoursesByTrainerService } from "../query-services/services/search-most-popular-courses-by-trainer.service"
 import { SearchRecentCoursesByTrainerService } from "../query-services/services/search-recent-courses-by-trainer.service"
 import { OdmCategoryRepository } from "src/categories/infraesctructure/repositories/odm-repositories/odm-category-repository"
-import { OdmCourseMapper } from "../mappers/odm-mappers/odm-course-mapper"
 import { CourseQuerySyncronizer } from '../query-synchronizers/course-query-synchronizer'
 import { SectionQuerySyncronizer } from '../query-synchronizers/section-query-synchronizer'
 import { GetCourseCountQueryParametersDto } from "../dto/queryParameters/get-course-count-query-parameters.dto"
 import { GetCourseCountService } from "../query-services/services/get-course-count.service"
 import { OdmTrainerRepository } from '../../../trainer/infraestructure/repositories/odm-repositories/odm-trainer-repository'
-import { OdmTrainerMapper } from '../../../trainer/infraestructure/mappers/odm-mapper/odm-trainer-mapper'
 import { BufferBase64ImageTransformer } from "src/common/Infraestructure/image-transformer/buffer-base64-image-transformer"
 import { AzureBufferImageHelper } from "src/common/Infraestructure/azure-file-getter/azure-get-file"
 import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
@@ -73,11 +65,10 @@ import { FirebaseNotifier } from "src/notification/infraestructure/notifier/fire
 import { OrmCategoryRepository } from '../../../categories/infraesctructure/repositories/orm-repositories/orm-category-repository'
 import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper"
 import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
-import getVideoDurationInSeconds from "get-video-duration"
 import { VideoDurationFetcher } from "src/common/Infraestructure/video-duration-fetcher/video-duration-fetcher"
 import { CourseMinutesDurationChanged } from "src/course/domain/events/course-minutes-duration-changed-event"
-import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer';
-import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer';
+import { CourseMinutesDurationChangedQuerySynchronizer } from '../query-synchronizers/course-minutes-duration-changed-query-synchronizer'
+import { ImageTransformer } from '../../../common/Infraestructure/image-helper/image-transformer'
 import { GetCountResponseDto } from "src/common/Infraestructure/dto/responses/get-count-response.dto"
 
 
@@ -89,7 +80,6 @@ export class CourseController
     private readonly notiAddressRepository: INotificationAddressRepository
     private readonly notiAlertRepository: INotificationAlertRepository
     private readonly courseRepository: OrmCourseRepository
-    private readonly progressRepository: OrmProgressCourseRepository
     private readonly auditingRepository: OrmAuditingRepository
     private readonly odmCategoryRepository: OdmCategoryRepository
     private readonly ormCategoryRepository: OrmCategoryRepository
@@ -99,8 +89,6 @@ export class CourseController
     private readonly idGenerator: IdGenerator<string>
     private readonly fileUploader: AzureFileUploader
     private readonly videoDurationFetcher: VideoDurationFetcher
-    private readonly odmCourseMapper: OdmCourseMapper
-    private readonly odmTrainerMapper: OdmTrainerMapper
     private readonly courseQuerySyncronizer: CourseQuerySyncronizer
     private readonly eventBus = RabbitEventBus.getInstance();
     private readonly courseMinutesDurationChangedQuerySynchronizer: CourseMinutesDurationChangedQuerySynchronizer
@@ -132,13 +120,7 @@ export class CourseController
                 new OrmSectionCommentMapper(),
                 dataSource
             )
-        this.progressRepository =
-            new OrmProgressCourseRepository(
-                new OrmProgressCourseMapper(),
-                new OrmProgressSectionMapper(),
-                this.courseRepository,
-                dataSource,
-                new UuidGenerator() )
+
         this.auditingRepository = new OrmAuditingRepository( dataSource )
 
         this.trainerRepository = new OrmTrainerRepository(
@@ -152,7 +134,6 @@ export class CourseController
 
         this.odmCourseRepository = new OdmCourseRepository( this.courseModel, this.sectionCommentModel)
 
-        this.odmCourseMapper = new OdmCourseMapper()
 
         this.odmTrainerRepository = new OdmTrainerRepository( this.trainerModel, this.userModel)
         this.odmCategoryRepository = new OdmCategoryRepository( this.categoryModel )
@@ -166,7 +147,6 @@ export class CourseController
             this.odmCourseRepository
         )
 
-        this.odmTrainerMapper = new OdmTrainerMapper()
 
         this.sectionQuerySyncronizer = new SectionQuerySyncronizer(
             this.odmCourseRepository

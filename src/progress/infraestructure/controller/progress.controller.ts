@@ -1,64 +1,53 @@
-import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { OrmProgressCourseRepository } from "../repositories/orm-repositories/orm-progress-course-repository";
-import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard";
-import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator";
-import { User } from "src/user/domain/user";
-import { DataSource } from "typeorm";
-import { OrmProgressCourseMapper } from "../mappers/orm-mappers/orm-progress-course-mapper";
-import { OrmProgressSectionMapper } from "../mappers/orm-mappers/orm-progress-section-mapper";
-import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository";
-import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper";
-import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper";
-import { OrmTrainerMapper } from "src/trainer/infraestructure/mappers/orm-mapper/orm-trainer-mapper";
-import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper";
-import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator";
-import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator";
-import { NativeLogger } from "src/common/Infraestructure/logger/logger";
-import { SaveSectionProgressApplicationService } from "src/progress/application/services/commands/save-progress-section.application.service";
+import { Body, Controller, Get, Inject, Logger, Param, ParseUUIDPipe, Post, Query, UseGuards } from "@nestjs/common"
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { OrmProgressCourseRepository } from "../repositories/orm-repositories/orm-progress-course-repository"
+import { JwtAuthGuard } from "src/auth/infraestructure/jwt/decorator/jwt-auth.guard"
+import { GetUser } from "src/auth/infraestructure/jwt/decorator/get-user.param.decorator"
+import { DataSource } from "typeorm"
+import { OrmProgressCourseMapper } from "../mappers/orm-mappers/orm-progress-course-mapper"
+import { OrmProgressSectionMapper } from "../mappers/orm-mappers/orm-progress-section-mapper"
+import { OrmCourseRepository } from "src/course/infraestructure/repositories/orm-repositories/orm-couser-repository"
+import { OrmCourseMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-course-mapper"
+import { OrmSectionMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-mapper"
+import { OrmSectionCommentMapper } from "src/course/infraestructure/mappers/orm-mappers/orm-section-comment-mapper"
+import { ExceptionDecorator } from "src/common/Application/application-services/decorators/decorators/exception-decorator/exception.decorator"
+import { LoggingDecorator } from "src/common/Application/application-services/decorators/decorators/logging-decorator/logging.decorator"
+import { NativeLogger } from "src/common/Infraestructure/logger/logger"
+import { SaveSectionProgressApplicationService } from "src/progress/application/services/commands/save-progress-section.application.service"
 import { HttpExceptionHandler } from "src/common/Infraestructure/http-exception-handler/http-exception-handler"
-import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator";
-import { SaveProgressEntryDto } from "../dto/entry/save-progress-entry.dto";
-import { setUncaughtExceptionCaptureCallback } from "process";
-import { SaveSectionProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-section-entry.dto";
-import { GetCourseProgressSwaggerResponseDto } from "../dto/response/get-course-progress-swagger-response.dto";
-import { GetAllSectionsFromCourseEntryDto } from "src/progress/application/dto/parameters/get-all-sections-from-course-entry.dto";
-import { GetAllSectionsFromCourseApplicationService } from "src/progress/application/services/queries/get-all-sections-from-course.application.service";
-import { GetTrendingCourseSwaggerResponseDto } from "../dto/response/get-trending-progress-swagger-response.dto";
-import { GetTrendingCourseApplicationService } from "src/progress/application/services/queries/get-trending-course.application.service";
-import { GetProgressProfileSwaggerResponseDto } from "../dto/response/get-progress-profile-swagger-response.dto";
-import { GetProgressProfileApplicationService } from "src/progress/application/services/queries/get-progress-profile.application.service";
-import { GetAllStartedCoursesSwaggerEntryDto } from "../dto/entry/get-all-started-courses-entry.dto";
-import { GetAllStartedCoursesSwaggerResponseDto } from "../dto/response/get-all-started-courses-response.dto";
-import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto";
-import { GetAllStartedCoursesApplicationService } from "src/progress/application/services/queries/get-all-started-courses.application.service";
-import { OrmCategoryRepository } from "src/categories/infraesctructure/repositories/orm-repositories/orm-category-repository";
-import { OrmCategoryMapper } from "src/categories/infraesctructure/mappers/orm-mappers/orm-category-mapper";
-import { OrmTrainerRepository } from "src/trainer/infraestructure/repositories/orm-repositories/orm-trainer-repository";
-import { InitiateCourseProgressEntryDto } from "src/progress/application/dto/parameters/initiate-course-progress-entry.dto";
-import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus";
-import { CourseInitiated } from "src/progress/domain/events/course-initiated-event";
-import { InitiateCourseProgressApplicationService } from "src/progress/application/services/commands/initiate-course-progress.application.service";
-import { UserHasProgressed } from "src/progress/domain/events/user-has-progressed-event";
-import { SectionCompleted } from "src/progress/domain/events/section-completed-event";
-import { CourseCompleted } from "src/progress/domain/events/course-completed-event";
-import { CourseSubscriptionCreated } from "src/progress/domain/events/course-subscription-created-event";
-import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface";
-import { ProgressQueryRepository } from "../repositories/progress-query-repository.interface";
-import { Model } from "mongoose";
-import { OdmProgressEntity } from "../entities/odm-entities/odm-progress.entity";
-import { InitiateProgressQuerySynchronizer } from "../query-synchronizers/initiate-progress-query-synchronizer";
-import { CourseCompletedQuerySynchronizer } from "../query-synchronizers/course-completed-query-synchronizer";
-import { SectionCompletedQuerySynchronizer } from "../query-synchronizers/section-completed-query-synchronizer";
-import { SaveProgressQuerySynchronizer } from "../query-synchronizers/save-progress-query-synchronizer";
-import { InjectModel } from "@nestjs/mongoose";
-import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository";
-import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity";
-import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity";
-import { OdmProgressRepository } from "../repositories/odm-repositories/odm-progress-repository";
-import { GetCourseProgressService } from "../query-services/services/get-all-sections-from-course.service";
-import { GetTrendingCourseService } from "../query-services/services/get-trending-course.service";
-import { GetAllStartedCoursesService } from "../query-services/services/get-all-started-courses.service";
+import { UuidGenerator } from "src/common/Infraestructure/id-generator/uuid-generator"
+import { SaveProgressEntryDto } from "../dto/entry/save-progress-entry.dto"
+import { SaveSectionProgressServiceEntryDto } from "src/progress/application/dto/parameters/save-progress-section-entry.dto"
+import { GetCourseProgressSwaggerResponseDto } from "../dto/response/get-course-progress-swagger-response.dto"
+import { GetAllSectionsFromCourseEntryDto } from "src/progress/application/dto/parameters/get-all-sections-from-course-entry.dto"
+import { GetTrendingCourseSwaggerResponseDto } from "../dto/response/get-trending-progress-swagger-response.dto"
+import { GetAllStartedCoursesSwaggerEntryDto } from "../dto/entry/get-all-started-courses-entry.dto"
+import { GetAllStartedCoursesSwaggerResponseDto } from "../dto/response/get-all-started-courses-response.dto"
+import { PaginationDto } from "src/common/Infraestructure/dto/entry/pagination.dto"
+import { InitiateCourseProgressEntryDto } from "src/progress/application/dto/parameters/initiate-course-progress-entry.dto"
+import { RabbitEventBus } from "src/common/Infraestructure/rabbit-event-bus/rabbit-event-bus"
+import { InitiateCourseProgressApplicationService } from "src/progress/application/services/commands/initiate-course-progress.application.service"
+import { UserHasProgressed } from "src/progress/domain/events/user-has-progressed-event"
+import { SectionCompleted } from "src/progress/domain/events/section-completed-event"
+import { CourseCompleted } from "src/progress/domain/events/course-completed-event"
+import { CourseSubscriptionCreated } from "src/progress/domain/events/course-subscription-created-event"
+import { CourseQueryRepository } from "src/course/infraestructure/repositories/course-query-repository.interface"
+import { ProgressQueryRepository } from "../repositories/progress-query-repository.interface"
+import { Model } from "mongoose"
+import { OdmProgressEntity } from "../entities/odm-entities/odm-progress.entity"
+import { InitiateProgressQuerySynchronizer } from "../query-synchronizers/initiate-progress-query-synchronizer"
+import { CourseCompletedQuerySynchronizer } from "../query-synchronizers/course-completed-query-synchronizer"
+import { SectionCompletedQuerySynchronizer } from "../query-synchronizers/section-completed-query-synchronizer"
+import { SaveProgressQuerySynchronizer } from "../query-synchronizers/save-progress-query-synchronizer"
+import { InjectModel } from "@nestjs/mongoose"
+import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
+import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
+import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm-entities/odm-section-comment.entity"
+import { OdmProgressRepository } from "../repositories/odm-repositories/odm-progress-repository"
+import { GetCourseProgressService } from "../query-services/services/get-all-sections-from-course.service"
+import { GetTrendingCourseService } from "../query-services/services/get-trending-course.service"
+import { GetAllStartedCoursesService } from "../query-services/services/get-all-started-courses.service"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags('Progress')
 @Controller('progress')
@@ -66,8 +55,6 @@ export class ProgressController {
 
     private readonly progressRepository:OrmProgressCourseRepository;
     private readonly courseRepository:OrmCourseRepository;
-    private readonly categoryRepository:OrmCategoryRepository;
-    private readonly trainerRepository:OrmTrainerRepository;
 
     private readonly odmCourseRepository:CourseQueryRepository;
     private readonly odmProgressRepository:ProgressQueryRepository;
@@ -102,14 +89,7 @@ export class ProgressController {
             dataSource,
             new UuidGenerator()
         );
-        this.categoryRepository = new OrmCategoryRepository(
-            new OrmCategoryMapper(),
-            dataSource
-        );
-        this.trainerRepository = new OrmTrainerRepository(
-            new OrmTrainerMapper(),
-            dataSource
-        );
+
 
         this.odmCourseRepository = new OdmCourseRepository(
             this.courseModel,
@@ -150,7 +130,10 @@ export class ProgressController {
         const service = 
         new ExceptionDecorator (
             new LoggingDecorator (
-                new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus, new UuidGenerator()),
+                new PerformanceDecorator(
+                    new InitiateCourseProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus, new UuidGenerator()),
+                    new NativeLogger( this.logger )
+                ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
@@ -180,7 +163,10 @@ export class ProgressController {
 
         const saveSectionProgressService = new ExceptionDecorator(
             new LoggingDecorator(
-                new SaveSectionProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus),
+                new PerformanceDecorator(
+                    new SaveSectionProgressApplicationService(this.progressRepository, this.courseRepository, this.eventBus),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -191,7 +177,7 @@ export class ProgressController {
 
         this.eventBus.subscribe('UserHasProgressed', async (event: UserHasProgressed) => {
             //TEST
-                console.log("Callback fn!")
+                //console.log("Callback fn!")
             this.userProgressedQuerySynchronizer.execute( event );
         });
         if (sectionUpdate.sectionWasCompleted)
@@ -222,7 +208,10 @@ export class ProgressController {
 
         const getAllSectionsApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetCourseProgressService(this.odmProgressRepository),
+                new PerformanceDecorator(
+                    new GetCourseProgressService(this.odmProgressRepository),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -252,7 +241,10 @@ export class ProgressController {
 
         const getTrendingApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetTrendingCourseService(this.odmProgressRepository),
+                new PerformanceDecorator(
+                    new GetTrendingCourseService(this.odmProgressRepository),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()
@@ -314,7 +306,10 @@ export class ProgressController {
 
         const getAllStartedCoursesApplicationService = new ExceptionDecorator(
             new LoggingDecorator(
-                new GetAllStartedCoursesService(this.odmProgressRepository),
+                new PerformanceDecorator(
+                    new GetAllStartedCoursesService(this.odmProgressRepository),
+                    new NativeLogger(this.logger)
+                ),
                 new NativeLogger(this.logger)
             ),
             new HttpExceptionHandler()

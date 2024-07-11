@@ -46,6 +46,7 @@ import { TrainerFollowed } from "src/trainer/domain/events/trainer-followed-even
 import { TrainerFollowQuerySyncronizer } from '../query-synchronizers/trainer-follow-query-synchronizer';
 import { TrainerUnfollowed } from "src/trainer/domain/events/trainer-unfollowed-event"
 import { TrainerUnFollowQuerySyncronizer } from "../query-synchronizers/trainer-unfollow-query-synchronizer"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags('Trainer')
 @Controller('trainer')
@@ -57,8 +58,6 @@ export class TrainerController {
     private readonly trainerUnFollowQuerySyncronizer: TrainerUnFollowQuerySyncronizer
     private readonly eventBus = RabbitEventBus.getInstance();
     //Course and Blog coupling
-    private readonly courseRepository:OrmCourseRepository;
-    private readonly blogRepository:OrmBlogRepository;
     //CCC Logging
     private readonly logger:Logger = new Logger( "TrainerController" );
 
@@ -70,21 +69,6 @@ export class TrainerController {
         this.trainerRepository = new OrmTrainerRepository(new OrmTrainerMapper(), dataSource);
         this.odmTrainerRepository = new OdmTrainerRepository(trainerModel, userModel);
 
-        this.courseRepository =
-            new OrmCourseRepository(
-                new OrmCourseMapper(
-                    new OrmSectionMapper()
-                ),
-                new OrmSectionMapper(),
-                new OrmSectionCommentMapper(),
-                dataSource
-            );
-        this.blogRepository = 
-            new OrmBlogRepository(
-                new OrmBlogMapper(),
-                new OrmBlogCommentMapper(),
-                dataSource
-            );
         this.trainerFollowQuerySyncronizer = new TrainerFollowQuerySyncronizer(this.odmTrainerRepository);
         this.trainerUnFollowQuerySyncronizer = new TrainerUnFollowQuerySyncronizer(this.odmTrainerRepository);
     }
@@ -98,8 +82,11 @@ export class TrainerController {
         const service = 
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new GetTrainerProfileApplicationService(
-                        this.odmTrainerRepository
+                    new PerformanceDecorator(    
+                        new GetTrainerProfileApplicationService(
+                            this.odmTrainerRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),
@@ -147,7 +134,10 @@ export class TrainerController {
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                baseService,
+                new PerformanceDecorator(
+                    baseService,
+                    new NativeLogger( this.logger )
+                ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
@@ -195,7 +185,10 @@ export class TrainerController {
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                baseService,
+                new PerformanceDecorator(
+                    baseService,
+                    new NativeLogger( this.logger)
+                ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()
@@ -231,7 +224,10 @@ export class TrainerController {
         const service = 
         new ExceptionDecorator(
             new LoggingDecorator(
-                new GetUserFollowingCountApplicationService( this.odmTrainerRepository ),
+                new PerformanceDecorator(
+                    new GetUserFollowingCountApplicationService( this.odmTrainerRepository ),
+                    new NativeLogger( this.logger )
+                ),
                 new NativeLogger( this.logger )
             ),
             new HttpExceptionHandler()

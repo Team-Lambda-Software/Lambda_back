@@ -24,6 +24,7 @@ import { OdmSectionCommentEntity } from "src/course/infraestructure/entities/odm
 import { OdmCourseEntity } from "src/course/infraestructure/entities/odm-entities/odm-course.entity"
 import { OdmCourseRepository } from "src/course/infraestructure/repositories/odm-repositories/odm-course-repository"
 import { SearchAllTagsService } from "../query-services/services/search-all-tags.service"
+import { PerformanceDecorator } from "src/common/Application/application-services/decorators/decorators/performance-decorator/performance.decorator"
 
 @ApiTags( 'Search' )
 @Controller( 'search' )
@@ -70,9 +71,12 @@ export class SearchController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new SearchAllService(
-                        this.courseRepository,
-                        this.blogRepository
+                    new PerformanceDecorator(    
+                        new SearchAllService(
+                            this.courseRepository,
+                            this.blogRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),
@@ -95,9 +99,12 @@ export class SearchController
         const service =
             new ExceptionDecorator(
                 new LoggingDecorator(
-                    new SearchAllTagsService(
-                        this.courseRepository,
-                        this.blogRepository
+                    new PerformanceDecorator(
+                        new SearchAllTagsService(
+                            this.courseRepository,
+                            this.blogRepository
+                        ),
+                        new NativeLogger( this.logger )
                     ),
                     new NativeLogger( this.logger )
                 ),
