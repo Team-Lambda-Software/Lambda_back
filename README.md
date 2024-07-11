@@ -140,5 +140,6 @@ $ npm run test
 
 ## Autores
 | <img src="https://avatars.githubusercontent.com/u/114821565?s=400&u=ff1e744b3abd5e4315b008d3ad96168b508319ab&v=4" width=115><br><sub>Samuel Alonso</sub> |  
-| <img src="https://drive.google.com/file/d/1r7iArl0Pf9n_wNiBJ5FZjH899lwVoieH/view?usp=sharing" width=115><br><sub>Andres Forero</sub> | 
+| :---: | 
+| <img src="https://lh3.googleusercontent.com/pw/AP1GczPamRvw2yI6KQwiUu7H4FIw9GdPDo8ZY1b4ElwGL8hh1TqT4RddKGwdnDOaJktXejqgHJvYEiTCgUo8dykZ4a9LUXb55Cxkot9ZywUXkSzrwzF3Uhp3=w2400" width=115><br><sub>Andres Forero</sub> | 
 | :---: | 
