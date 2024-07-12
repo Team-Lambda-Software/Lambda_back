@@ -139,7 +139,5 @@ $ npm run test
   Controlador de módulos Progress y Trainer. Entidades ORM de los módulos Progress y Trainer. Entidades ODM, sincronizadores de las bases de datos y servicios de query del módulo Progress.
 
 ## Autores
-| <img src="https://avatars.githubusercontent.com/u/114821565?s=400&u=ff1e744b3abd5e4315b008d3ad96168b508319ab&v=4" width=115><br><sub>Samuel Alonso</sub> |  
-| :---: | 
-| <img src="https://lh3.googleusercontent.com/pw/AP1GczPamRvw2yI6KQwiUu7H4FIw9GdPDo8ZY1b4ElwGL8hh1TqT4RddKGwdnDOaJktXejqgHJvYEiTCgUo8dykZ4a9LUXb55Cxkot9ZywUXkSzrwzF3Uhp3=w2400" width=115><br><sub>Andres Forero</sub> | 
-| :---: | 
+| <img src="https://avatars.githubusercontent.com/u/114821565?s=400&u=ff1e744b3abd5e4315b008d3ad96168b508319ab&v=4" width=110><br><sub>Samuel Alonso</sub> | <img src="https://lh3.googleusercontent.com/pw/AP1GczPamRvw2yI6KQwiUu7H4FIw9GdPDo8ZY1b4ElwGL8hh1TqT4RddKGwdnDOaJktXejqgHJvYEiTCgUo8dykZ4a9LUXb55Cxkot9ZywUXkSzrwzF3Uhp3=w2400" width=110><br><sub>Andres Forero</sub> | <img src="./imgs/WhatsApp Image 2024-07-11 at 11.16.44 PM.jpeg" width=110><br><sub>Hualong Chiang</sub>  | <img src="./imgs/WhatsApp Image 2024-07-11 at 11.21.00 PM.jpeg" width=110><br><sub>Luigi Bastidas</sub> | 
+| :---: | :---: | :---: | :---: | 
