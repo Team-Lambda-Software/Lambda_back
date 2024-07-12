@@ -1,25 +1,15 @@
 version: '3.8'
 services:
-  devcontainer:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ../..:/workspaces:cached      
+  mongoDb:
+    image: mongo:5
+    container_name: mongo-lambda
+    restart: always
     ports:
-      - "${PORT}:3000"
-    restart: on-failure
+      - ${MONGO_PORT}:27017
     environment:
-      PORT: 3000
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USERNAME: postgres
-
-    depends_on:
-      - db
-    container_name: lambda_devcontainer
+      MONGODB_DATABASE: lambda-gymnastic
+    volumes:
+      - /mongo:/data/db
     networks:
       - lambda-network
 
@@ -31,11 +21,32 @@ services:
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+    env_file: ".env"
     container_name: lambda_database
     networks:
       - lambda-network
     volumes:
-      - ../../postgres:/var/lib/postgresql/data
+      - /postgres:/var/lib/postgresql/data
+
+  devcontainer:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached      
+    ports:
+      - ${PORT}:5555
+    restart: always
+    env_file: ".env"
+    depends_on:
+      - db
+      - mongoDb
+    container_name: lambda_devcontainer
+    networks:
+      - lambda-network
+
+  
 
 networks:
   lambda-network:

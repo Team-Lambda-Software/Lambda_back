@@ -7,7 +7,7 @@ import { OrmCourseMapper } from "../mappers/orm-mappers/orm-course-mapper"
 import { NativeLogger } from "src/common/Infraestructure/logger/logger"
 import { OrmSectionMapper } from "../mappers/orm-mappers/orm-section-mapper"
 import { OrmSectionCommentMapper } from "../mappers/orm-mappers/orm-section-comment-mapper"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { GetCourseSwaggerResponseDto } from "../dto/responses/get-course-swagger-response.dto"
 import { SearchCoursesSwaggerResponseDto } from "../dto/responses/search-courses-swagger-response.dto"
 import { OrmAuditingRepository } from "src/common/Infraestructure/auditing/repositories/orm-repositories/orm-auditing-repository"
@@ -251,6 +251,23 @@ export class CourseController
     @UseGuards( JwtAuthGuard )
     @ApiBearerAuth()
     @ApiOkResponse( { description: 'Agrega una seccion a un curso', type: AddSectionToCourseResponseDto } )
+    @ApiConsumes('multipart/form-data')
+    @ApiBody( {
+        schema: {
+            type: 'object',
+            properties: {
+                name: { type: 'integer' },
+                description: { type: 'string' },
+                duration: { type: 'integer' },
+                paragraph: { type: 'string' },
+
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                }
+            },
+        },
+    } )
     @UseInterceptors(FileExtender)
     @UseInterceptors(FileInterceptor('file'))
     async addSectionToCourse ( @UploadedFile() file: Express.Multer.File, @Param( 'courseId', ParseUUIDPipe ) courseId: string, @Body() addSectionToCourseEntryDto: AddSectionToCourseEntryDto, @GetUser() user )
