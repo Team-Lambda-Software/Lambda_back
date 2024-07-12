@@ -25,7 +25,12 @@ Nuestra aplicación utiliza varios patrones de diseño y arquitecturas para gara
 - **Programación Orientada a Aspectos (AOP) con Decoradores**: Los decoradores nos permiten añadir funcionalidades adicionales a nuestras clases y métodos de una manera limpia y reutilizable.
 
 - **Diseño Guiado por el Dominio (DDD)**: Este enfoque nos ayuda a modelar la lógica del negocio buscando reflejar el dominio del problema.
-
+## docker
+ - Abrir docker desktop
+ - Ejecutar:
+```bash
+$ npm run docker:start
+```
 ## Instalacion
 
 ```bash
