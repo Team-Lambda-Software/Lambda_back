@@ -112,6 +112,8 @@ export class CategoryController {
         this.odmCategoryRepository.saveCategory(category);
       },
     );
+
+    return { res: result.Value};
   }
 
   @Get('many')
