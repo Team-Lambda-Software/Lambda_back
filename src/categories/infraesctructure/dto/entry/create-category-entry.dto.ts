@@ -1,16 +1,17 @@
-import { IsString, MinLength } from "class-validator"
-
-
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, MinLength } from 'class-validator';
 
 export class CreateCategoryEntryDto {
+  @ApiProperty({
+    example: 'Category name',
+  })
+  @IsString()
+  @MinLength(3)
+  name: string;
 
-    @IsString()
-    id: string;
-
-    @IsString()
-    @MinLength(3)
-    categoryName: string;
-
-    @IsString()
-    icon: string;
+  @ApiProperty({
+    example: 'base64image',
+  })
+  @IsString()
+  icon: string;
 }
