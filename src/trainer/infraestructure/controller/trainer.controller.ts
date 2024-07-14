@@ -131,6 +131,8 @@ export class TrainerController {
     const result = await service.execute({ userId: user.id, ...body });
 
     this.eventBus.subscribe('TrainerCreated', async (event: TrainerCreated) => {
+      const long = event.location.longitude ? event.location.longitude : null;
+      const lat = event.location.latitude ? event.location.latitude : null;
       const trainer = await this.trainerModel.create({
         id: event.id,
         first_name: event.name.firstName,
@@ -143,7 +145,7 @@ export class TrainerController {
       });
       await this.odmTrainerRepository.saveTrainer(trainer);
     });
-    return result.Value;
+    return { res: result.Value };
   }
 
   @Get('one/:id')
